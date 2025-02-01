@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
@@ -6,8 +7,8 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
-# Use environment variables
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 port = os.getenv('PORT', 5000)  # Default to 5000 if not set in .env
 
