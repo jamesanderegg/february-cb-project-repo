@@ -1,14 +1,8 @@
 import Image from "next/image";
-<<<<<<< Updated upstream
 import FlaskData from "./components/FlaskData";
-=======
-<<<<<<< HEAD
-import FlaskData from "./components/FlaskData";
-=======
 import ThreeScene from "./components/ThreeScene"; // ✅ Import the Three.js component
 
->>>>>>> 15a9edd (Integrated Three.js scene into Next.js page.tsx)
->>>>>>> Stashed changes
+
 export default function Home() {
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
