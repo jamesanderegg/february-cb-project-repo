@@ -1,0 +1,18 @@
+# Ignore Python virtual environment
+backend/venv/
+
+# Ignore Python cache
+backend/__pycache__/
+
+# Ignore Flask environment variables
+backend/.env
+
+# Ignore Next.js build and dependencies
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env
+
+# Ignore general system files
+.DS_Store
+Thumbs.db
