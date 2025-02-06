@@ -7,7 +7,8 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for now
+ 
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 port = os.getenv('PORT', 5000)  # Default to 5000 if not set in .env

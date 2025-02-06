@@ -1,19 +1,42 @@
-# Ignore Python virtual environment
+# Ignore backend and frontend virtual environments
 backend/venv/
+frontend/node_modules/
+
+# Ignore environment variables
+.env
+backend/.env
+frontend/.env
+
+# Ignore logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Ignore build directories
+dist/
+dist-ssr/
+*.local
 
 # Ignore Python cache
-backend/__pycache__/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Ignore Flask environment variables
-backend/.env
-
-# Ignore Next.js build and dependencies
-frontend/fe-february-cb-project/
-frontend/fe-february-cb-project/.next/
-frontend/fe-february-cb-project/node_modules/
-frontend/fe-february-cb-project/.env.local
-frontend/fe-february-cb-project/.env
-
-# Ignore general system files
+# Ignore Editor/IDE files
+.vscode/
+!.vscode/extensions.json
+.idea/
 .DS_Store
-Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Ignore dependency directories
+node_modules/
