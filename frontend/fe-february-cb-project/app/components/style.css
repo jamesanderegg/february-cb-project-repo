@@ -1,0 +1,11 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: unset;
+}
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
