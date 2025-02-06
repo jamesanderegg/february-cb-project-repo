@@ -1,5 +1,5 @@
 import FlaskData from "./components/FlaskData";
-import DynamicThreeFiber from "./components/DynamicThreeFiber";
+import DynamicThreeFiber from "./components/DynamicThreeFiber/DynamicThreeFiber";
 import ThreeScene from "./components/ThreeScene";
 
 export default function Home() {
