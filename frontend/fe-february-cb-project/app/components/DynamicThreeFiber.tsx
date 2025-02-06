@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-const ThreeFiber = dynamic(() => import("./ThreeFiber"), {
+const ThreeFiber = dynamic(() => import("./ThreeFiber.tsx"), {
   ssr: false,
   loading: () => <div>Loading 3D Scene...</div>,
 });
