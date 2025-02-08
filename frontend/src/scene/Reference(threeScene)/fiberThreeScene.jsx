@@ -1,4 +1,4 @@
-//translated by ChatGPT from threeScene
+//translated terribly by ChatGPT from threeScene
 
 import React from 'react'
 import { Canvas } from '@react-three/fiber'
