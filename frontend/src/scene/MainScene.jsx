@@ -38,13 +38,13 @@ export default function App() {
         }}
       />
 
-<Model
+      <Model
         filePath="apple.glb"
         scale={0.05}
         position={[-1.5, 0, -1]}
         color="red"
       />
-      
+
       <Scene />
       <OrbitControls enableDamping />
     </Canvas>
