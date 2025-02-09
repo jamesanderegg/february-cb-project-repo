@@ -54,6 +54,7 @@
 import React from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Grid } from "@react-three/drei";
+import Tables from './Tables'
 
 // Floor Component
 function Floors() {
@@ -218,6 +219,7 @@ function Scene() {
         wall6: { x: 4, y: 2.5, z: -7.75 },
       },
     },
+    <Tables />
   ];
 
   return (
