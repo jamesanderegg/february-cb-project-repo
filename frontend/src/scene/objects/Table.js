@@ -2,7 +2,7 @@
 const table = new THREE.Group();
 
 const tableBaseGeometry = new THREE.CylinderGeometry(0.25, 0.75, 0.25);
-const tableMaterial = new THREE.MeshBasicMaterial({color:'white', side: THREE.DoubleSide});
+const tableMaterial = new THREE.MeshBasicMaterial({color:'#3d1010', side: THREE.DoubleSide});
 const tableBase = new THREE.Mesh(tableBaseGeometry, tableMaterial);
 tableBase.position.set(0, 0.125, 0);
 tableBase.add(table);
