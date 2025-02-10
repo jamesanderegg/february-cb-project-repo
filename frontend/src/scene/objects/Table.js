@@ -18,3 +18,7 @@ tableTop.position.set(0, 1.125, 0);
 tableTop.add(table);
 
 scene.add(table);
+
+
+
+export default table
