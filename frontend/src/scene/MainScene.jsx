@@ -6,6 +6,8 @@ import AmbientLight from "./lights/AmbientLight";
 import DirectionalLight from "./lights/DirectionalLight";
 
 import Model from "../helper/Model";
+
+
 import PrimaryCamera from "./camera/PrimaryCamera";
 import PiPCamera from "./camera/PiPCamera"; // Importing PiP Camera
 
@@ -37,7 +39,12 @@ export default function App() {
           mapSize: [2048, 2048],
         }}
       />
-
+<Model
+        filePath="robot.glb"
+        scale={.02}
+        position={[5, 0, 15]}
+        
+      />
       <Model
         filePath="apple.glb"
         scale={0.05}
