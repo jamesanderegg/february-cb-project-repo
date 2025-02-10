@@ -33,9 +33,11 @@ function App() {
         
         <p>{apiResponse}</p>
       </div>
+      <div className="main">
       <MainScene />
 
  
+    </div>
     </>
   );
 }
