@@ -53,7 +53,7 @@ export default function RobotWithCamera({ position }) {
       <Model ref={robotRef} filePath="robot.glb" scale={0.02} position={position} />
 
       {/* Robot Camera */}
-      <PerspectiveCamera ref={cameraRef} fov={60} aspect={1} near={0.1} far={1000} />
+      <PerspectiveCamera ref={cameraRef} fov={60} aspect={1} near={1} far={8} />
 
       {/* Ball to show camera's position */}
       <mesh ref={ballRef} position={[0, 0, 0]}>

@@ -72,8 +72,8 @@ const tableConfigs = [
 
       <Model
         filePath="apple.glb"
-        scale={0.05}
-        position={[-1.5, 0, -1]}
+        scale={0.005}
+        position={[-1.5, 1.26, -.5]}
         color="red"
         castShadow 
       />
