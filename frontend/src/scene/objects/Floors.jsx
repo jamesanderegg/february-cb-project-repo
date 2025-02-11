@@ -1,5 +1,5 @@
 import React from "react";
-import { DoubleSide } from "three";
+
 
 function Floors() {
     const floorConfigs = [

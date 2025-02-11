@@ -10,12 +10,10 @@ const FiberTable = ({
   standRadiusTop = 0.15,
   standRadiusBottom = 0,
   standHeight = 1,
-  topSize = [1.4, 0.025, 1.4],
-  key, 
-
+  topSize = [1.4, 0.025, 1.4]
 }) => {
   return (
-    <group position={position} key={key} castShadow receiveShadow>
+    <group position={position} castShadow receiveShadow>
       {/* Table Base */}
       <Cylinder
         args={[baseRadiusTop, baseRadiusBottom, baseHeight, 32]}
