@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, forwardRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { TextureLoader } from "three";
 
-const Model = ({ filePath, scale = 1, position = [0, 0, 0], color, texturePath }) => {
+const Model = forwardRef(({ filePath, scale = 1, position = [0, 0, 0], color, texturePath }, ref) => {
   const { scene } = useGLTF(`models/${filePath}`);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const Model = ({ filePath, scale = 1, position = [0, 0, 0], color, texturePath }
     });
   }, [scene, color, texturePath]);
 
-  return <primitive object={scene} scale={scale} position={position} />;
-};
+  return <primitive object={scene} scale={scale} position={position} ref={ref} />;
+});
 
 export default Model;

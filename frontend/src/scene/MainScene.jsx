@@ -13,6 +13,8 @@ import PiPCamera from "./camera/PiPCamera";
 import Scene from "./objects/Scene"
 import FiberTable from "./objects/FiberTable"
 
+import RobotWithCamera from "./objects/RobotWithCamera";
+
 export default function App() {
 
   // Table configurations - each entry contains color and position
@@ -66,13 +68,8 @@ const tableConfigs = [
         castShadow={true}
         shadowProps={{ near: 0.1, far: 1000, mapSize: [1024, 1024] }}
       />
+      <RobotWithCamera position={[5, 0, 15]} />
 
-      <Model
-        filePath="robot.glb"
-        scale={.02}
-        position={[5, 0, 15]}
-        castShadow 
-      />
       <Model
         filePath="apple.glb"
         scale={0.05}
