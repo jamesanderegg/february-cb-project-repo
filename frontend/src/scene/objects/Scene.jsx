@@ -74,7 +74,7 @@ function Scene() {
       <>
         {/* Helpers */}
         <axesHelper args={[2]} />
-        <Grid args={[100, 100]} />
+        {/* <Grid args={[100, 100]} /> */}
   
     
         {/* Floors */}

@@ -8,7 +8,7 @@ import DirectionalLight from "./lights/DirectionalLight";
 
 import Model from "../helper/Model";
 import PrimaryCamera from "./camera/PrimaryCamera";
-import PiPCamera from "./camera/PiPCamera";
+
 
 import Scene from "./objects/Scene"
 import FiberTable from "./objects/FiberTable"
@@ -56,7 +56,7 @@ const tableConfigs = [
       className="w-screen h-screen"
       shadows
     >
-      <PrimaryCamera position={[30, 80, 100]} lookAt={[0, 0, 0]} />
+      <PrimaryCamera position={[30, 90, 20]} lookAt={[0, 0, 0]} />
 
       {/* Lights */}
       <AmbientLight />
@@ -73,7 +73,7 @@ const tableConfigs = [
       <Model
         filePath="apple.glb"
         scale={0.05}
-        position={[-1.5, 0, -1]}
+        position={[-10, 0, -1]}
         color="red"
         castShadow 
       />
