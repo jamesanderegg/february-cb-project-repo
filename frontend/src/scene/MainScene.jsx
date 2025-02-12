@@ -15,7 +15,7 @@ import FiberTable from "./objects/FiberTable"
 
 import RobotWithCamera from "./objects/RobotWithCamera";
 
-export default function App() {
+export default function App({ robotCameraRef}) {
 
   // Table configurations - each entry contains color and position
 const tableConfigs = [
@@ -68,7 +68,7 @@ const tableConfigs = [
         castShadow={true}
         shadowProps={{ near: 0.1, far: 1000, mapSize: [1024, 1024] }}
       />
-      <RobotWithCamera position={[5, 0, 15]} />
+      <RobotWithCamera position={[5, 0, 15]} robotCameraRef={robotCameraRef} />
 
       <Model
         filePath="apple.glb"
