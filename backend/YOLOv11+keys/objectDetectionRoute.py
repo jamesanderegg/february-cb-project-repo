@@ -5,7 +5,9 @@ import torch
 
 app = Flask(__name__)
 
-# Load your YOLOv11m model
+# Load YOLOv11m model
+# model from Ultralytics 
+# keys dataSet curated using images from Pixabay--bb created using roboflow--model trained on Google Colab
 model = torch.hub.load('ultralytics/yolov11m', 'custom', path='backend/YOLOv11+keys/best.pt')
 
 @app.route('/detect', methods=['POST'])
