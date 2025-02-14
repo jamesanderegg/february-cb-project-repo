@@ -46,18 +46,18 @@ export default function RobotWithCamera({ position, robotCameraRef }) {
       let newRotation = rotation;
 
       // Apply acceleration in current direction
-      if (keysPressed.current.has("w")) {
+      if (keysPressed.current.has("w") || keysPressed.current.has("ArrowUp")) {
         newVelocity.x -= acceleration * Math.sin(rotation);
         newVelocity.z -= acceleration * Math.cos(rotation);
       }
-      if (keysPressed.current.has("s")) {
+      if (keysPressed.current.has("s") || keysPressed.current.has("ArrowDown")) {
         newVelocity.x += acceleration * Math.sin(rotation);
         newVelocity.z += acceleration * Math.cos(rotation);
       }
 
       // Apply rotation
-      if (keysPressed.current.has("a")) newRotation += turnSpeed;
-      if (keysPressed.current.has("d")) newRotation -= turnSpeed;
+      if (keysPressed.current.has("a") || keysPressed.current.has("ArrowLeft")) newRotation += turnSpeed;
+      if (keysPressed.current.has("d") || keysPressed.current.has("ArrowRight")) newRotation -= turnSpeed;
 
       // Limit speed
       newVelocity.clampLength(0, maxSpeed);
@@ -80,7 +80,7 @@ export default function RobotWithCamera({ position, robotCameraRef }) {
       robotRef.current.rotation.y = newRotation;
 
       // 🏎️ **Apply Lean Effect (Tilt Robot)**
-      const tiltFactor = 0.05; // Adjust for more/less lean
+      const tiltFactor = 2; // Adjust for more/less lean
       robotRef.current.rotation.z = -newVelocity.x * tiltFactor; // Tilt side-to-side when turning
       robotRef.current.rotation.x = newVelocity.z * tiltFactor; // Tilt faorward/backward when moving
 
