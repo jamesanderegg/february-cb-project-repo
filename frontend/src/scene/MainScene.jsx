@@ -55,6 +55,7 @@ const tableConfigs = [
       }}
       className="w-screen h-screen"
       shadows
+      gl={{ preserveDrawingBuffer: true }}
     >
       <PrimaryCamera position={[30, 90, 20]} lookAt={[0, 0, 0]} />
 

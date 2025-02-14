@@ -25,20 +25,20 @@ def home():
 @app.route('/robot', methods=['POST'])
 def robot():
     try:
-        data = request.json  # Get JSON data
-        image_data = data.get("image")  # Extract Base64 image
+        data = request.json
+        image_data = data.get("image")
 
         if not image_data:
             return jsonify({"error": "No image received"}), 400
 
-        # Remove the metadata prefix (if present)
-        image_data = re.sub(r"^data:image\/\w+;base64,", "", image_data)
+        # Debugging: Print first few characters of the image
+        print("Received Base64 Data:", image_data[:100])
 
-        # Decode Base64 image
+        # Decode Base64 image and save it
+        image_data = re.sub(r"^data:image\/\w+;base64,", "", image_data)
         image_bytes = base64.b64decode(image_data)
         file_path = "robot_capture.png"
 
-        # Save the image
         with open(file_path, "wb") as image_file:
             image_file.write(image_bytes)
 
@@ -49,6 +49,7 @@ def robot():
     except Exception as e:
         print("Error:", e)
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=int(port))

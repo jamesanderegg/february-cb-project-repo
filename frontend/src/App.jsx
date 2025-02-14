@@ -54,6 +54,8 @@ function App() {
   return (
     <>
       <div className="card">
+      <img src="" />
+
         <Button onClick={() => setCount((count) => count + 1)} label="Count" />
 
         Count is {count}
