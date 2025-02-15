@@ -5,6 +5,7 @@ import Plane from "./objects/Plane";
 import OrbitControls from "./controls/OrbitControls";
 import AmbientLight from "./lights/AmbientLight";
 import DirectionalLight from "./lights/DirectionalLight";
+import Spotlight from "./lights/Spotlight";
 
 import Model from "../helper/Model";
 import PrimaryCamera from "./camera/PrimaryCamera";
@@ -14,6 +15,8 @@ import Scene from "./objects/Scene"
 import FiberTable from "./objects/FiberTable"
 
 import RobotWithCamera from "./objects/RobotWithCamera";
+
+import { Environment } from "@react-three/drei";
 
 export default function App({ robotCameraRef}) {
 
@@ -57,10 +60,23 @@ const tableConfigs = [
       shadows
       gl={{ preserveDrawingBuffer: true }}
     >
-      <PrimaryCamera position={[30, 90, 20]} lookAt={[0, 0, 0]} />
-
+      <PrimaryCamera position={[15, 10, 40]} lookAt={[0, 0, 0]} />
+      {/* <Environment preset="city" /> */}
       {/* Lights */}
       <AmbientLight />
+      {/* <Spotlight 
+        color="red" 
+        intensity={10000} 
+        position={[10, 5, 10]} 
+        angle={0.5} 
+        penumbra={0.2} 
+        distance={500} 
+        decay={2}
+        targetPosition={[6, 1.3, 8]} 
+        castShadow
+        shadowProps={{ near: 0.1, far: 100, mapSize: [2048, 2048] }}
+        debug={true} // Enable helper visualization
+      /> */}
       <DirectionalLight
         color="white"
         intensity={5}
@@ -78,7 +94,14 @@ const tableConfigs = [
         color="red"
         castShadow 
       />
-
+       <Model 
+        filePath="keys1.glb"  
+        scale={0.009} 
+        position={[6, 1.4, 8]}  
+        metallic={1}  
+        roughness={0.3}
+        texturePath="textures/metal.jpg" 
+      />
       {tableConfigs.map((config, index) => (
         <FiberTable 
           key={index}

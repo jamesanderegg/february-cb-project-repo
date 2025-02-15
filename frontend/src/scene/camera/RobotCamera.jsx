@@ -8,7 +8,7 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage }, ref) => {
   const helperRef = useRef();
 
   const { gl, scene } = useThree();
-  const renderTarget = new THREE.WebGLRenderTarget(512, 512, { stencilBuffer: false }); // Offscreen framebuffer
+  const renderTarget = new THREE.WebGLRenderTarget(1024, 1024, { stencilBuffer: false }); // Offscreen framebuffer
 
   useEffect(() => {
     // Create a custom camera for the robot

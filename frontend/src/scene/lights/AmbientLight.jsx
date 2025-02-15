@@ -1,5 +1,5 @@
 import React from "react";
 
-const AmbientLight = () => <ambientLight intensity={5} />;
+const AmbientLight = () => <ambientLight intensity={1} />;
 
 export default AmbientLight;
