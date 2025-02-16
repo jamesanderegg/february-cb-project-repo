@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import RobotCamera from "../camera/RobotCamera";
-import Model from "../../helper/Model";
+import RobotModel from "../../helper/RobotModel";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -91,8 +91,8 @@ export default function RobotWithCamera({ position, robotCameraRef }) {
 
   return (
     <>
-      {/* Robot Model */}
-      <Model ref={robotRef} filePath="robot.glb" scale={0.02} position={robotPosition} />
+      {/* Robot RobotModel */}
+      <RobotModel ref={robotRef} filePath="robot.glb" scale={0.02} position={robotPosition} />
 
       {/* Camera attached to the robot */}
       <RobotCamera ref={robotCameraRef} robotRef={robotRef} />
