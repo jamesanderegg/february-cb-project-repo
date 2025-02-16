@@ -61,9 +61,9 @@ const tableConfigs = [
       gl={{ preserveDrawingBuffer: true }}
     >
       <PrimaryCamera position={[15, 10, 40]} lookAt={[0, 0, 0]} />
-      {/* <Environment preset="city" /> */}
+      <Environment preset="city" />
       {/* Lights */}
-      <AmbientLight />
+      {/* <AmbientLight /> */}
       {/* <Spotlight 
         color="red" 
         intensity={10000} 
@@ -77,14 +77,14 @@ const tableConfigs = [
         shadowProps={{ near: 0.1, far: 100, mapSize: [2048, 2048] }}
         debug={true} // Enable helper visualization
       /> */}
-      <DirectionalLight
+      {/* <DirectionalLight
         color="white"
         intensity={5}
         position={[5, 10, 5]}
         targetPosition={[5, 0, 13]}
         castShadow={true}
         shadowProps={{ near: 0.1, far: 1000, mapSize: [1024, 1024] }}
-      />
+      /> */}
       <RobotWithCamera position={[5, 0, 15]} robotCameraRef={robotCameraRef} />
 
       <Model

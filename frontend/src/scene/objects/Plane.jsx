@@ -6,7 +6,7 @@ const Plane = () => (
     {/* Geometry */}
     <planeGeometry args={[50, 50]} />
     {/* Material */}
-    <meshStandardMaterial color="lightgray" side={DoubleSide} />
+    <meshStandardMaterial color="darkgray" side={DoubleSide} />
   </mesh>
 );
 

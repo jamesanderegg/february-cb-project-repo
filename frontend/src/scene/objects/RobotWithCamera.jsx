@@ -80,7 +80,7 @@ export default function RobotWithCamera({ position, robotCameraRef }) {
       robotRef.current.rotation.y = newRotation;
 
       // 🏎️ **Apply Lean Effect (Tilt Robot)**
-      const tiltFactor = 2; // Adjust for more/less lean
+      const tiltFactor = .2; // Adjust for more/less lean
       robotRef.current.rotation.z = -newVelocity.x * tiltFactor; // Tilt side-to-side when turning
       robotRef.current.rotation.x = newVelocity.z * tiltFactor; // Tilt faorward/backward when moving
 
