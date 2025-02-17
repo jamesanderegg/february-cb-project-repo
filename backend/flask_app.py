@@ -20,8 +20,8 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 port = os.getenv('PORT', 5000)
 
 # Load YOLOv11m model
-model_path = os.getenv("YOLO_MODEL_PATH", "path/to/your/yolov11m.pt")  # Set in .env or use default
-model = YOLO(model_path)  # Load the YOLO model once
+model_path = os.getenv("YOLO_MODEL_PATH", "YOLOv11+keys/best.pt")  # Set in .env or use default
+model = YOLO('YOLOv11+keys/best.pt')  # Load the YOLO model once
 
 @app.route('/')
 def home():
@@ -33,6 +33,7 @@ def home():
 
 @app.route('/robot', methods=['POST'])
 def robot():
+    print('Start robot')
     try:
         data = request.json
         image_data = data.get("image")
@@ -52,10 +53,15 @@ def robot():
         image = image.resize((640, 640))  # Resize for YOLO input
 
         # Convert image to NumPy array for YOLO
+        print('image.size:', image.size)
         image_array = np.array(image)
+        print(image_array)
+
 
         # Run YOLO inference
         results = model(image_array)
+        print('numpy3 test')
+        
 
         # Extract detections
         detections = []
