@@ -3,6 +3,8 @@ import { Grid } from "@react-three/drei";
 import Floors from "./Floors";
 import Room from "./Room";
 import Plane from "./Plane";
+import OuterWalls from "../Building/OuterWalls"; 
+import Trellis from "../Building/Trellis";
 
 function Scene() {
     const roomConfigs = [
@@ -79,6 +81,12 @@ function Scene() {
     
         {/* Floors */}
         <Floors />
+
+        {/* Outer Walls */}
+        <OuterWalls />
+
+        {/* Trellis */}
+        <Trellis />
         
         {/* Rooms */}
         {roomConfigs.map((config) => (
