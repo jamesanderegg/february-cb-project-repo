@@ -54,6 +54,7 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
 
         // Send image to YOLO for detection
         const detectionResults = await sendToYOLO(base64Image);
+        console.log("Detection Results:", detectionResults);
         if (onDetectionResults) {
           onDetectionResults(detectionResults); // Handle results in parent component
         }
@@ -112,7 +113,7 @@ async function preprocessImage(base64Image) {
 async function sendToYOLO(base64Image) {
   try {
     const processedImage = await preprocessImage(base64Image);
-    const response = await fetch('http://your-backend-endpoint/detect', {
+    const response = await fetch('/robot', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
