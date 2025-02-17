@@ -1,5 +1,6 @@
 import React from "react";
-import { Cylinder, Box } from "@react-three/drei";
+import { Cylinder, Box, Line } from "@react-three/drei";
+import { useCompoundBody } from "@react-three/cannon";
 
 const FiberTable = ({
   position = [0, 0, 0],
@@ -10,10 +11,37 @@ const FiberTable = ({
   standRadiusTop = 0.15,
   standRadiusBottom = 0,
   standHeight = 1,
-  topSize = [1.4, 0.025, 1.4]
+  topSize = [1.4, 0.05, 1.4],  // 🔹 Keeps tabletop thickness correct
+  physicsProps = { mass: 0 },  // Default: Static Table
+  showCollision = true // 🔹 Toggle collision box visibility
 }) => {
+  
+  // Create a single physics body for the entire table
+  const [tableRef] = useCompoundBody(() => ({
+    mass: physicsProps.mass,
+    position: position,  // 🔹 Keeps your table positions unchanged
+    type: physicsProps.mass === 0 ? "Static" : "Dynamic",
+    shapes: [
+      {
+        type: "Cylinder",
+        args: [baseRadiusTop, baseRadiusBottom, baseHeight, 32],
+        position: [0, baseHeight / 2, 0]  // Base position
+      },
+      {
+        type: "Cylinder",
+        args: [standRadiusTop, standRadiusBottom, standHeight, 32],
+        position: [0, baseHeight + standHeight / 2, 0]  // Stand position
+      },
+      {
+        type: "Box",
+        args: [topSize[0], topSize[1], topSize[2]],  
+        position: [0, baseHeight + standHeight + topSize[1] / 2, 0]  // 🔹 Keeps tabletop in exact position
+      }
+    ]
+  }));
+
   return (
-    <group position={position} castShadow receiveShadow>
+    <group ref={tableRef} position={position} castShadow receiveShadow>
       {/* Table Base */}
       <Cylinder
         args={[baseRadiusTop, baseRadiusBottom, baseHeight, 32]}
@@ -43,6 +71,35 @@ const FiberTable = ({
       >
         <meshStandardMaterial color={color} />
       </Box>
+
+      {/* 🔹 Collision Box Visualization */}
+      {showCollision && (
+        <>
+          {/* Collision Box for Base */}
+          <Cylinder
+            args={[baseRadiusTop, baseRadiusBottom, baseHeight, 32]}
+            position={[0, baseHeight / 2, 0]}
+          >
+            <meshBasicMaterial color="red" wireframe />
+          </Cylinder>
+
+          {/* Collision Box for Stand */}
+          <Cylinder
+            args={[standRadiusTop, standRadiusBottom, standHeight, 32]}
+            position={[0, baseHeight + standHeight / 2, 0]}
+          >
+            <meshBasicMaterial color="red" wireframe />
+          </Cylinder>
+
+          {/* Collision Box for Table Top */}
+          <Box
+            args={topSize}
+            position={[0, baseHeight + standHeight + topSize[1] / 2, 0]}
+          >
+            <meshBasicMaterial color="red" wireframe />
+          </Box>
+        </>
+      )}
     </group>
   );
 };

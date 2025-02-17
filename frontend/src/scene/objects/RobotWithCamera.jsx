@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import RobotCamera from "../camera/RobotCamera";
-import Model from "../../helper/Model";
+import RobotModel from "../../helper/RobotModel";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -80,7 +80,7 @@ export default function RobotWithCamera({ position, robotCameraRef }) {
       robotRef.current.rotation.y = newRotation;
 
       // 🏎️ **Apply Lean Effect (Tilt Robot)**
-      const tiltFactor = 2; // Adjust for more/less lean
+      const tiltFactor = .2; // Adjust for more/less lean
       robotRef.current.rotation.z = -newVelocity.x * tiltFactor; // Tilt side-to-side when turning
       robotRef.current.rotation.x = newVelocity.z * tiltFactor; // Tilt faorward/backward when moving
 
@@ -91,8 +91,8 @@ export default function RobotWithCamera({ position, robotCameraRef }) {
 
   return (
     <>
-      {/* Robot Model */}
-      <Model ref={robotRef} filePath="robot.glb" scale={0.02} position={robotPosition} />
+      {/* Robot RobotModel */}
+      <RobotModel ref={robotRef} filePath="robot.glb" scale={0.02} position={robotPosition} />
 
       {/* Camera attached to the robot */}
       <RobotCamera ref={robotCameraRef} robotRef={robotRef} />

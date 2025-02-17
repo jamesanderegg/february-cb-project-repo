@@ -67,35 +67,33 @@ function Scene() {
           wall5: { x: 2.5, y: 4, z: -7.75 },
           wall6: { x: 4, y: 2.5, z: -7.75 },
         },
-
-        
       },
     ];
-  
+
     return (
       <>
         {/* Helpers */}
         <axesHelper args={[2]} />
         {/* <Grid args={[100, 100]} /> */}
-  
-    
+
+
         {/* Floors */}
-        <Floors />
+        <Floors castShadow receiveShadow />
 
         {/* Outer Walls */}
         <OuterWalls />
 
         {/* Trellis */}
         <Trellis />
-        
+
         {/* Rooms */}
         {roomConfigs.map((config) => (
-          <Room key={config.name} config={config} />
+          <Room key={config.name} config={config} castShadow receiveShadow />
         ))}
 
-        <Plane />
+        <Plane castShadow receiveShadow />
       </>
     );
-  }
+}
 
 export default Scene;
