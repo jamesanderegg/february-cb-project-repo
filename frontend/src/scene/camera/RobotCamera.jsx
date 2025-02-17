@@ -8,7 +8,7 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage }, ref) => {
   const helperRef = useRef();
 
   const { gl, scene } = useThree();
-  const renderTarget = new THREE.WebGLRenderTarget(1024, 1024, { stencilBuffer: false }); // Offscreen framebuffer
+  const renderTarget = new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }); // Offscreen framebuffer // 640x640 adjusted from 1024x1024 for YOLO input
 
   useEffect(() => {
     // Create a custom camera for the robot
