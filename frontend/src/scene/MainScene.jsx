@@ -52,7 +52,7 @@ export default function App({ robotCameraRef }) {
     <Canvas
       camera={{
         fov: 20,
-        position: [0, 0, 100],
+        position: [0, 0, 0],
         near: 0.1,
         far: 400,
       }}
@@ -60,7 +60,7 @@ export default function App({ robotCameraRef }) {
       shadows
       gl={{ preserveDrawingBuffer: true }}
     >
-      <PrimaryCamera position={[15, 10, 40]} lookAt={[0, 0, 0]} />
+      <PrimaryCamera position={[10, 40, -30]} lookAt={[0, 0, 0]} />
       <Environment preset="city" />
       {/* Lights */}
       {/* <AmbientLight /> */}
@@ -96,15 +96,24 @@ export default function App({ robotCameraRef }) {
       />
         */}
       <Physics gravity={[0, -9.81, 0]}>
-      <Model
+      <Model 
           filePath="keys1.glb"
           scale={0.009}
-          position={[6, 3, 8]}  // Slightly above table
+          position={[6, 3, 8]}  // Slightly above the table to fall naturally
           metallic={1}
           roughness={0.3}
           texturePath="textures/metal.jpg"
           physicsProps={{ mass: 1, linearDamping: 0.5, angularDamping: 0.5 }}
-          showCollision={true}  // 🔹 Now shows the Trimesh collision
+        />
+
+        <Model 
+          filePath="keys1.glb"
+          scale={0.01}
+          position={[8, 3, 5]}  // Another set of keys in a different position
+          metallic={0.8}
+          roughness={0.5}
+          texturePath="textures/old_metal.jpg"
+          physicsProps={{ mass: 1.2, linearDamping: 0.3, angularDamping: 0.3 }}
         />
         {tableConfigs.map((config, index) => (
           <FiberTable

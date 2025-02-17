@@ -1,11 +1,10 @@
-import React, { useEffect, forwardRef } from "react";
+import React, { useEffect, forwardRef, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
-import { useConvexPolyhedron } from "@react-three/cannon";
-// import { Line } from "@react-three/drei";  // 🔹 Commented out for collision visualization
-import { BufferGeometry, Float32BufferAttribute, Vector3 } from "three";
-import { TextureLoader } from "three";
+import { useBox } from "@react-three/cannon"; // Fallback physics shape
+import { BufferGeometry, Float32BufferAttribute, Vector3, TextureLoader, Box3 } from "three";
+import { ConvexHull } from "three/examples/jsm/math/ConvexHull.js"; 
 
-const Model = forwardRef(({
+const Model = forwardRef(({ 
   filePath, 
   scale = 1,  
   position = [0, 0, 0], 
@@ -17,112 +16,111 @@ const Model = forwardRef(({
   visible = true,   
   castShadow = true,    
   receiveShadow = true, 
-  physicsProps = { mass: 1, linearDamping: 0.5, angularDamping: 0.5 },
-  showCollision = false // 🔹 No longer used
+  physicsProps = { mass: 1, linearDamping: 0.5, angularDamping: 0.5 }
 }, ref) => {
   const { scene } = useGLTF(`models/${filePath}`);
+  const clonedScene = scene.clone();
+  const localRef = useRef(null);
+  const modelRef = ref || localRef;
 
-  let vertices = [];
-  let indices = [];
+  let vertices = [], indices = [];
 
-  scene.traverse((child) => {
+  clonedScene.traverse((child) => {
     if (child.isMesh) {
       child.castShadow = castShadow;
       child.receiveShadow = receiveShadow;
 
-      // Apply Material Properties
       if (child.material) {
         child.material.metalness = metallic;
         child.material.roughness = roughness;
-
-        if (color) {
-          child.material.color.set(color);
-        }
-
+        if (color) child.material.color.set(color);
         if (texturePath) {
-          const textureLoader = new TextureLoader();
-          textureLoader.load(texturePath, (texture) => {
+          new TextureLoader().load(texturePath, (texture) => {
             child.material.map = texture;
             child.material.needsUpdate = true;
           });
         }
       }
 
-      // Extract vertices and indices for Convex Polyhedron collision
-      const positionArray = child.geometry.attributes.position.array;
+      const positionArray = child.geometry?.attributes?.position?.array;
+      if (!positionArray) {
+        console.warn("Mesh has no position attribute!", child);
+        return;
+      }
+
       for (let i = 0; i < positionArray.length; i += 3) {
-        vertices.push([
+        vertices.push(new Vector3(
           positionArray[i] * scale,  
           positionArray[i + 1] * scale,
           positionArray[i + 2] * scale
-        ]);
-      }
-
-      const indexArray = child.geometry.index.array;
-      for (let i = 0; i < indexArray.length; i += 3) {
-        // Ensure indices are counter-clockwise
-        const v1 = new Vector3(...vertices[indexArray[i]]);
-        const v2 = new Vector3(...vertices[indexArray[i + 1]]);
-        const v3 = new Vector3(...vertices[indexArray[i + 2]]);
-
-        const edge1 = new Vector3().subVectors(v2, v1);
-        const edge2 = new Vector3().subVectors(v3, v1);
-        const normal = new Vector3().crossVectors(edge1, edge2).normalize();
-
-        // Check if normal points inward (should be outward)
-        if (normal.dot(v1) < 0) {
-          indices.push([indexArray[i], indexArray[i + 2], indexArray[i + 1]]); // Swap to make CCW
-        } else {
-          indices.push([indexArray[i], indexArray[i + 1], indexArray[i + 2]]);
-        }
+        ));
       }
     }
   });
 
-  // Convert to Three.js BufferGeometry for better accuracy
-  const collisionGeometry = new BufferGeometry();
-  collisionGeometry.setAttribute('position', new Float32BufferAttribute(vertices.flat(), 3));
-  collisionGeometry.setIndex(indices.flat());
+  if (vertices.length === 0) {
+    console.error(`No valid vertices found for ${filePath}. Skipping physics.`);
+    return <group ref={modelRef} position={position} visible={visible} />;
+  }
 
-  // Create physics body using ConvexPolyhedron for accurate shape collision
-  const [modelRef, api] = useConvexPolyhedron(() => ({
-    mass: physicsProps.mass,
-    args: [vertices, indices],
-    position: position,
-    rotation: rotation,
-    linearDamping: physicsProps.linearDamping,
-    angularDamping: physicsProps.angularDamping,
-    type: physicsProps.mass === 0 ? "Static" : "Dynamic",
-    velocity: [0, -2, 0], // Ensures immediate fall
-  }));
-  
+  // Try Convex Hull processing
+  let useConvexShape = true;
+  try {
+    const hull = new ConvexHull().setFromPoints(vertices);
+    hull.faces.forEach(face => {
+      if (vertices[face.a] && vertices[face.b] && vertices[face.c]) {
+        indices.push([face.a, face.b, face.c]); 
+      }
+    });
+  } catch (e) {
+    console.warn("Convex hull processing failed. Falling back to bounding box.");
+    useConvexShape = false;
+  }
+
+  // Fallback: Use Bounding Box if Convex Hull fails
+  let physicsShape, physicsApi;
+  if (useConvexShape && indices.length > 0) {
+    [physicsShape, physicsApi] = useConvexPolyhedron(() => ({
+      mass: physicsProps.mass,
+      args: [vertices.map(v => [v.x, v.y, v.z]), indices],
+      position,
+      rotation,
+      linearDamping: physicsProps.linearDamping,
+      angularDamping: physicsProps.angularDamping,
+      type: physicsProps.mass === 0 ? "Static" : "Dynamic",
+      velocity: [0, -5, 0], 
+    }));
+  } else {
+    // Compute bounding box for fallback physics
+    const boundingBox = new Box3().setFromPoints(vertices);
+    const boxSize = boundingBox.getSize(new Vector3()).toArray();
+
+    console.warn(`Using fallback box physics for ${filePath}.`);
+
+    [physicsShape, physicsApi] = useBox(() => ({
+      mass: physicsProps.mass,
+      args: boxSize,
+      position,
+      rotation,
+      linearDamping: physicsProps.linearDamping,
+      angularDamping: physicsProps.angularDamping,
+      type: physicsProps.mass === 0 ? "Static" : "Dynamic",
+      velocity: [0, -5, 0],
+    }));
+  }
+
   useEffect(() => {
-    api.wakeUp(); // Forces physics activation
-  }, []);
+    if (physicsApi?.wakeUp) {
+      physicsApi.wakeUp();
+      physicsApi.velocity.set(0, -5, 0);
+    } else {
+      console.warn("Physics API is undefined!");
+    }
+  }, [physicsApi]);
 
   return (
-    <group ref={modelRef} position={position} visible={visible}>
-      {/* Original Model */}
-      <primitive
-        object={scene}
-        scale={scale} 
-        rotation={rotation}
-        ref={(node) => {
-          modelRef.current = node;
-          if (ref) ref.current = node;
-        }}
-        castShadow
-        receiveShadow
-      />
-
-      {/* 🔹 Collision Box Visualization - Removed */}
-      {/* {showCollision && (
-        <Line
-          points={vertices.map(v => [v[0], v[1], v[2]])}
-          color="red"
-          lineWidth={2}
-        />
-      )} */}
+    <group ref={physicsShape} position={position} visible={visible}>
+      <primitive object={clonedScene} scale={scale} rotation={rotation} ref={modelRef} castShadow receiveShadow />
     </group>
   );
 });
