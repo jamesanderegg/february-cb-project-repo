@@ -3,28 +3,25 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Robot Camera Component
-const RobotCamera = forwardRef(({ robotRef, onCaptureImage }, ref) => {
-  const cameraRef = useRef();  // Robot camera reference
+const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }, ref) => {
+  const cameraRef = useRef();
   const helperRef = useRef();
-
   const { gl, scene } = useThree();
-  const renderTarget = new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }); // Offscreen framebuffer // 640x640 adjusted from 1024x1024 for YOLO input
+  const renderTarget = new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }); // Adjusted for YOLO
 
   useEffect(() => {
-    // Create a custom camera for the robot
-    const camera = new THREE.PerspectiveCamera(45, 1, 1, 15);  // This is the robot camera (fov, aspect, near, far)
+    const camera = new THREE.PerspectiveCamera(45, 1, 1, 15);
     cameraRef.current = camera;
-    scene.add(camera);  // Add the camera to the scene for debugging with the helper
+    scene.add(camera);
 
-    // Debugging helper to visualize the camera view (remove if not needed)
     const helper = new THREE.CameraHelper(camera);
     scene.add(helper);
     helperRef.current = helper;
 
     return () => {
-      scene.remove(camera); // Clean up the camera on unmount
+      scene.remove(camera);
       if (helperRef.current) {
-        scene.remove(helperRef.current); // Clean up the helper
+        scene.remove(helperRef.current);
       }
     };
   }, [scene]);
@@ -32,49 +29,33 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage }, ref) => {
   useImperativeHandle(ref, () => ({
     captureImage: async () => {
       try {
-        gl.autoClear = false;  // Prevent clearing before render
-        gl.setRenderTarget(renderTarget);  // Set the render target to the robot camera's framebuffer
-        gl.render(scene, cameraRef.current);  // Render the scene using the robot camera
-        gl.setRenderTarget(null);  // Reset the render target to the default framebuffer
-        gl.autoClear = true;  // Restore autoClear to true
+        gl.autoClear = false;
+        gl.setRenderTarget(renderTarget);
+        gl.render(scene, cameraRef.current);
+        gl.setRenderTarget(null);
+        gl.autoClear = true;
 
-        // Capture the image from the offscreen framebuffer
-        const buffer = new Uint8Array(4 * renderTarget.width * renderTarget.height); // Create a buffer to store image data
+        const buffer = new Uint8Array(4 * renderTarget.width * renderTarget.height);
         gl.readRenderTargetPixels(renderTarget, 0, 0, renderTarget.width, renderTarget.height, buffer);
 
-        // Create an image from the buffer
-        const imageData = new ImageData(new Uint8ClampedArray(buffer.buffer), renderTarget.width, renderTarget.height);
-
-        // Flip the image data vertically (inverting the Y coordinates of the pixels)
-        const flippedData = new Uint8ClampedArray(imageData.data.length);
-        for (let i = 0; i < renderTarget.height; i++) {
-          for (let j = 0; j < renderTarget.width; j++) {
-            const sourceIndex = (i * renderTarget.width + j) * 4;
-            const destIndex = ((renderTarget.height - i - 1) * renderTarget.width + j) * 4;
-            flippedData[destIndex] = imageData.data[sourceIndex];
-            flippedData[destIndex + 1] = imageData.data[sourceIndex + 1];
-            flippedData[destIndex + 2] = imageData.data[sourceIndex + 2];
-            flippedData[destIndex + 3] = imageData.data[sourceIndex + 3];
-          }
-        }
-
-        // Create a new image from the flipped data
-        const flippedImageData = new ImageData(flippedData, renderTarget.width, renderTarget.height);
+        const flippedData = new Uint8ClampedArray(buffer.buffer);
         const canvas = document.createElement('canvas');
         canvas.width = renderTarget.width;
         canvas.height = renderTarget.height;
         const ctx = canvas.getContext('2d');
+        const imageData = new ImageData(flippedData, renderTarget.width, renderTarget.height);
+        ctx.putImageData(imageData, 0, 0);
 
-        // Draw the flipped image onto the canvas
-        ctx.putImageData(flippedImageData, 0, 0);
-
-        // Convert to base64
         const base64Image = canvas.toDataURL("image/png");
-        console.log("Captured image from offscreen render target:", base64Image);
 
-        // Send the captured image to the backend
         if (onCaptureImage) {
-          onCaptureImage(base64Image);  // Trigger the callback to send image to backend
+          onCaptureImage(base64Image);
+        }
+
+        // Send image to YOLO for detection
+        const detectionResults = await sendToYOLO(base64Image);
+        if (onDetectionResults) {
+          onDetectionResults(detectionResults); // Handle results in parent component
         }
 
         return base64Image;
@@ -88,28 +69,64 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage }, ref) => {
   useFrame(() => {
     if (robotRef.current && cameraRef.current) {
       const headPosition = robotRef.current.position.clone();
-      headPosition.y += 2.5;  // Adjust for robot's camera height
+      headPosition.y += 2.5;
 
-      const robotRotation = robotRef.current.rotation.y;  // Get robot's rotation
+      const robotRotation = robotRef.current.rotation.y;
       const lookDirection = new THREE.Vector3(
         -Math.sin(robotRotation),
         0,
         -Math.cos(robotRotation)
       );
 
-      // Update the robot camera's position to the robot's head
       cameraRef.current.position.copy(headPosition);
       const lookTarget = headPosition.clone().add(lookDirection.multiplyScalar(5));
-      lookTarget.y -= 1; // Adjust the look direction in the y-axis
+      lookTarget.y -= 1;
       cameraRef.current.lookAt(lookTarget);
 
       if (helperRef.current) {
-        helperRef.current.update();  // Update camera helper for visualization
+        helperRef.current.update();
       }
     }
   });
 
-  return null;  // No need to render JSX for the camera, it's added to the scene programmatically
+  return null;
 });
+
+// Function to preprocess image for YOLO
+async function preprocessImage(base64Image) {
+  const img = new Image();
+  img.src = base64Image;
+  await new Promise((resolve) => (img.onload = resolve));
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = 640;
+  canvas.height = 640;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  return canvas.toDataURL("image/png"); 
+}
+
+// Function to send image to YOLO backend
+async function sendToYOLO(base64Image) {
+  try {
+    const processedImage = await preprocessImage(base64Image);
+    const response = await fetch('http://your-backend-endpoint/detect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ image: processedImage }),
+    });
+
+    const detectionResults = await response.json();
+    console.log("YOLO Detection Results:", detectionResults);
+    return detectionResults;
+  } catch (error) {
+    console.error("Error sending image to YOLO:", error);
+    return null;
+  }
+}
 
 export default RobotCamera;
