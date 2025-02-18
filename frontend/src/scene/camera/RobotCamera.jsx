@@ -7,7 +7,7 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
   const cameraRef = useRef();
   const helperRef = useRef();
   const { gl, scene } = useThree();
-  const renderTarget = new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }); // Adjusted for YOLO
+  const renderTarget = new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false });
 
   useEffect(() => {
     const camera = new THREE.PerspectiveCamera(45, 1, 1, 15);
@@ -38,25 +38,37 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
         const buffer = new Uint8Array(4 * renderTarget.width * renderTarget.height);
         gl.readRenderTargetPixels(renderTarget, 0, 0, renderTarget.width, renderTarget.height, buffer);
 
-        const flippedData = new Uint8ClampedArray(buffer.buffer);
+        // Create a canvas and flip image
         const canvas = document.createElement('canvas');
         canvas.width = renderTarget.width;
         canvas.height = renderTarget.height;
         const ctx = canvas.getContext('2d');
-        const imageData = new ImageData(flippedData, renderTarget.width, renderTarget.height);
-        ctx.putImageData(imageData, 0, 0);
 
+        // Create an ImageData object and flip it manually
+        const imageData = new ImageData(new Uint8ClampedArray(buffer.buffer), renderTarget.width, renderTarget.height);
+
+        // Create an offscreen canvas to store the flipped image
+        const flippedCanvas = document.createElement('canvas');
+        flippedCanvas.width = renderTarget.width;
+        flippedCanvas.height = renderTarget.height;
+        const flippedCtx = flippedCanvas.getContext('2d');
+
+        // Flip the image by scaling and drawing the original imageData
+        flippedCtx.putImageData(imageData, 0, 0);
+        ctx.scale(1, -1);
+        ctx.drawImage(flippedCanvas, 0, -canvas.height);
+
+        // Convert to base64 image
         const base64Image = canvas.toDataURL("image/png");
 
         if (onCaptureImage) {
           onCaptureImage(base64Image);
         }
 
-        // Send image to YOLO for detection
         const detectionResults = await sendToYOLO(base64Image);
         console.log("Detection Results:", detectionResults);
         if (onDetectionResults) {
-          onDetectionResults(detectionResults); // Handle results in parent component
+          onDetectionResults(detectionResults);
         }
 
         return base64Image;
@@ -93,7 +105,6 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
   return null;
 });
 
-// Function to preprocess image for YOLO
 async function preprocessImage(base64Image) {
   const img = new Image();
   img.src = base64Image;
@@ -109,7 +120,6 @@ async function preprocessImage(base64Image) {
   return canvas.toDataURL("image/png"); 
 }
 
-// Function to send image to YOLO backend
 async function sendToYOLO(base64Image) {
   try {
     const processedImage = await preprocessImage(base64Image);

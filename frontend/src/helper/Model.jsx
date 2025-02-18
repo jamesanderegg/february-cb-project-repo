@@ -2,7 +2,7 @@ import React, { useEffect, forwardRef, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useBox } from "@react-three/cannon"; // Fallback physics shape
 import { BufferGeometry, Float32BufferAttribute, Vector3, TextureLoader, Box3 } from "three";
-import { ConvexHull } from "three/examples/jsm/math/ConvexHull.js"; 
+import { ConvexHull } from "three/examples/jsm/math/ConvexHull.js";
 
 const Model = forwardRef(({ 
   filePath, 

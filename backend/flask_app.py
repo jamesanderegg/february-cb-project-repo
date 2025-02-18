@@ -18,10 +18,15 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 port = os.getenv('PORT', 5000)
-
 # Load YOLOv11m model
-model_path = os.getenv("YOLO_MODEL_PATH", "YOLOv11+keys/best.pt")  # Set in .env or use default
-model = YOLO('YOLOv11+keys/best.pt')  # Load the YOLO model once
+# model_path = os.getenv("YOLO_MODEL_PATH", "YOLOv11+keys/best.pt")  # Set in .env or use default
+# model = YOLO('YOLOv11+keys/best.pt')  # Load the YOLO model once
+
+#Load Pre-trained YOLOv8 Model (Base Model)
+model = YOLO("yolov8m.pt")  # Loads a standard model instead of the custom trained model
+
+# Print available class names for debugging
+print("Loaded YOLO Model Class Names:", model.names)
 
 @app.route('/')
 def home():
@@ -55,13 +60,9 @@ def robot():
         # Convert image to NumPy array for YOLO
         print('image.size:', image.size)
         image_array = np.array(image)
-        print(image_array)
-
 
         # Run YOLO inference
         results = model(image_array)
-        print('numpy3 test')
-        
 
         # Extract detections
         detections = []
@@ -70,9 +71,18 @@ def robot():
                 x1, y1, x2, y2 = box.xyxy.tolist()[0]  # Bounding box coordinates
                 conf = box.conf.tolist()[0]  # Confidence score
                 cls = int(box.cls.tolist()[0])  # Class ID
+
+                # Get class name from YOLO's pre-trained model
+                class_name = model.names.get(cls, "Unknown")  # Ensure we get a valid class name
+
+                # Debugging: Print detected class names
+                print(f"Detected: {class_name} (Confidence: {conf:.2f})")
+
                 detections.append({
                     "x1": x1, "y1": y1, "x2": x2, "y2": y2,
-                    "confidence": conf, "class": cls
+                    "confidence": conf,
+                    "class_id": cls,
+                    "class_name": class_name  # Add object name
                 })
 
         return jsonify({

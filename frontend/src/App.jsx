@@ -6,7 +6,7 @@ import Button from "./components/Button";
 
 import "./styles/App.css";
 import MainScene from "./scene/MainScene";
-
+import Main from "./number2/Main";
 function App() {
   const [count, setCount] = useState(0);
   const [apiResponse, setApiResponse] = useState(null); // To store the API response
@@ -71,7 +71,8 @@ function App() {
       </div>
 
       <div className="main">
-        <MainScene robotCameraRef={robotCameraRef} />
+        {/* <MainScene robotCameraRef={robotCameraRef} /> */}
+        <Main />
       </div>
     </>
   );

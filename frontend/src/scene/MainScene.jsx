@@ -60,43 +60,45 @@ export default function App({ robotCameraRef }) {
       shadows
       gl={{ preserveDrawingBuffer: true }}
     >
-      <PrimaryCamera position={[10, 40, -30]} lookAt={[0, 0, 0]} />
+      <PrimaryCamera position={[20, 40, 0]} lookAt={[0, 0, 0]} />
       <Environment preset="city" />
       {/* Lights */}
       {/* <AmbientLight /> */}
-      {/* <Spotlight 
-        color="red" 
-        intensity={10000} 
-        position={[10, 5, 10]} 
-        angle={0.5} 
-        penumbra={0.2} 
-        distance={500} 
+      {/* <Spotlight
+        color="red"
+        intensity={10000}
+        position={[10, 5, 10]}
+        angle={0.5}
+        penumbra={0.2}
+        distance={500}
         decay={2}
-        targetPosition={[6, 1.3, 8]} 
+        targetPosition={[6, 1.3, 8]}
         castShadow
         shadowProps={{ near: 0.1, far: 100, mapSize: [2048, 2048] }}
         debug={true} // Enable helper visualization
       /> */}
-      {/* <DirectionalLight
+      <DirectionalLight
         color="white"
         intensity={5}
         position={[5, 10, 5]}
         targetPosition={[5, 0, 13]}
         castShadow={true}
         shadowProps={{ near: 0.1, far: 1000, mapSize: [1024, 1024] }}
-      /> */}
+      />
       <RobotWithCamera position={[5, 0, 15]} robotCameraRef={robotCameraRef} />
 
-      {/* <Model
+
+
+      <Physics gravity={[0, -9.81, 0]}>
+      <Model
         filePath="apple.glb"
         scale={0.005}
-        position={[-1.5, 1.26, -.5]}
+        position={[-1.5, 1.9, -.5]}
         color="red"
-        castShadow 
+        castShadow
+
       />
-        */}
-      <Physics gravity={[0, -9.81, 0]}>
-      <Model 
+      {/* <Model
           filePath="keys1.glb"
           scale={0.009}
           position={[6, 3, 8]}  // Slightly above the table to fall naturally
@@ -104,24 +106,42 @@ export default function App({ robotCameraRef }) {
           roughness={0.3}
           texturePath="textures/metal.jpg"
           physicsProps={{ mass: 1, linearDamping: 0.5, angularDamping: 0.5 }}
+        /> */}
+        <Model
+          filePath="bike.glb"
+          scale={.03 }
+          color="black"
+          position={[-10, 6, 8]}
+          metallic={0}
+          roughness={1}
+          castShadow
         />
-
-        <Model 
-          filePath="keys1.glb"
+     <Model
+          filePath="baseballglove.glb"
           scale={0.01}
-          position={[8, 3, 5]}  // Another set of keys in a different position
-          metallic={0.8}
-          roughness={0.5}
-          texturePath="textures/old_metal.jpg"
-          physicsProps={{ mass: 1.2, linearDamping: 0.3, angularDamping: 0.3 }}
+          position={[6, 2, 8]}
+          metallic={0}
+          roughness={1}
+          castShadow
+
         />
-        {tableConfigs.map((config, index) => (
+        {/* <Model
+          filePath="spoon.glb"
+          scale={0.01}
+          position={[6, 2, 8]}
+          metallic={0}
+          roughness={1}
+          color="gray"
+          castShadow
+
+        /> */}
+        {/* {tableConfigs.map((config, index) => (
           <FiberTable
             key={index}
             color={config.color}
             position={config.position}
           />
-        ))}
+        ))} */}
 
         <FiberTable position={[6, 0, 8]} color="yellow" />
         <FiberTable position={[10, 0, 6]} color="darkred" />
