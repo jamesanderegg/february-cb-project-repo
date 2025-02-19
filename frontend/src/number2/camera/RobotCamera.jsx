@@ -7,7 +7,7 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
   const cameraRef = useRef();
   const helperRef = useRef();
   const { gl, scene } = useThree();
-  const renderTarget = new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false });
+  const renderTarget = useRef(new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }));
 
   useEffect(() => {
     const camera = new THREE.PerspectiveCamera(45, 1, 1, 15);
@@ -30,27 +30,27 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
     captureImage: async () => {
       try {
         gl.autoClear = false;
-        gl.setRenderTarget(renderTarget);
+        gl.setRenderTarget(renderTarget.current);
         gl.render(scene, cameraRef.current);
         gl.setRenderTarget(null);
         gl.autoClear = true;
 
-        const buffer = new Uint8Array(4 * renderTarget.width * renderTarget.height);
-        gl.readRenderTargetPixels(renderTarget, 0, 0, renderTarget.width, renderTarget.height, buffer);
+        const buffer = new Uint8Array(4 * renderTarget.current.width * renderTarget.current.height);
+        gl.readRenderTargetPixels(renderTarget.current, 0, 0, renderTarget.current.width, renderTarget.current.height, buffer);
 
         // Create a canvas and flip image
         const canvas = document.createElement('canvas');
-        canvas.width = renderTarget.width;
-        canvas.height = renderTarget.height;
+        canvas.width = renderTarget.current.width;
+        canvas.height = renderTarget.current.height;
         const ctx = canvas.getContext('2d');
 
         // Create an ImageData object and flip it manually
-        const imageData = new ImageData(new Uint8ClampedArray(buffer.buffer), renderTarget.width, renderTarget.height);
+        const imageData = new ImageData(new Uint8ClampedArray(buffer.buffer), renderTarget.current.width, renderTarget.current.height);
 
         // Create an offscreen canvas to store the flipped image
         const flippedCanvas = document.createElement('canvas');
-        flippedCanvas.width = renderTarget.width;
-        flippedCanvas.height = renderTarget.height;
+        flippedCanvas.width = renderTarget.current.width;
+        flippedCanvas.height = renderTarget.current.height;
         const flippedCtx = flippedCanvas.getContext('2d');
 
         // Flip the image by scaling and drawing the original imageData
@@ -81,10 +81,10 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
 
   useFrame(() => {
     if (robotRef.current && cameraRef.current) {
-      const headPosition = robotRef.current.position.clone();
+      const headPosition = new THREE.Vector3().copy(robotRef.current.translation());
       headPosition.y += 2.5;
 
-      const robotRotation = robotRef.current.rotation.y;
+      const robotRotation = robotRef.current.rotation().y;
       const lookDirection = new THREE.Vector3(
         -Math.sin(robotRotation),
         0,
@@ -92,7 +92,7 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
       );
 
       cameraRef.current.position.copy(headPosition);
-      const lookTarget = headPosition.clone().add(lookDirection.multiplyScalar(5));
+      const lookTarget = new THREE.Vector3().copy(headPosition).add(lookDirection.multiplyScalar(5));
       lookTarget.y -= 1;
       cameraRef.current.lookAt(lookTarget);
 

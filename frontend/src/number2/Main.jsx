@@ -10,7 +10,7 @@ import DirectionalLight from "./lights/DirectionalLight";
 import Spotlight from "./lights/Spotlight";
 import MainScene from "./scene/MainScene"; // Importing the MainScene
 
-const Main = () => {
+const Main = ({ robotCameraRef }) => {
   return (
     <Canvas
       shadows
@@ -18,7 +18,7 @@ const Main = () => {
       style={{ width: "100vw", height: "100vh" }}
     >
       {/* Camera */}
-      <PrimaryCamera />
+      <PrimaryCamera position ={ [10, 60, 10]} />
 
       {/* Controls */}
       <OrbitControls />
@@ -27,12 +27,12 @@ const Main = () => {
       <AmbientLight />
       <DirectionalLight />
       {/* <Spotlight /> */}
-
+      
       {/* Main Scene */}
-      <MainScene />
+      <MainScene robotCameraRef={robotCameraRef} />
 
       {/* Environment */}
-      {/* <Environment preset="sunset" /> */}
+      <Environment preset="sunset" />
     </Canvas>
   );
 };

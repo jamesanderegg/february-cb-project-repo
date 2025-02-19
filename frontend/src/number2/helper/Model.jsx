@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useMemo } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { BoxHelper, Color } from "three";
-import { useThree } from "@react-three/fiber";
+import { useThree, useFrame } from "@react-three/fiber";
 
 const Model = ({
   filePath,
@@ -19,7 +19,8 @@ const Model = ({
   showHelper = false,
   physicsProps = { mass: 1, linearDamping: 0.5, angularDamping: 0.5 }
 }) => {
-  const ref = useRef();
+  const ref = useRef(null); // RigidBody reference
+  const helperRef = useRef(null); // BoxHelper reference
   const { scene } = useThree();
 
   // Load GLTF Model
@@ -50,15 +51,29 @@ const Model = ({
       }
     });
 
-    // Optimize Bounding Box Helper
+    // Attach Bounding Box Helper to the actual RigidBody
     if (showHelper && ref.current) {
       const firstMesh = clonedScene.children.find((child) => child.isMesh);
       if (firstMesh) {
         const boxHelper = new BoxHelper(firstMesh, 0xff0000);
         scene.add(boxHelper);
+        helperRef.current = boxHelper;
       }
     }
   }, [clonedScene, color, metallic, roughness, showHelper, scene, texture]);
+
+  // Ensure Bounding Box follows physics-driven motion
+  useFrame(() => {
+    if (helperRef.current && ref.current) {
+      // Sync helper with RigidBody physics position
+      const bodyPosition = ref.current.translation(); // Get physics-based position
+      const bodyRotation = ref.current.rotation(); // Get physics-based rotation
+
+      helperRef.current.position.copy(bodyPosition); // Sync position
+      helperRef.current.rotation.copy(bodyRotation); // Sync rotation
+      helperRef.current.updateMatrixWorld(true); // Force update
+    }
+  });
 
   return (
     <RigidBody

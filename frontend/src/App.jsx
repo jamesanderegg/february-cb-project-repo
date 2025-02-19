@@ -24,6 +24,7 @@ function App() {
   };
 
   const handleCapture = async () => {
+    console.log("Hello")
     if (robotCameraRef.current) {
       try {
         const image = await robotCameraRef.current.captureImage(); // Await async Promise
@@ -72,7 +73,7 @@ function App() {
 
       <div className="main">
         {/* <MainScene robotCameraRef={robotCameraRef} /> */}
-        <Main />
+        <Main robotCameraRef={robotCameraRef} />
       </div>
     </>
   );
