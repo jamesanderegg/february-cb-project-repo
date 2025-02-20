@@ -18,7 +18,7 @@ const Main = ({ robotCameraRef }) => {
       style={{ width: "100vw", height: "100vh" }}
     >
       {/* Camera */}
-      <PrimaryCamera position ={ [10, 60, 10]} />
+      <PrimaryCamera position ={ [7,1,30]} />
 
       {/* Controls */}
       <OrbitControls />

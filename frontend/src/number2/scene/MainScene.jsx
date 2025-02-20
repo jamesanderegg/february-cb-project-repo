@@ -11,7 +11,7 @@ import Buggy from "./Buggy";
 const MainScene = ( { robotCameraRef }) => {
   
   return (
-    <Physics>
+    <Physics debug gravity={[0, -9.81, 0]}>
       {/* Ground Plane */}
       <Plane width={50} height={50} color="darkgray" showHelper={true} />
 
@@ -41,16 +41,17 @@ const MainScene = ( { robotCameraRef }) => {
         color="gold"
         
       />
-      {/* <Model 
-        filePath="/models/keys1.glb" 
-        scale={0.08} 
-        position={[-2, 1, 0]} 
-        rotation={[0, -Math.PI / 6, 0]} 
-        color="gold"
-      /> */}
+
       <Floors />
       {/* <RobotWithCamera position={[5, 1, 15]} robotCameraRef={robotCameraRef} /> */}
-      <Buggy initialPosition={[7,.1,15]} />
+  
+      <Buggy 
+          position={[7,0.1,15]} 
+          scale={.025} 
+          rotation={[0, Math.PI / 2, 0]} 
+          metallic={0.8} 
+          roughness={0.3}
+        />
       <Room config={roomConfigs[0]}/>
       {roomConfigs.map((config) => (
           <Room key={config.name} config={config} castShadow receiveShadow />
