@@ -1,7 +1,7 @@
 import React from "react";
 import { Physics } from "@react-three/rapier";
 import Model from "../helper/Model";
-import ScaledEnvUniform from "./ScaledEnv/ScaledEnv";  // Scale Objects: Plane, OuterWalls, Trellis, Floors, Rooms 
+import ScaledEnvUniform from "./StaticSceneElements/ScaledEnv/ScaledEnv";  // Scale Objects: Plane, OuterWalls, Trellis, Floors, Rooms 
 import RobotWithCamera from "../scene/RobotWithCamera"
 import Buggy from "./Buggy";
 import HudView from "../camera/HudView"; // ✅ Import HUD Component
