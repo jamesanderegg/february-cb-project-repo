@@ -5,8 +5,8 @@ import { getHomeData } from "./api/api";
 import Button from "./components/Button";
 
 import "./styles/App.css";
-import MainScene from "./scene/MainScene";
 import Main from "./number2/Main";
+
 function App() {
   const [count, setCount] = useState(0);
   const [apiResponse, setApiResponse] = useState(null); // To store the API response
@@ -24,43 +24,42 @@ function App() {
   };
 
   const handleCapture = async () => {
-    console.log("Hello")
-    if (robotCameraRef.current) {
-      try {
-        const image = await robotCameraRef.current.captureImage(); // Await async Promise
-  
-        if (!image) {
-          console.error("Failed to capture image.");
-          return;
-        }
-  
-        setCapturedImage(image);
-        console.log("Captured Image (Base64):", image);
-  
-        const response = await fetch("http://127.0.0.1:5000/robot", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: image })
-        });
-  
-        const result = await response.json();
-        console.log("Response from Flask:", result);
-      } catch (error) {
-        console.error("Error sending image:", error);
+    console.log("Capture button clicked!");
+
+    if (!robotCameraRef.current) {
+      console.error("RobotCamera is not ready!");
+      return;
+    }
+
+    try {
+      const image = await robotCameraRef.current.captureImage(); // Await async Promise
+
+      if (!image) {
+        console.error("Failed to capture image.");
+        return;
       }
+
+      setCapturedImage(image);
+      console.log("Captured Image (Base64):", image);
+
+      const response = await fetch("http://127.0.0.1:5000/robot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: image }),
+      });
+
+      const result = await response.json();
+      console.log("Response from Flask:", result);
+    } catch (error) {
+      console.error("Error sending image:", error);
     }
   };
-  
 
   return (
     <>
       <div className="card">
-      <img src="" />
-
         <Button onClick={() => setCount((count) => count + 1)} label="Count" />
-
-        Count is {count}
-        <br />
+        <p>Count is {count}</p>
 
         <Button onClick={handleApiCall} label="Test API Connection" />
         <Button onClick={handleCapture} label="Capture Image" />
@@ -68,12 +67,17 @@ function App() {
         <p>{apiResponse}</p>
 
         {/* Display captured image preview */}
-        {capturedImage && <img src={capturedImage} alt="Robot Camera View" style={{ maxWidth: "200px", marginTop: "10px" }} />}
+        {capturedImage && (
+          <img
+            src={capturedImage}
+            alt="Robot Camera View"
+            style={{ maxWidth: "200px", marginTop: "10px" }}
+          />
+        )}
       </div>
 
       <div className="main">
-        {/* <MainScene robotCameraRef={robotCameraRef} /> */}
-        <Main robotCameraRef={robotCameraRef} />
+        <Main robotCameraRef={robotCameraRef} onCapture={handleCapture} />
       </div>
     </>
   );

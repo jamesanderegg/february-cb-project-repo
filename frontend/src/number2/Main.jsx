@@ -10,7 +10,7 @@ import DirectionalLight from "./lights/DirectionalLight";
 import Spotlight from "./lights/Spotlight";
 import MainScene from "./scene/MainScene"; // Importing the MainScene
 
-const Main = ({ robotCameraRef }) => {
+const Main = ({ robotCameraRef, onCapture }) => {
   return (
     <Canvas
       shadows
@@ -29,10 +29,10 @@ const Main = ({ robotCameraRef }) => {
       {/* <Spotlight /> */}
       
       {/* Main Scene */}
-      <MainScene robotCameraRef={robotCameraRef} />
+      <MainScene robotCameraRef={robotCameraRef} onCapture={onCapture} />
 
       {/* Environment */}
-      <Environment preset="sunset" />
+      {/* <Environment preset="sunset" /> */}
     </Canvas>
   );
 };

@@ -1,0 +1,26 @@
+import React from "react";
+import { useFrame } from "@react-three/fiber";
+import { useThree } from "@react-three/fiber";
+import * as THREE from "three";
+
+const HudView = ({ robotCameraTexture }) => {
+  const { gl } = useThree();
+  const hudCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+  hudCamera.position.set(0, 0, 5);
+
+  useFrame(() => {
+    if (robotCameraTexture) {
+      gl.autoClear = false;
+      gl.clearDepth();
+      gl.render(new THREE.Scene().add(new THREE.Mesh(
+        new THREE.PlaneGeometry(0.4, 0.3),
+        new THREE.MeshBasicMaterial({ map: robotCameraTexture })
+      )), hudCamera);
+      gl.autoClear = true;
+    }
+  });
+
+  return null;
+};
+
+export default HudView;

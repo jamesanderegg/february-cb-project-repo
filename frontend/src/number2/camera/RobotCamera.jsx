@@ -81,21 +81,25 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
 
   useFrame(() => {
     if (robotRef.current && cameraRef.current) {
-      const headPosition = new THREE.Vector3().copy(robotRef.current.translation());
-      headPosition.y += 2.5;
-
-      const robotRotation = robotRef.current.rotation().y;
-      const lookDirection = new THREE.Vector3(
-        -Math.sin(robotRotation),
-        0,
-        -Math.cos(robotRotation)
-      );
-
-      cameraRef.current.position.copy(headPosition);
-      const lookTarget = new THREE.Vector3().copy(headPosition).add(lookDirection.multiplyScalar(5));
-      lookTarget.y -= 1;
+      const body = robotRef.current;
+      
+      // Get Buggy's world position
+      const buggyPosition = new THREE.Vector3().copy(body.translation());
+      buggyPosition.y += 2.5; // Adjust camera height
+  
+      // Get Buggy's world rotation
+      const buggyRotation = new THREE.Quaternion().copy(body.rotation());
+  
+      // Calculate the forward direction of the buggy
+      const lookDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(buggyRotation);
+  
+      // Position the camera above the buggy
+      cameraRef.current.position.copy(buggyPosition);
+  
+      // Look in the buggy's forward direction
+      const lookTarget = new THREE.Vector3().copy(buggyPosition).add(lookDirection.multiplyScalar(5));
       cameraRef.current.lookAt(lookTarget);
-
+  
       if (helperRef.current) {
         helperRef.current.update();
       }
