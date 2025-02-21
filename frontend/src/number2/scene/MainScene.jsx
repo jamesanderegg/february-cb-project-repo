@@ -4,6 +4,8 @@ import Plane from "./Plane";
 import Model from "../helper/Model";
 import Floors from "./Floors";
 import Room from "./Room";
+import OuterWalls from "./OuterWalls";
+import Trellis from "./Trellis";
 import roomConfigs from "./roomConfigs";
 import RobotWithCamera from "../scene/RobotWithCamera"
 import Buggy from "./Buggy";
@@ -42,9 +44,15 @@ const MainScene = ( { robotCameraRef }) => {
         
       />
 
+      <OuterWalls />
+      <Trellis />
       <Floors />
       {/* <RobotWithCamera position={[5, 1, 15]} robotCameraRef={robotCameraRef} /> */}
-  
+      <Room config={roomConfigs[0]}/>
+      {roomConfigs.map((config) => (
+          <Room key={config.name} config={config} castShadow receiveShadow />
+        ))}
+
       <Buggy 
           position={[7,0.1,15]} 
           scale={.025} 
@@ -52,10 +60,7 @@ const MainScene = ( { robotCameraRef }) => {
           metallic={0.8} 
           roughness={0.3}
         />
-      <Room config={roomConfigs[0]}/>
-      {roomConfigs.map((config) => (
-          <Room key={config.name} config={config} castShadow receiveShadow />
-        ))}
+      
     </Physics>
   );
 };
