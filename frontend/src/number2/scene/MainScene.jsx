@@ -1,12 +1,7 @@
 import React from "react";
 import { Physics } from "@react-three/rapier";
-import Plane from "./Plane";
 import Model from "../helper/Model";
-import Floors from "./Floors";
-import Room from "./Room";
-import OuterWalls from "./OuterWalls";
-import Trellis from "./Trellis";
-import roomConfigs from "./roomConfigs";
+import ScaledEnvUniform from "./ScaledEnv/ScaledEnv";  // Scale Objects: Plane, OuterWalls, Trellis, Floors, Rooms 
 import RobotWithCamera from "../scene/RobotWithCamera"
 import Buggy from "./Buggy";
 import HudView from "../camera/HudView"; // ✅ Import HUD Component
@@ -14,8 +9,8 @@ const MainScene = ({ robotCameraRef, onCapture }) => {
 
   return (
     <Physics debug gravity={[0, -9.81, 0]}>
-      {/* Ground Plane */}
-      <Plane width={50} height={50} color="darkgray" showHelper={true} />
+      {/* Ground Plane
+      <Plane width={50} height={50} color="darkgray" showHelper={true} /> */}
 
       {/* Load Models */}
       <Model
@@ -44,11 +39,9 @@ const MainScene = ({ robotCameraRef, onCapture }) => {
 
       />
 
-      <OuterWalls />
-      <Trellis />
-      <Floors />
-      {/* <RobotWithCamera position={[5, 1, 15]} robotCameraRef={robotCameraRef} /> */}
-
+      {/* Scale Objects: Plane, OuterWalls, Trellis, Floors, Rooms */}
+      <ScaledEnvUniform scale={2} /> {/* Adjust scale value as needed */}
+     
       <Buggy
         position={[7, 0.1, 15]}
         scale={0.025}
@@ -58,10 +51,6 @@ const MainScene = ({ robotCameraRef, onCapture }) => {
         robotCameraRef={robotCameraRef}
         onCapture={onCapture} />
 
-      <Room config={roomConfigs[0]} />
-      {roomConfigs.map((config) => (
-        <Room key={config.name} config={config} castShadow receiveShadow />
-      ))}
     </Physics>
   );
 };
