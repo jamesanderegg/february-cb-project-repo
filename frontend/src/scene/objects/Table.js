@@ -1,4 +1,4 @@
-//Table Construction
+//Table Construction in THREE
 const table = new THREE.Group();
 
 const tableBaseGeometry = new THREE.CylinderGeometry(0.25, 0.75, 0.25);

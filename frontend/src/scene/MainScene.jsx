@@ -8,7 +8,7 @@ import DirectionalLight from "./lights/DirectionalLight";
 import Spotlight from "./lights/Spotlight";
 
 import Model from "../helper/Model";
-import PrimaryCamera from "./camera/PrimaryCamera";
+import PrimaryCamera from "./Building/camera/PrimaryCamera";
 
 import Scene from "./objects/Scene"
 import FiberTable from "./objects/FiberTable"

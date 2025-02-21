@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import RobotCamera from "../camera/RobotCamera";
+import RobotCamera from "../Building/camera/RobotCamera";
 import RobotModel from "../../helper/RobotModel";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";

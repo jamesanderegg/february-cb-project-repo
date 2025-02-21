@@ -5,6 +5,7 @@ import ScaledEnvUniform from "./StaticSceneElements/ScaledEnv/ScaledEnv";  // Sc
 import RobotWithCamera from "../scene/RobotWithCamera"
 import Buggy from "./Buggy";
 import HudView from "../camera/HudView"; // ✅ Import HUD Component
+import FiberTable from "./StaticSceneElements/ScaledEnv/FiberTables";
 const MainScene = ({ robotCameraRef, onCapture }) => {
 
   return (
@@ -42,6 +43,8 @@ const MainScene = ({ robotCameraRef, onCapture }) => {
       {/* Scale Objects: Plane, OuterWalls, Trellis, Floors, Rooms */}
       <ScaledEnvUniform scale={2} /> {/* Adjust scale value as needed */}
      
+      <FiberTable/>
+
       <Buggy
         position={[7, 0.1, 15]}
         scale={0.025}

@@ -9,7 +9,7 @@ import AmbientLight from "./lights/AmbientLight";
 import DirectionalLight from "./lights/DirectionalLight";
 import Spotlight from "./lights/Spotlight";
 import MainScene from "./scene/MainScene"; // Importing the MainScene
-import HUDView from "./camera/HUDView";
+import HUDView from './camera/HUDView';
 const Main = ({ robotCameraRef, onCapture }) => {
   return (
     <>
