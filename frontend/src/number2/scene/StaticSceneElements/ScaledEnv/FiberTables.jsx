@@ -28,7 +28,12 @@ const Tables = () => {
     // Green room tables (3)
     { color: '#8a3244', position: [7, 0, -18] },
     { color: '#aa875c', position: [11, 0, -20.5] },
-    { color: '#4a0100', position: [7, 0, -23.5] }
+    { color: '#4a0100', position: [7, 0, -23.5] },
+
+    // Outside tables (3)
+    { color: 'red', position: [14, 0, 8] },
+    { color: 'blue', position: [24, 0, 20] },
+    { color: 'yellow', position: [6, 0, -8] }
   ];
 
   // Table dimensions
