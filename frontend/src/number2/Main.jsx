@@ -9,9 +9,10 @@ import AmbientLight from "./lights/AmbientLight";
 import DirectionalLight from "./lights/DirectionalLight";
 import Spotlight from "./lights/Spotlight";
 import MainScene from "./scene/MainScene"; // Importing the MainScene
-
+import HUDView from "./camera/HUDView";
 const Main = ({ robotCameraRef, onCapture }) => {
   return (
+    <>
     <Canvas
       shadows
       camera={{ position: [0, 2, 5], fov: 50 }}
@@ -32,8 +33,11 @@ const Main = ({ robotCameraRef, onCapture }) => {
       <MainScene robotCameraRef={robotCameraRef} onCapture={onCapture} />
 
       {/* Environment */}
-      {/* <Environment preset="sunset" /> */}
+      <Environment preset="sunset" />
+
     </Canvas>
+      <HUDView robotCameraRef={robotCameraRef} />
+    </>
   );
 };
 
