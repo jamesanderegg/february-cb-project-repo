@@ -20,8 +20,8 @@ const MainScene = ({ robotCameraRef, onCapture }) => {
         position={[-8, 2, 0]}
         rotation={[0, Math.PI / 4, 0]}
         color="red"
-
       />
+
       <Model
         filePath="/models/bike.glb"
         scale={.05}
@@ -31,6 +31,14 @@ const MainScene = ({ robotCameraRef, onCapture }) => {
         roughness={1}
         castShadow
       />
+
+      <Model
+        filePath="/models/book.glb"
+        scale={.4}
+        position={[1, 0, 0]}
+        color='orange'
+      />
+
       <Model
         filePath="/models/keys1.glb"
         scale={0.02}
