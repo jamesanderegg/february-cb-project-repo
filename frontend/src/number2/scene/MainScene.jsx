@@ -21,15 +21,86 @@ const MainScene = ({ robotCameraRef, onCapture }) => {
         rotation={[0, Math.PI / 4, 0]}
         color="red"
       />
+      {/* <Model
+        filePath="/models/glasses-6.glb"
+        scale={1}
+        position={[0, 0, 0]}
+        color={"black"}
+        castShadow
+      /> */}
+
+      <Model 
+        filePath="/models/alarmClock.glb"
+        scale={0.1}
+        position={[0, 0, 25]}
+        color="blue"
+      />
 
       <Model
         filePath="/models/bike.glb"
-        scale={.05}
+        scale={.04}
         color="black"
         position={[-2, 10, 0]}
         metallic={0}
         roughness={1}
         castShadow
+      />
+
+      <Model
+        filePath="/models/trees.glb"
+        position={[-17, 0, 1]}
+        rotation={ [0, Math.PI /2, 0]}
+        scale = {3}
+        color="olive"
+      />  
+
+      <Model
+        filePath="/models/backpack.glb"
+        position={[-10, 0, 0]}
+        scale={.1}
+        color="aliceblue"
+      />  
+
+      <Model
+        filePath="/models/handbag.glb"
+        position={[5, 0, 0]}
+        scale={3}
+        color="red"
+      />
+
+      <Model
+        filePath="/models/teddy.glb"
+        position={[3, 0, 0]}
+        scale={1}
+        color="brown"
+      />
+
+      <Model
+        filePath="/models/phone.glb"
+        position={[1, 0, 0]}
+        scale={3}
+        color="black"
+      />
+
+      <Model
+        filePath="/models/pottedPlant.glb"
+        position={[0, 0, 13]}
+        scale={0.05}
+        color="blue"
+      />
+
+      <Model
+        filePath={"models/moreTrees.glb"}
+        position={[35, 30, -1]}
+        scale = {.3}
+        color="olive"
+      />
+
+      <Model
+        filePath={"models/umbrella.glb"}
+        position={[0, 5, 10]}
+        scale = {.015}
+        color = "red"
       />
 
       <Model
