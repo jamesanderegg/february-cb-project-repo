@@ -88,51 +88,62 @@ const RobotCamera = forwardRef(({ robotRef, onCaptureImage, onDetectionResults }
   useFrame(() => {
     if (robotRef.current && cameraRef.current) {
       const body = robotRef.current;
-
+  
       // Get Buggy's world position
       const buggyPosition = new THREE.Vector3().copy(body.translation());
       buggyPosition.y += 2.5; // Adjust camera height
-
+  
       // Get Buggy's world rotation
       const buggyRotation = new THREE.Quaternion().copy(body.rotation());
-
+  
       // Calculate the forward direction of the buggy
       const lookDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(buggyRotation);
-
+  
       // Position the camera above the buggy
       cameraRef.current.position.copy(buggyPosition);
-
+  
       // Look in the buggy's forward direction
       const lookTarget = new THREE.Vector3().copy(buggyPosition).add(lookDirection.multiplyScalar(5));
       cameraRef.current.lookAt(lookTarget);
-
+  
       if (helperRef.current) {
         helperRef.current.update();
       }
-
+  
+      // Render to the target
       gl.setRenderTarget(renderTarget.current);
       gl.render(scene, cameraRef.current);
       gl.setRenderTarget(null);
   
-      // Convert render target to base64 and update HUD image
-      const buffer = new Uint8Array(4 * renderTarget.current.width * renderTarget.current.height);
-      gl.readRenderTargetPixels(renderTarget.current, 0, 0, renderTarget.current.width, renderTarget.current.height, buffer);
+      // Read pixel data
+      const width = renderTarget.current.width;
+      const height = renderTarget.current.height;
+      const buffer = new Uint8Array(4 * width * height);
+      gl.readRenderTargetPixels(renderTarget.current, 0, 0, width, height, buffer);
   
-      const canvas = document.createElement('canvas');
-      canvas.width = renderTarget.current.width;
-      canvas.height = renderTarget.current.height;
-      const ctx = canvas.getContext('2d');
-      const imageData = new ImageData(new Uint8ClampedArray(buffer.buffer), renderTarget.current.width, renderTarget.current.height);
+      // Create an offscreen canvas to store the flipped image
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
   
-      // ✅ Flip the image vertically
+      // Create ImageData and manually flip the buffer vertically
+      const imageData = ctx.createImageData(width, height);
+      for (let y = 0; y < height; y++) {
+        const srcRow = height - 1 - y; // Flip the rows
+        const srcStart = srcRow * width * 4;
+        const destStart = y * width * 4;
+        imageData.data.set(buffer.subarray(srcStart, srcStart + width * 4), destStart);
+      }
+  
+      // Draw the flipped image onto the canvas
       ctx.putImageData(imageData, 0, 0);
-      ctx.translate(0, canvas.height);
-      ctx.scale(1, -1);
-      ctx.drawImage(canvas, 0, 0);
   
-      hudImageData.current = canvas.toDataURL("image/png"); // Update the stored HUD image
+      // Convert to base64 and store it for the HUD
+      hudImageData.current = canvas.toDataURL("image/png");
     }
   });
+  
 
   return null;
 });

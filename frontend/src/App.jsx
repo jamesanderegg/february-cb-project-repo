@@ -40,7 +40,7 @@ function App() {
       }
 
       setCapturedImage(image);
-      console.log("Captured Image (Base64):", image);
+      // console.log("Captured Image (Base64):", image);
 
       const response = await fetch("http://127.0.0.1:5000/robot", {
         method: "POST",

@@ -2,17 +2,12 @@ import React from "react";
 import { Physics } from "@react-three/rapier";
 import Model from "../helper/Model";
 import ScaledEnvUniform from "./StaticSceneElements/ScaledEnv/ScaledEnv";  // Scale Objects: Plane, OuterWalls, Trellis, Floors, Rooms 
-import RobotWithCamera from "../scene/RobotWithCamera"
 import Buggy from "./Buggy";
-import HudView from "../camera/HudView"; // ✅ Import HUD Component
 import FiberTable from "./StaticSceneElements/ScaledEnv/FiberTables";
 const MainScene = ({ robotCameraRef, onCapture }) => {
 
   return (
-    <Physics debug gravity={[0, -9.81, 0]}>
-      {/* Ground Plane
-      <Plane width={50} height={50} color="darkgray" showHelper={true} /> */}
-
+    <Physics gravity={[0, -9.81, 0]}>
       {/* Load Models */}
       <Model
         filePath="/models/apple.glb"
