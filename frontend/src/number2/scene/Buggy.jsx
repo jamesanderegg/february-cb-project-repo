@@ -12,8 +12,7 @@ const Buggy = ({
   color,
   texturePath,
   visible = true,
-  robotCameraRef,
-  onCapture // ✅ Accept onCapture function
+  robotCameraRef
 }) => {
   const ref = useRef();
   const keysPressed = useRef({});
@@ -98,8 +97,8 @@ const Buggy = ({
         <primitive object={loadedScene} />
       </group>
 
-      {/* ✅ Attach Robot Camera and pass onCapture */}
-      <RobotCamera robotRef={ref} ref={robotCameraRef} onCapture={onCapture} />
+      {/* ✅ Attach Robot Camera for streaming */}
+      <RobotCamera robotRef={ref} ref={robotCameraRef} />
     </RigidBody>
   );
 };

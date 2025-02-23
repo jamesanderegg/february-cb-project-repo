@@ -126,7 +126,7 @@ const MainScene = ({ robotCameraRef, onCapture }) => {
         metallic={0.8}
         roughness={0.3}
         robotCameraRef={robotCameraRef}
-        onCapture={onCapture} />
+        />
 
     </Physics>
   );

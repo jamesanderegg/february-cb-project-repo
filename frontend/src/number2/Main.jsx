@@ -30,7 +30,7 @@ const Main = ({ robotCameraRef, onCapture }) => {
       {/* <Spotlight /> */}
       
       {/* Main Scene */}
-      <MainScene robotCameraRef={robotCameraRef} onCapture={onCapture} />
+      <MainScene robotCameraRef={robotCameraRef} />
 
       {/* Environment */}
       <Environment preset="city" />
