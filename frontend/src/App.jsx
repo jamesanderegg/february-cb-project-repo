@@ -3,15 +3,17 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { getHomeData } from "./api/api";
 import Button from "./components/Button";
-
+import VoiceToText from "./components/VoiceToText";
 import "./styles/App.css";
 import Main from "./number2/Main";
+import Modal from "./components/Modal";
+import "./styles/modal.css";
 
 function App() {
   const [count, setCount] = useState(0);
   const [apiResponse, setApiResponse] = useState(null); // Store API response
   const robotCameraRef = useRef(null); // Reference for RobotCamera
-
+  const [robotSuccess, setRobotSuccess] = useState(false);
   useEffect(() => {
     // Automatically start streaming when component mounts
     if (robotCameraRef.current) {
@@ -39,6 +41,9 @@ function App() {
 
         <p>{apiResponse}</p>
       </div>
+
+      <VoiceToText />
+      <Modal success={robotSuccess} />
 
       <div className="main">
         <Main robotCameraRef={robotCameraRef} />
