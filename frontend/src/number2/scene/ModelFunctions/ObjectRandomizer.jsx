@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { movableModels } from './Models';
+import { movableModels } from './MoveableModels';
 import Model from '../../helper/Model'; // Ensure this path is correct
 
 const ObjectRandomizer = ({ tableConfigs }) => {
