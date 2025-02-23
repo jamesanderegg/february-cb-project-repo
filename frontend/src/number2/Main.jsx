@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 
@@ -11,22 +11,7 @@ import Spotlight from "./lights/Spotlight";
 import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
 
-const MOVEMENT_INTERVAL = 60000; // 60 seconds
-
 const Main = ({ robotCameraRef, onCapture }) => {
-  useEffect(() => {
-    // Create a custom event for object movement
-    const moveObjectEvent = new CustomEvent('moveObject');
-
-    // Set up interval to dispatch the event
-    const intervalId = setInterval(() => {
-      window.dispatchEvent(moveObjectEvent);
-    }, MOVEMENT_INTERVAL);
-
-    // Cleanup interval on unmount
-    return () => clearInterval(intervalId);
-  }, []);
-
   return (
     <>
       <Canvas
