@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 const Modal = ({ success = false }) => {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false); // Initially hidden modal
   const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
