@@ -16,13 +16,6 @@ const MainScene = ({ robotCameraRef, onCapture }) => {
         rotation={[0, Math.PI / 4, 0]}
         color="red"
       />
-      {/* <Model
-        filePath="/models/glasses-6.glb"
-        scale={1}
-        position={[0, 0, 0]}
-        color={"black"}
-        castShadow
-      /> */}
 
       <Model 
         filePath="/models/alarmClock.glb"
