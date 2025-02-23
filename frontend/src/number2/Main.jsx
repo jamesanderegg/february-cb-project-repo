@@ -8,34 +8,34 @@ import OrbitControls from "./contols/OrbitControls";
 import AmbientLight from "./lights/AmbientLight";
 import DirectionalLight from "./lights/DirectionalLight";
 import Spotlight from "./lights/Spotlight";
-import MainScene from "./scene/MainScene"; // Importing the MainScene
-import HUDView from './camera/HUDView'
+import MainScene from "./scene/MainScene";
+import HUDView from './camera/HUDView';
+
 const Main = ({ robotCameraRef, onCapture }) => {
   return (
     <>
-    <Canvas
-      shadows
-      camera={{ position: [0, 2, 5], fov: 50 }}
-      style={{ width: "100vw", height: "100vh" }}
-    >
-      {/* Camera */}
-      <PrimaryCamera position ={ [7,1,30]} />
+      <Canvas
+        shadows
+        camera={{ position: [0, 2, 5], fov: 50 }}
+        style={{ width: "100vw", height: "100vh" }}
+      >
+        {/* Camera */}
+        <PrimaryCamera position={[7, 1, 30]} />
 
-      {/* Controls */}
-      <OrbitControls />
+        {/* Controls */}
+        <OrbitControls />
 
-      {/* Lights */}
-      <AmbientLight />
-      <DirectionalLight />
-      {/* <Spotlight /> */}
-      
-      {/* Main Scene */}
-      <MainScene robotCameraRef={robotCameraRef} />
+        {/* Lights */}
+        <AmbientLight />
+        <DirectionalLight />
+        {/* <Spotlight /> */}
 
-      {/* Environment */}
-      <Environment preset="city" />
+        {/* Main Scene */}
+        <MainScene robotCameraRef={robotCameraRef} />
 
-    </Canvas>
+        {/* Environment */}
+        <Environment preset="city" />
+      </Canvas>
       <HUDView robotCameraRef={robotCameraRef} />
     </>
   );
