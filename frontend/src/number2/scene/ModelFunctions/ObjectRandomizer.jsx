@@ -1,30 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { RigidBody } from '@react-three/rapier';
+import React, { useState, useEffect } from 'react';
 import { movableModels } from './Models';
-import { useGLTF } from '@react-three/drei';
-import { MeshStandardMaterial } from 'three';
-
-const Model = ({ filePath, scale, position, rotation = [0, 0, 0], color }) => {
-  const { scene } = useGLTF(filePath);
-  const clonedScene = useMemo(() => scene.clone(), [scene]);
-
-  useEffect(() => {
-    clonedScene.traverse((node) => {
-      if (node.isMesh) {
-        node.material = new MeshStandardMaterial({ color });
-      }
-    });
-  }, [clonedScene, color]);
-
-  return (
-    <primitive
-      object={clonedScene}
-      scale={scale}
-      position={position}
-      rotation={rotation}
-    />
-  );
-};
+import Model from '../../helper/Model'; // Ensure this path is correct
 
 const ObjectRandomizer = ({ tableConfigs }) => {
   const [objectPositions, setObjectPositions] = useState([]);
@@ -32,12 +8,12 @@ const ObjectRandomizer = ({ tableConfigs }) => {
   // Function to assign initial random positions
   const assignInitialPositions = () => {
     const availableTables = [...tableConfigs];
-    return movableModels.map((model, index) => {
+    return movableModels.map((model) => {
       if (availableTables.length === 0) return null;
-      
+
       const randomIndex = Math.floor(Math.random() * availableTables.length);
       const table = availableTables.splice(randomIndex, 1)[0];
-      
+
       return {
         ...model,
         tableIndex: tableConfigs.indexOf(table),
@@ -51,29 +27,29 @@ const ObjectRandomizer = ({ tableConfigs }) => {
   };
 
   useEffect(() => {
-    const initialPositions = assignInitialPositions();
-    setObjectPositions(initialPositions);
+    setObjectPositions(assignInitialPositions());
   }, []);
 
   return (
     <>
       {objectPositions.map((obj, index) => (
-        <RigidBody
+        <Model
           key={index}
+          filePath={obj.filePath}
+          scale={obj.scale}
           position={obj.position}
-          colliders="cuboid"
-          type="fixed"
-          collisionGroups={0x00000002}
-          sensor
-        >
-          <Model
-            filePath={obj.filePath}
-            scale={obj.scale}
-            position={[0, 0, 0]}
-            rotation={obj.rotation || [0, 0, 0]}
-            color={obj.color}
-          />
-        </RigidBody>
+          rotation={obj.rotation || [0, 0, 0]}
+          color={obj.color}
+          metallic={obj.metallic || 1}
+          roughness={obj.roughness || 0.2}
+          castShadow={obj.castShadow ?? true}
+          receiveShadow={obj.receiveShadow ?? true}
+          physicsProps={{
+            mass: obj.mass || 1,
+            linearDamping: obj.linearDamping || 0.5,
+            angularDamping: obj.angularDamping || 0.5,
+          }}
+        />
       ))}
     </>
   );
