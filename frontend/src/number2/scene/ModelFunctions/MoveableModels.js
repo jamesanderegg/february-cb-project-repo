@@ -73,10 +73,9 @@ export const movableModels = [
   },
   {
     name: 'teddy',
-    filePath: '/models/teddy.glb',
-    scale: 1,
+    filePath: '/models/toyBear.glb',
+    scale: .1,
     rotation: [0, Math.PI / 3, 0],
-    color: 'brown',
     height: 0.7,
     metallic: 0,
     roughness: 0.9,
@@ -103,8 +102,8 @@ export const movableModels = [
   },
   {
     name: 'pottedPlant',
-    filePath: '/models/pottedPlant.glb',
-    scale: 0.05,
+    filePath: '/models/PottedPlant+Texture.glb',
+    scale: 5,
     rotation: [0, -Math.PI / 5, 0],
     color: 'green',
     height: 0.8,
