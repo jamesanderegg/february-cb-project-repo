@@ -132,10 +132,9 @@ export const movableModels = [
   },
   {
     name: 'book',
-    filePath: '/models/book.glb',
+    filePath: '/models/Book.glb',
     scale: 0.4,
     rotation: [0, 0, 0],
-    color: 'orange',
     height: 0.3,
     metallic: 0.1,
     roughness: 0.9,
