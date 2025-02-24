@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useImperativeHandle, forwardRef } from "react
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-const TopDownCamera = forwardRef(({ robotPositionRef }, ref) => {
+const TopDownCamera = forwardRef(({ robotPositionRef, cameraHeight = 50 }, ref) => {
   const cameraRef = useRef();
   const helperRef = useRef();
   const { scene, gl } = useThree();
@@ -10,7 +10,7 @@ const TopDownCamera = forwardRef(({ robotPositionRef }, ref) => {
   const hudImageData = useRef(null);
 
   useEffect(() => {
-    const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 100);
+    const camera = new THREE.OrthographicCamera(-40, 40, 40, -40, 1, 600);
     cameraRef.current = camera;
     scene.add(camera);
 
@@ -28,8 +28,8 @@ const TopDownCamera = forwardRef(({ robotPositionRef }, ref) => {
     if (robotPositionRef.current && cameraRef.current) {
       const [x, y, z] = robotPositionRef.current;
 
-      // Position camera above the Buggy
-      cameraRef.current.position.set(x, y + 20, z);
+      // ✅ Position camera at the user-defined height
+      cameraRef.current.position.set(x, y + cameraHeight, z);
       cameraRef.current.lookAt(new THREE.Vector3(x, y, z));
 
       // Update helper visualization
