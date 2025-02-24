@@ -12,7 +12,9 @@ const Buggy = ({
   color,
   texturePath,
   visible = true,
-  robotCameraRef
+  robotCameraRef,
+  robotPositionRef, 
+  robotRotationRef
 }) => {
   const ref = useRef();
   const keysPressed = useRef({});
@@ -55,16 +57,16 @@ const Buggy = ({
     const body = ref.current;
     let moveDirection = 0;
     let turnDirection = 0;
-
+  
     // Movement Input
     if (keysPressed.current["w"]) moveDirection = moveSpeed;
     if (keysPressed.current["s"]) moveDirection = -moveSpeed;
     if (keysPressed.current["a"]) turnDirection = rotationSpeed; // Left
     if (keysPressed.current["d"]) turnDirection = -rotationSpeed; // Right
-
+  
     // Get current rotation as Quaternion
     const currentRotation = new Quaternion().copy(body.rotation());
-
+  
     // Apply rotation
     if (turnDirection !== 0) {
       const turnQuaternion = new Quaternion().setFromAxisAngle(
@@ -74,13 +76,24 @@ const Buggy = ({
       currentRotation.multiply(turnQuaternion);
       body.setRotation(currentRotation, true);
     }
-
+  
     // Calculate movement direction relative to new rotation
     let forward = new Vector3(0, 0, -moveDirection);
     forward.applyQuaternion(currentRotation);
-
+  
     body.setLinvel({ x: forward.x, y: body.linvel().y, z: forward.z }, true);
+  
+    // ✅ Extract translation (position)
+    const { x, y, z } = body.translation();
+  
+    // ✅ Extract quaternion rotation correctly
+    const rotationQuat = body.rotation(); // Get Quaternion object
+    const newRotation = [rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w];
+  
+    robotPositionRef.current = [x, y, z];
+    robotRotationRef.current = newRotation; // Store as an array
   });
+  
 
   return (
     <RigidBody
