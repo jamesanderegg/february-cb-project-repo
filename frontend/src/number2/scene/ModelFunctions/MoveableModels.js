@@ -58,8 +58,8 @@ export const movableModels = [
   },
   {
     name: 'handbag',
-    filePath: '/models/handbag.glb',
-    scale: 3,
+    filePath: '/models/Purse+Texture.glb',
+    scale: 7,
     rotation: [0, -Math.PI / 8, 0],
     color: 'red',
     height: 0.6,
