@@ -30,8 +30,8 @@ export const movableModels = [
   },
   {
     name: 'backpack',
-    filePath: '/models/backpack.glb',
-    scale: 0.1,
+    filePath: '/models/Backpack+Texture.glb',
+    scale: 10,
     rotation: [0, Math.PI / 6, 0],
     color: 'aliceblue',
     height: 0.8,
