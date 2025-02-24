@@ -11,7 +11,7 @@ import Spotlight from "./lights/Spotlight";
 import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
 
-const Main = ({ robotCameraRef, onCapture }) => {
+const Main = ({ robotCameraRef, robotPositionRef, robotRotationRef }) => {
   return (
     <>
       <Canvas
@@ -31,7 +31,9 @@ const Main = ({ robotCameraRef, onCapture }) => {
         {/* <Spotlight /> */}
 
         {/* Main Scene */}
-        <MainScene robotCameraRef={robotCameraRef} />
+        <MainScene robotCameraRef={robotCameraRef} 
+        robotPositionRef={robotPositionRef}
+        robotRotationRef={robotRotationRef} />
 
         {/* Environment */}
         <Environment preset="city" />
