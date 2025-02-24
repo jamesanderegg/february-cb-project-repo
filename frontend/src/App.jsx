@@ -9,6 +9,8 @@ import "./styles/modal.css";
 
 function App() {
   const robotCameraRef = useRef(null);
+  const miniMapCameraRef = useRef(null);
+
   const robotPositionRef = useRef([7, 0.1, 15]); // Default position
   const robotRotationRef = useRef([0, -Math.PI / 2, 0, 1]); // Default quaternion
 
@@ -64,6 +66,7 @@ function App() {
       <div className="main">
         <Main
           robotCameraRef={robotCameraRef}
+          miniMapCameraRef={miniMapCameraRef}
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
         />

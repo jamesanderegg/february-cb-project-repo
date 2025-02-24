@@ -7,11 +7,12 @@ import PrimaryCamera from "./camera/PrimaryCamera";
 import OrbitControls from "./contols/OrbitControls";
 import AmbientLight from "./lights/AmbientLight";
 import DirectionalLight from "./lights/DirectionalLight";
-import Spotlight from "./lights/Spotlight";
 import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
+import MiniMapHUD from "./camera/MiniMapHUD";
+import TopDownCamera from "./camera/TopDownCamera";
 
-const Main = ({ robotCameraRef, robotPositionRef, robotRotationRef }) => {
+const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef }) => {
   return (
     <>
       <Canvas
@@ -19,8 +20,11 @@ const Main = ({ robotCameraRef, robotPositionRef, robotRotationRef }) => {
         camera={{ position: [0, 2, 5], fov: 50 }}
         style={{ width: "100vw", height: "100vh" }}
       >
-        {/* Camera */}
+        {/* Main Camera */}
         <PrimaryCamera position={[7, 1, 30]} />
+
+        {/* Mini-Map Top-Down Camera */}
+        <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
 
         {/* Controls */}
         <OrbitControls />
@@ -28,17 +32,21 @@ const Main = ({ robotCameraRef, robotPositionRef, robotRotationRef }) => {
         {/* Lights */}
         <AmbientLight />
         <DirectionalLight />
-        {/* <Spotlight /> */}
 
         {/* Main Scene */}
-        <MainScene robotCameraRef={robotCameraRef} 
-        robotPositionRef={robotPositionRef}
-        robotRotationRef={robotRotationRef} />
+        <MainScene 
+          robotCameraRef={robotCameraRef} 
+          robotPositionRef={robotPositionRef} 
+          robotRotationRef={robotRotationRef} 
+        />
 
         {/* Environment */}
         <Environment preset="city" />
       </Canvas>
+
+      {/* HUD Views */}
       <HUDView robotCameraRef={robotCameraRef} />
+      <MiniMapHUD miniMapCameraRef={miniMapCameraRef} />
     </>
   );
 };
