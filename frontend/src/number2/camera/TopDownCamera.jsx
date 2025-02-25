@@ -4,7 +4,6 @@ import * as THREE from "three";
 
 const TopDownCamera = forwardRef(({ robotPositionRef, cameraHeight = 50 }, ref) => {
   const cameraRef = useRef();
-  const helperRef = useRef();
   const { scene, gl } = useThree();
   const renderTarget = useRef(new THREE.WebGLRenderTarget(256, 256)); 
   const hudImageData = useRef(null);
@@ -14,13 +13,8 @@ const TopDownCamera = forwardRef(({ robotPositionRef, cameraHeight = 50 }, ref) 
     cameraRef.current = camera;
     scene.add(camera);
 
-    const helper = new THREE.CameraHelper(camera);
-    helperRef.current = helper;
-    scene.add(helper);
-
     return () => {
       scene.remove(camera);
-      scene.remove(helper);
     };
   }, [scene]);
 
@@ -31,9 +25,6 @@ const TopDownCamera = forwardRef(({ robotPositionRef, cameraHeight = 50 }, ref) 
       // ✅ Position camera at the user-defined height
       cameraRef.current.position.set(x, y + cameraHeight, z);
       cameraRef.current.lookAt(new THREE.Vector3(x, y, z));
-
-      // Update helper visualization
-      if (helperRef.current) helperRef.current.update();
 
       // Render to offscreen target
       gl.setRenderTarget(renderTarget.current);

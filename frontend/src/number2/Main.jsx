@@ -7,6 +7,7 @@ import PrimaryCamera from "./camera/PrimaryCamera";
 import OrbitControls from "./contols/OrbitControls";
 import AmbientLight from "./lights/AmbientLight";
 import DirectionalLights from "./lights/DirectionalLight";
+import SpotLights from "./lights/Spotlights";
 import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
 import MiniMapHUD from "./camera/MiniMapHUD";
@@ -30,8 +31,9 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
         <OrbitControls />
 
         {/* Lights */}
-        <AmbientLight />
-        <DirectionalLights />
+        {/* <AmbientLight /> */}
+        {/* <DirectionalLights /> */}
+        <SpotLights />
 
         {/* Main Scene */}
         <MainScene 
@@ -41,7 +43,7 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
         />
 
         {/* Environment */}
-        {/* <Environment preset="city" /> */}
+        <Environment preset="apartment" intensity={0.5}/>
       </Canvas>
 
       {/* HUD Views */}
