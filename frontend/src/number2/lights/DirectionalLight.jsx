@@ -64,9 +64,8 @@ const SingleLight = ({
   );
 };
 
-// Main component with multiple lights
+  // Main component with multiple lights
 const DirectionalLights = ({ 
-  targetPosition = [0, 0, 0],
   castShadow = true,
   shadowProps = {
     near: 0.5,
@@ -97,17 +96,22 @@ const DirectionalLights = ({
 
   return (
     <>
-      {lightPositions.map((position, index) => (
-        <SingleLight
-          key={`light-${index}`}
-          position={position}
-          color={lightColors[index]}
-          intensity={intensities[index]}
-          targetPosition={targetPosition}
-          castShadow={castShadow}
-          shadowProps={shadowProps}
-        />
-      ))}
+      {lightPositions.map((position, index) => {
+        // Calculate target position directly below the light (straight down)
+        const targetPosition = [position[0], 0, position[2]];
+        
+        return (
+          <SingleLight
+            key={`light-${index}`}
+            position={position}
+            color={lightColors[index]}
+            intensity={intensities[index]}
+            targetPosition={targetPosition}
+            castShadow={castShadow}
+            shadowProps={shadowProps}
+          />
+        );
+      })}
     </>
   );
 };

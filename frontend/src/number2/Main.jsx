@@ -41,7 +41,7 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
         />
 
         {/* Environment */}
-        <Environment preset="city" />
+        {/* <Environment preset="city" /> */}
       </Canvas>
 
       {/* HUD Views */}
