@@ -18,7 +18,7 @@ const Buggy = ({
 }) => {
   const ref = useRef();
   const keysPressed = useRef({});
-  const moveSpeed = 70;
+  const moveSpeed = 90;
   const rotationSpeed = 1.5;
 
   // Load GLTF Model & Texture
