@@ -1,4 +1,4 @@
-/* Remove unnecessary styles */
+/* Base styles */
 body, html {
   margin: 0;
   padding: 0;
@@ -10,23 +10,120 @@ body, html {
 #root {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 canvas {
   display: block; /* Remove unwanted spacing around canvas */
 }
 
-.card {
-  top: 1rem;
-  left: 1rem;
-  padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent background */
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 50%;
-}
-
-.main{
+/* Main container */
+.main {
   width: 100vw;
   height: 100vh;
-  border: 1px solid green;}
+  position: relative;
+}
+
+/* HUD Layout container */
+.hud-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  z-index: 10;
+}
+
+/* Swap the positions - Mini-map on far left */
+.mini-map-container {
+  width: 200px;
+  height: 200px;
+  margin: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+  order: 1; /* Ensure it's first in flex order */
+}
+
+/* Robot camera styles - Middle */
+.robot-camera-container {
+  width: 220px;
+  height: 200px;
+  margin: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+  order: 2; /* Second in flex order */
+}
+
+/* Robot state display - Inline version */
+.robot-state-container {
+  margin: 10px;
+  order: 3; /* Last in flex order */
+}
+
+.robot-state-inline {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 10px;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+.robot-state-inline h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.robot-state-inline p {
+  margin: 5px 0;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+/* Legacy robot state class - now hidden */
+.robot-state {
+  display: none;
+}
+
+/* Add these styles to your App.css file */
+
+/* Microphone button positioning */
+.microphone-btn,
+.voice-chat button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 50;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Voice recognition results display */
+.transcription {
+  position: absolute;
+  top: 110px; /* Position it below the HUD elements */
+  left: 49%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 450px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: black;
+  padding: 10px 15px;
+  border-radius: 4px;
+  z-index: 40;
+  font-size: 16px;
+}
+
+/* Remove any top margin/padding that might be causing displacement */
+.voice-chat {
+  margin-top: 0;
+  padding-top: 0;
+}

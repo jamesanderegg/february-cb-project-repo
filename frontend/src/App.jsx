@@ -59,19 +59,8 @@ function App() {
 
   return (
     <>
-      <div className="card">
-        <Button onClick={() => console.log("Count button clicked")} label="Count" />
-      </div>
-
       <VoiceToText />
       <Modal success={false} />
-
-      {/* ✅ Robot State updates without re-rendering */}
-      <div className="robot-state">
-        <h3>Robot State</h3>
-        <p ref={positionDisplayRef}>Position: Loading...</p>
-        <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
-      </div>
 
       <div className="main">
         <Main
@@ -81,6 +70,12 @@ function App() {
           robotRotationRef={robotRotationRef}
           YOLOdetectObject={detectObj}
         />
+      </div>
+      
+      {/* We're removing this standalone robot state since it's now in the HUD container */}
+      <div style={{ display: 'none' }}>
+        <p ref={positionDisplayRef}>Position: Loading...</p>
+        <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
       </div>
     </>
   );

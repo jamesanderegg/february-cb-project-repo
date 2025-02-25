@@ -22,8 +22,8 @@ const MiniMapHUD = ({ miniMapCameraRef }) => {
     <div
       style={{
         position: "absolute",
-        bottom: "20px",
-        right: "20px",
+        top: "5px",
+        left: "10px",
         width: "200px",
         height: "200px",
         backgroundColor: "black",

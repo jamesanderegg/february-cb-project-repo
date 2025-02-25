@@ -55,6 +55,7 @@ const VoiceToText = () => {
   return (
     <div className="voice-chat">
       <button
+        className="microphone-btn"
         onClick={isRecording ? stopRecording : startRecording}
         disabled={isProcessing}
         style={{

@@ -1,3 +1,4 @@
+// Robot View
 import React, { useEffect, useState } from "react";
 
 const HUDView = ({ robotCameraRef }) => {
@@ -22,8 +23,8 @@ const HUDView = ({ robotCameraRef }) => {
     <div
       style={{
         position: "absolute",
-        top: "10px",
-        right: "10px",
+        top: "5px",
+        left: "240px",
         width: "200px",
         height: "200px",
         backgroundColor: "black",
