@@ -18,6 +18,8 @@ function App() {
 
 
 
+  const triggerIndicator = useRef(0);
+
   useEffect(() => {
     if (robotCameraRef.current) {
       robotCameraRef.current.startStreaming();
@@ -31,7 +33,12 @@ function App() {
   return (
     <>
       <VoiceToText />
+<<<<<<< Updated upstream
       <Modal success={false} />
+=======
+      <Modal success={false} triggerIndicator={triggerIndicator}/>
+
+>>>>>>> Stashed changes
       <div className="main">
         <Main
           robotCameraRef={robotCameraRef}

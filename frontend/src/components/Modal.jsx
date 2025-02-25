@@ -56,7 +56,7 @@ const Modal = ({ success = false }) => {
         }}
       >
         <h2 style={{ marginBottom: "1rem", color: success ? "white" : "#333" }}>
-          {success ? "Congratulations!!!" : "Welcome to the app!"}
+          {success ? "Congratulations!!!" : "Meet Buggy! He can find things in the environment!"}
         </h2>
         <p style={{ lineHeight: "1.6", color: success ? "white" : "#666" }}>
           {success
