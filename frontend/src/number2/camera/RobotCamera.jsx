@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Robot Camera Component
-const RobotCamera = forwardRef(({ robotRef }, ref) => {
+const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject }, ref) => {
   const cameraRef = useRef();
   const { gl, scene } = useThree();
   const renderTarget = useRef(new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }));
@@ -107,6 +107,8 @@ const RobotCamera = forwardRef(({ robotRef }, ref) => {
       // pass into App.jsx
       const detectionResults = await response.json();
       console.log("YOLO Detection Results:", detectionResults);
+
+      YOLOdetectObject.current = detectionResults;
 
       // ✅ Once YOLO responds, process the next image
       isProcessing.current = false;

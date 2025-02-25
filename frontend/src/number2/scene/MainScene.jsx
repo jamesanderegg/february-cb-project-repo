@@ -7,7 +7,7 @@ import Tables from "./StaticSceneElements/TheManyTables/Tables.jsx";
 import { tableConfigs } from './StaticSceneElements/TheManyTables/tableConfig.js';
 import ObjectRandomizer from './ModelFunctions/ObjectRandomizer.jsx';
 
-const MainScene = ({ robotCameraRef, robotPositionRef, robotRotationRef }) => {
+const MainScene = ({ robotCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject }) => {
   return (
     <Physics gravity={[0, -9.81, 0]}>
       {/* Scale Objects: Plane, OuterWalls, Trellis, Floors, Rooms */}
@@ -28,6 +28,7 @@ const MainScene = ({ robotCameraRef, robotPositionRef, robotRotationRef }) => {
         robotCameraRef={robotCameraRef}
         robotPositionRef={robotPositionRef}
         robotRotationRef={robotRotationRef}
+        YOLOdetectObject={YOLOdetectObject}
       />
     </Physics>
   );

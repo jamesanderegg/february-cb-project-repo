@@ -48,14 +48,14 @@ function App() {
     requestAnimationFrame(updateHUD);
   }, []);
 
-  // // Object Detection Output
-  // const detectObj = useRef(null);
+  // Object Detection Output
+  const detectObj = useRef(null);
 
   // useEffect (() => {
   //   detectObj.current = detectionResults;
-  //   console.log(detectionResults);
   // }
   // , []);
+  console.log(detectObj);
 
   return (
     <>
@@ -79,6 +79,7 @@ function App() {
           miniMapCameraRef={miniMapCameraRef}
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
+          YOLOdetectObject={detectObj}
         />
       </div>
     </>

@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
 import RobotCamera from "../camera/RobotCamera"; // Import RobotCamera
 
-const Buggy = ({
+const Buggy = ({ 
   scale = 1,
   position = [0, 0, 0],
   rotation = [0, -Math.PI / 2, 0],
@@ -14,7 +14,8 @@ const Buggy = ({
   visible = true,
   robotCameraRef,
   robotPositionRef, 
-  robotRotationRef
+  robotRotationRef,
+  YOLOdetectObject
 }) => {
   const ref = useRef();
   const keysPressed = useRef({});
@@ -95,6 +96,8 @@ const Buggy = ({
   });
   
 
+  
+
   return (
     <RigidBody
       ref={ref}
@@ -111,7 +114,7 @@ const Buggy = ({
       </group>
 
       {/* ✅ Attach Robot Camera for streaming */}
-      <RobotCamera robotRef={ref} ref={robotCameraRef} />
+      <RobotCamera robotRef={ref} ref={robotCameraRef} YOLOdetectObject={YOLOdetectObject} />
     </RigidBody>
   );
 };

@@ -13,7 +13,7 @@ import HUDView from './camera/HUDView';
 import MiniMapHUD from "./camera/MiniMapHUD";
 import TopDownCamera from "./camera/TopDownCamera";
 
-const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef }) => {
+const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject }) => {
   return (
     <>
       <Canvas
@@ -40,10 +40,11 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
           robotCameraRef={robotCameraRef} 
           robotPositionRef={robotPositionRef} 
           robotRotationRef={robotRotationRef} 
+          YOLOdetectObject={YOLOdetectObject}
         />
 
         {/* Environment */}
-        <Environment preset="apartment" intensity={0.5}/>
+        <Environment preset="apartment" />
       </Canvas>
 
       {/* HUD Views */}
