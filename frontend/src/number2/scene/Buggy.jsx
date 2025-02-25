@@ -22,6 +22,8 @@ const Buggy = ({
   const moveSpeed = 90;
   const rotationSpeed = 1.5;
 
+  const collisionDetectedRef = useRef(false); 
+
   // Load GLTF Model & Texture
   const { scene: loadedScene } = useGLTF("/models/robot.glb");
   const texture = texturePath ? useTexture(texturePath) : null;
@@ -95,7 +97,16 @@ const Buggy = ({
     robotRotationRef.current = newRotation; // Store as an array
   });
   
+  // ✅ Collision Detection Without Re-renders
+  const handleCollisionEnter = (event) => {
+    console.log("🚨 Collision Detected with:", event.other); // Log collision details
+    collisionDetectedRef.current = true; // ✅ Update ref instead of state
+  };
 
+  const handleCollisionExit = (event) => {
+    console.log("✅ Collision Resolved with:", event.other); // Log when collision ends
+    collisionDetectedRef.current = false; // ✅ Reset collision flag
+  };
   
 
   return (
@@ -108,6 +119,9 @@ const Buggy = ({
       lockRotations={[true, false, true]} // Allow Y rotation, lock X/Z
       linearDamping={1000}
       angularDamping={1000}
+      onCollisionEnter={handleCollisionEnter} 
+      onCollisionExit={handleCollisionExit}
+      name="buggy"
     >
       <group scale={scale} visible={visible}>
         <primitive object={loadedScene} />

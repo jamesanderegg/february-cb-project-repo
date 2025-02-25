@@ -33,7 +33,7 @@ port = os.getenv('PORT', 5000)
 model = YOLO("yolov8m.pt")  # Loads a standard model instead of the custom trained model
 
 # Print available class names for debugging
-print("Loaded YOLO Model Class Names:", model.names)
+# print("Loaded YOLO Model Class Names:", model.names)
 
 # Store last YOLO processing time to throttle requests
 last_yolo_time = 0

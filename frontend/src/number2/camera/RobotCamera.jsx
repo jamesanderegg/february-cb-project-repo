@@ -109,11 +109,13 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject }, ref) => {
       console.log("YOLO Detection Results:", detectionResults);
 
       YOLOdetectObject.current = detectionResults;
+      // console.log("✅ After Update - YOLOdetectObject.current:", YOLOdetectObject.current);
+      
 
       // ✅ Once YOLO responds, process the next image
       isProcessing.current = false;
     } catch (error) {
-      console.error("Error sending image to YOLO:", error);
+      // console.error("Error sending image to YOLO:", error);
       isProcessing.current = false;
     }
   }
