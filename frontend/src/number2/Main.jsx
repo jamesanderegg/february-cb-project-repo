@@ -6,7 +6,7 @@ import { Environment } from "@react-three/drei";
 import PrimaryCamera from "./camera/PrimaryCamera";
 import OrbitControls from "./contols/OrbitControls";
 import AmbientLight from "./lights/AmbientLight";
-import DirectionalLight from "./lights/DirectionalLight";
+import DirectionalLights from "./lights/DirectionalLight";
 import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
 import MiniMapHUD from "./camera/MiniMapHUD";
@@ -31,7 +31,7 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
 
         {/* Lights */}
         <AmbientLight />
-        <DirectionalLight />
+        <DirectionalLights />
 
         {/* Main Scene */}
         <MainScene 

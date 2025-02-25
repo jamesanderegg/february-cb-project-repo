@@ -2,10 +2,11 @@ import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-const DirectionalLight = ({
+// Single DirectionalLight component
+const SingleLight = ({
   color = "white",
   intensity = 1,
-  position = [5, 10, 5],
+  position,
   targetPosition = [0, 0, 0],
   castShadow = true,
   shadowProps = {
@@ -48,12 +49,12 @@ const DirectionalLight = ({
       {/* Target Helper */}
       <object3D ref={targetRef} position={targetPosition} />
 
-      {/* Light Position Marker (Small Box) */}
+      {/* Light Position Markers (Small Box) */}
       <mesh position={position}>
         <boxGeometry args={[0.2, 0.2, 0.2]} />
-        <meshBasicMaterial color="yellow" />
+        <meshBasicMaterial color="royalblue" />
       </mesh>
-
+      
       {/* Line from light to target */}
       <line ref={lineRef}>
         <bufferGeometry />
@@ -63,4 +64,52 @@ const DirectionalLight = ({
   );
 };
 
-export default DirectionalLight;
+// Main component with multiple lights
+const DirectionalLights = ({ 
+  targetPosition = [0, 0, 0],
+  castShadow = true,
+  shadowProps = {
+    near: 0.5,
+    far: 500,
+    mapSize: [1024, 1024],
+  },
+}) => {
+  // Define all light positions
+  const lightPositions = [
+    [0, 10, 0],
+    [10, 10, -20],
+    [1, 10, 24],
+    [30, 10, 24],
+    [20, 10, 4.5]
+  ];
+
+  // Different colors for easier identification
+  const lightColors = [
+    "#FFFFFF", // white
+    "#FFFFAA", // warm white
+    "#AAFFFF", // cool white
+    "#FFAAAA", // subtle red
+    "#AAFFAA"  // subtle green
+  ];
+
+  // Intensity for each light
+  const intensities = [0.8, 0.7, 0.7, 0.7, 0.7];
+
+  return (
+    <>
+      {lightPositions.map((position, index) => (
+        <SingleLight
+          key={`light-${index}`}
+          position={position}
+          color={lightColors[index]}
+          intensity={intensities[index]}
+          targetPosition={targetPosition}
+          castShadow={castShadow}
+          shadowProps={shadowProps}
+        />
+      ))}
+    </>
+  );
+};
+
+export default DirectionalLights;

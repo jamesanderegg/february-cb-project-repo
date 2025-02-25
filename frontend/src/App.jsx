@@ -6,6 +6,7 @@ import "./styles/App.css";
 import Main from "./number2/Main";
 import Modal from "./components/Modal";
 import "./styles/modal.css";
+// import detectionResults from "RobotCamera";
 
 function App() {
   const robotCameraRef = useRef(null);
@@ -46,6 +47,15 @@ function App() {
 
     requestAnimationFrame(updateHUD);
   }, []);
+
+  // // Object Detection Output
+  // const detectObj = useRef(null);
+
+  // useEffect (() => {
+  //   detectObj.current = detectionResults;
+  //   console.log(detectionResults);
+  // }
+  // , []);
 
   return (
     <>

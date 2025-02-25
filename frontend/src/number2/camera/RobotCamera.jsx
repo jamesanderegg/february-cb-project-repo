@@ -116,8 +116,11 @@ const RobotCamera = forwardRef(({ robotRef }, ref) => {
         body: JSON.stringify({ image }),
       });
 
+      // pass into App.jsx
       const detectionResults = await response.json();
+      // useRef((detectionResults) => {
       console.log("YOLO Detection Results:", detectionResults);
+      // }, []);
 
       // ✅ Once YOLO responds, process the next image
       isProcessing.current = false;
