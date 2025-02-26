@@ -11,8 +11,7 @@ import HUDView from './camera/HUDView';
 import MiniMapHUD from "./camera/MiniMapHUD";
 import TopDownCamera from "./camera/TopDownCamera";
 
-<<<<<<< Updated upstream
-const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject }) => {
+const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject, triggerIndicator }) => {
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
@@ -21,16 +20,12 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
   // ✅ Update the HUD continuously without re-renders
   useEffect(() => {
     const updateHUD = () => {
-=======
-const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject, triggerIndicator }) => {
-  // Set up refs for position and rotation display inside the component
-  const positionDisplayRef = React.useRef(null);
-  const rotationDisplayRef = React.useRef(null);
+
+
   
   // Update the position and rotation displays
   React.useEffect(() => {
     const updatePositionRotation = () => {
->>>>>>> Stashed changes
       if (positionDisplayRef.current && rotationDisplayRef.current) {
         const pos = Array.isArray(robotPositionRef.current) && robotPositionRef.current.length === 3
           ? robotPositionRef.current

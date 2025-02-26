@@ -98,7 +98,16 @@ const Buggy = ({
     robotRotationRef.current = newRotation; // Store as an array
   });
   
+  // ✅ Collision Detection Without Re-renders
+  const handleCollisionEnter = (event) => {
+    console.log("🚨 Collision Detected with:", event.other); // Log collision details
+    collisionDetectedRef.current = true; // ✅ Update ref instead of state
+  };
 
+  const handleCollisionExit = (event) => {
+    console.log("✅ Collision Resolved with:", event.other); // Log when collision ends
+    collisionDetectedRef.current = false; // ✅ Reset collision flag
+  };
   
 
   return (
