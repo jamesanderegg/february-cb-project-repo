@@ -6,6 +6,7 @@ import "./styles/App.css";
 import Main from "./number2/Main";
 import Modal from "./components/Modal";
 import "./styles/modal.css";
+// import CallBuggytoSearch from "./components/CallBuggytoSearch";
 // import detectionResults from "RobotCamera";
 
 function App() {
@@ -28,6 +29,10 @@ function App() {
     <>
       <VoiceToText />
       <Modal success={false} triggerIndicator={triggerIndicator}/>
+
+
+      {/* temp buggy call code for training only */}
+      {/* <CallBuggytoSearch/> */}
 
       <div className="main">
         <Main
