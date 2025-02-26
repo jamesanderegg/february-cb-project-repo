@@ -127,3 +127,56 @@ canvas {
   margin-top: 0;
   padding-top: 0;
 }
+
+.ai-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 15px;
+  border-radius: 8px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-controls button {
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.ai-controls button:hover {
+  background-color: #45a049;
+}
+
+.ai-controls select {
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.ai-debug {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  width: 300px;
+  font-size: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.ai-debug h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
