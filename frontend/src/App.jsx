@@ -16,29 +16,19 @@ function App() {
   const robotRotationRef = useRef([0, -Math.PI / 2, 0, 1]); // Default quaternion
   const detectObj = useRef(null);
 
-
-
   const triggerIndicator = useRef(0);
 
   useEffect(() => {
     if (robotCameraRef.current) {
       robotCameraRef.current.startStreaming();
     }
-
-  
   }, []);
-
-
 
   return (
     <>
       <VoiceToText />
-<<<<<<< Updated upstream
-      <Modal success={false} />
-=======
       <Modal success={false} triggerIndicator={triggerIndicator}/>
 
->>>>>>> Stashed changes
       <div className="main">
         <Main
           robotCameraRef={robotCameraRef}
@@ -46,6 +36,7 @@ function App() {
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
           YOLOdetectObject={detectObj}
+          triggerIndicator={triggerIndicator}
         />
       </div>
     </>

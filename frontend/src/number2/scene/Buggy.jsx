@@ -28,6 +28,15 @@ const Buggy = ({
   const { scene: loadedScene } = useGLTF("/models/robot.glb");
   const texture = texturePath ? useTexture(texturePath) : null;
 
+  // Add missing collision handlers
+  const handleCollisionEnter = () => {
+    collisionDetectedRef.current = true;
+  };
+
+  const handleCollisionExit = () => {
+    collisionDetectedRef.current = false;
+  };
+
   useEffect(() => {
     if (!loadedScene) return;
     loadedScene.traverse((child) => {
@@ -97,18 +106,6 @@ const Buggy = ({
     robotPositionRef.current = [x, y, z];
     robotRotationRef.current = newRotation; // Store as an array
   });
-  
-  // ✅ Collision Detection Without Re-renders
-  const handleCollisionEnter = (event) => {
-    console.log("🚨 Collision Detected with:", event.other); // Log collision details
-    collisionDetectedRef.current = true; // ✅ Update ref instead of state
-  };
-
-  const handleCollisionExit = (event) => {
-    console.log("✅ Collision Resolved with:", event.other); // Log when collision ends
-    collisionDetectedRef.current = false; // ✅ Reset collision flag
-  };
-  
 
   return (
     <RigidBody
