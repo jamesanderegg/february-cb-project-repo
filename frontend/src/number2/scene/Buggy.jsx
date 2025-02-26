@@ -15,14 +15,15 @@ const Buggy = ({
   robotCameraRef,
   robotPositionRef, 
   robotRotationRef,
-  YOLOdetectObject
+  YOLOdetectObject,
+  collisionIndicator
 }) => {
   const ref = useRef();
   const keysPressed = useRef({});
   const moveSpeed = 90;
   const rotationSpeed = 1.5;
 
-  const collisionDetectedRef = useRef(false); 
+
 
   // Load GLTF Model & Texture
   const { scene: loadedScene } = useGLTF("/models/robot.glb");
@@ -30,11 +31,11 @@ const Buggy = ({
 
   // Add missing collision handlers
   const handleCollisionEnter = () => {
-    collisionDetectedRef.current = true;
+    collisionIndicator.current = true;
   };
 
   const handleCollisionExit = () => {
-    collisionDetectedRef.current = false;
+    collisionIndicator.current = false;
   };
 
   useEffect(() => {

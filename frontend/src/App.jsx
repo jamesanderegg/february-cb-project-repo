@@ -17,7 +17,7 @@ function App() {
   const robotRotationRef = useRef([0, -Math.PI / 2, 0, 1]); // Default quaternion
   const detectObj = useRef(null);
 
-  const triggerIndicator = useRef(0);
+  const collisionIndicator = useRef(0);
 
   useEffect(() => {
     if (robotCameraRef.current) {
@@ -28,7 +28,7 @@ function App() {
   return (
     <>
       <VoiceToText />
-      <Modal success={false} triggerIndicator={triggerIndicator}/>
+      <Modal success={false} collisionIndicator={collisionIndicator}/>
 
 
       {/* temp buggy call code for training only */}
@@ -41,7 +41,7 @@ function App() {
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
           YOLOdetectObject={detectObj}
-          triggerIndicator={triggerIndicator}
+          collisionIndicator={collisionIndicator}
         />
       </div>
     </>
