@@ -69,6 +69,8 @@ const Buggy = ({
     const body = ref.current;
     let moveDirection = 0;
     let turnDirection = 0;
+
+    let VictorIndicator;
     
   
     // Movement Input
@@ -76,6 +78,7 @@ const Buggy = ({
     if (keysPressed.current["s"]) moveDirection = -moveSpeed;
     if (keysPressed.current["a"]) turnDirection = rotationSpeed; // Left
     if (keysPressed.current["d"]) turnDirection = -rotationSpeed; // Right
+    if (keysPressed.current["v"]) VictorIndicator = 1;
   
     // Get current rotation as Quaternion
     const currentRotation = new Quaternion().copy(body.rotation());
