@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 
@@ -16,9 +16,27 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
-  const robotStateDisplayRef = useRef(null); // ✅ New ref for Robot State
-  const robotMemoryRef = useRef([]); // ✅ Stores last 3-5 high-confidence detections
+  const robotStateDisplayRef = useRef(null); 
+  
+  const robotMemoryRef = useRef([]);
 
+  const [objectPositions, setObjectPositions] = useState(null);
+  // post request that sends the robot state to flask.
+
+  // console.log("Main re-rendering", {
+  //   robotCameraRef,
+  //   miniMapCameraRef,
+  //   robotPositionRef,
+  //   robotRotationRef,
+  //   YOLOdetectObject,
+  //   collisionIndicator,
+  // });
+  useEffect(() => {
+    if (objectPositions) {
+      console.log("🚀 Grandparent - Updated Object Positions:", objectPositions);
+    }
+  }, [objectPositions]);
+  
   useEffect(() => {
     const updateHUD = () => {
       if (positionDisplayRef.current && rotationDisplayRef.current) {
@@ -76,24 +94,28 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
 
   return (
     <>
-      <Canvas
-        shadows
-        camera={{ position: [0, 2, 5], fov: 50 }}
-        style={{ width: "100vw", height: "100vh" }}
-      >
-        <PrimaryCamera position={[7, 1, 30]} />
-        <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
-        <OrbitControls />
-        <SpotLights />
-        <MainScene 
-          robotCameraRef={robotCameraRef} 
-          robotPositionRef={robotPositionRef} 
-          robotRotationRef={robotRotationRef} 
-          YOLOdetectObject={YOLOdetectObject}
-          collisionIndicator={collisionIndicator}
-        />
-        <Environment preset="apartment" />
-      </Canvas>
+      
+        <Canvas
+          shadows
+          camera={{ position: [7, 1, 30], fov: 50 }}
+          style={{ width: "100vw", height: "100vh" }}
+        >
+          <PrimaryCamera position={[7, 1, 30]} />
+          <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
+          <OrbitControls />
+          <SpotLights />
+          <MainScene 
+            robotCameraRef={robotCameraRef} 
+            robotPositionRef={robotPositionRef} 
+            robotRotationRef={robotRotationRef} 
+            YOLOdetectObject={YOLOdetectObject}
+            collisionIndicator={collisionIndicator}
+            objectPositions={objectPositions}
+            setObjectPositions={setObjectPositions} 
+          />
+          <Environment preset="apartment" />
+        </Canvas>
+      
 
       {/* HUD Views Container */}
       <div className="hud-container">
@@ -119,4 +141,4 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
 };
 
 
-export default Main;
+export default React.memo(Main);

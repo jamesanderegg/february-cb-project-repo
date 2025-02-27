@@ -22,7 +22,7 @@ const Buggy = ({
   const keysPressed = useRef({});
   const moveSpeed = 90;
   const rotationSpeed = 1.5;
-
+  console.log("Buggy");
 
 
   // Load GLTF Model & Texture

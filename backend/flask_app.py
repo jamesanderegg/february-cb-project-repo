@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_socketio import SocketIO
+import socketio as PSocketIO
 from dotenv import load_dotenv
 import os
 import base64
@@ -21,6 +22,19 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Enable WebSocket support
 socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+
+# Connect to Google Colab WebSocket
+
+colab_socket = PSocketIO.Client()
+
+COLAB_WS_URL = "wss://e230-34-83-86-78.ngrok-free.app/socket.io/"
+
+try:
+    colab_socket.connect(COLAB_WS_URL)
+    print(f"✅ Connected to Google Colab WebSocket at {COLAB_WS_URL}")
+except Exception as e:
+    print(f"❌ Failed to connect to Colab WebSocket: {e}")
+
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret')
 port = os.getenv('PORT', 5000)
@@ -46,7 +60,15 @@ def home():
         'secret_key': app.config['SECRET_KEY'],
         'port': port
     }
-
+@app.route('/send_test', methods=['GET'])
+def send_test_message():
+    """ Sends a test message to the Google Colab WebSocket """
+    try:
+        colab_socket.emit("test_message", {"data": "Hello from Flask!"})
+        return jsonify({"message": "Test message sent to Colab WebSocket"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 @app.route('/robot', methods=['POST'])
 def robot():
     print('Start robot')
@@ -104,6 +126,13 @@ def robot():
     except Exception as e:
         print("❌ Error:", e)
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/object-positions", methods=["POST"])
+def receive_object_positions():
+    global object_positions
+    data = request.get_json()
+    object_positions = data.get("objectPositions", [])
+    return jsonify({"message": "Object positions received", "data": object_positions})
 
 # WebSocket Event Handlers
 @socketio.on('connect')
