@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
 import RobotCamera from "../camera/RobotCamera"; // Import RobotCamera
 
-const Buggy = ({ 
+const Buggy = ({
   scale = 1,
   position = [0, 0, 0],
   rotation = [0, -Math.PI / 2, 0],
@@ -13,7 +13,7 @@ const Buggy = ({
   texturePath,
   visible = true,
   robotCameraRef,
-  robotPositionRef, 
+  robotPositionRef,
   robotRotationRef,
   YOLOdetectObject,
   collisionIndicator
@@ -72,18 +72,18 @@ const Buggy = ({
     let turnDirection = 0;
 
     let VictorIndicator;
-    
-  
+
+
     // Movement Input
     if (keysPressed.current["w"]) moveDirection = moveSpeed;
     if (keysPressed.current["s"]) moveDirection = -moveSpeed;
     if (keysPressed.current["a"]) turnDirection = rotationSpeed; // Left
     if (keysPressed.current["d"]) turnDirection = -rotationSpeed; // Right
     if (keysPressed.current["v"]) VictorIndicator = 1;
-  
+
     // Get current rotation as Quaternion
     const currentRotation = new Quaternion().copy(body.rotation());
-  
+
     // Apply rotation
     if (turnDirection !== 0) {
       const turnQuaternion = new Quaternion().setFromAxisAngle(
@@ -93,20 +93,20 @@ const Buggy = ({
       currentRotation.multiply(turnQuaternion);
       body.setRotation(currentRotation, true);
     }
-  
+
     // Calculate movement direction relative to new rotation
     let forward = new Vector3(0, 0, -moveDirection);
     forward.applyQuaternion(currentRotation);
-  
+
     body.setLinvel({ x: forward.x, y: body.linvel().y, z: forward.z }, true);
-  
+
     // ✅ Extract translation (position)
     const { x, y, z } = body.translation();
-  
+
     // ✅ Extract quaternion rotation correctly
     const rotationQuat = body.rotation(); // Get Quaternion object
     const newRotation = [rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w];
-  
+
     robotPositionRef.current = [x, y, z];
     robotRotationRef.current = newRotation; // Store as an array
   });
@@ -121,7 +121,7 @@ const Buggy = ({
       lockRotations={[true, false, true]} // Allow Y rotation, lock X/Z
       linearDamping={1000}
       angularDamping={1000}
-      onCollisionEnter={handleCollisionEnter} 
+      onCollisionEnter={handleCollisionEnter}
       onCollisionExit={handleCollisionExit}
       name="buggy"
     >
@@ -130,7 +130,15 @@ const Buggy = ({
       </group>
 
       {/* ✅ Attach Robot Camera for streaming */}
-      <RobotCamera robotRef={ref} ref={robotCameraRef} YOLOdetectObject={YOLOdetectObject} />
+      <RobotCamera
+        robotRef={ref}
+        ref={robotCameraRef}
+        YOLOdetectObject={YOLOdetectObject}
+        robotPositionRef={robotPositionRef}
+        robotRotationRef={robotRotationRef}
+        collisionIndicator={collisionIndicator}
+      />
+
     </RigidBody>
   );
 };

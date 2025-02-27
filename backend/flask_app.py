@@ -75,13 +75,19 @@ def robot():
     try:
         data = request.json
         image_data = data.get("image")
-
+        robot_position = data.get("position")  # Extract position
+        robot_rotation = data.get("rotation")  # Extract rotation
+        collision_Indicator = data.get("collisionIndicator")  # Extract rotation
         if not image_data:
             return jsonify({"error": "No image received"}), 400
 
-        # Debugging: Print first few characters of the image
-        # print("Received Base64 Data:", image_data[:100])
+        if robot_position is None or robot_rotation is None:
+            print("⚠️ Missing position or rotation data!")
+            return jsonify({"error": "Missing robot position or rotation"}), 400
 
+        print(f"📍 Robot Position: {robot_position}")
+        print(f"🔄 Robot Rotation: {robot_rotation}")
+        print(f"🔄 Collision: {collision_Indicator}")
         # Decode Base64 image
         image_data = re.sub(r"^data:image\/\w+;base64,", "", image_data)
         image_bytes = base64.b64decode(image_data)
@@ -91,7 +97,6 @@ def robot():
         image = image.resize((640, 640))  # Resize for YOLO input
 
         # Convert image to NumPy array for YOLO
-        # print('image.size:', image.size)
         image_array = np.array(image)
 
         # Run YOLO inference
@@ -105,27 +110,30 @@ def robot():
                 conf = box.conf.tolist()[0]  # Confidence score
                 cls = int(box.cls.tolist()[0])  # Class ID
 
-                # Get class name from YOLO's pre-trained model
-                class_name = model.names.get(cls, "Unknown")  # Ensure we get a valid class name
+                class_name = model.names.get(cls, "Unknown")  # Get class name
 
-                # Debugging: Print detected class names
                 print(f"🎯 Detected: {class_name} (Confidence: {conf:.2f})")
 
                 detections.append({
                     "x1": x1, "y1": y1, "x2": x2, "y2": y2,
                     "confidence": conf,
                     "class_id": cls,
-                    "class_name": class_name  # Add object name
+                    "class_name": class_name
                 })
 
         return jsonify({
             "message": "Image received and processed",
+            "position": robot_position,
+            "rotation": robot_rotation,
+            "collisionIndicator": collision_Indicator,
             "detections": detections
         })
 
     except Exception as e:
         print("❌ Error:", e)
         return jsonify({"error": str(e)}), 500
+
+
 @app.route("/robot-data", methods=["POST"])
 def receive_robot_data():
     global robot_data
@@ -142,6 +150,8 @@ def receive_robot_data():
     print("Received Robot Data:", robot_data)
 
     return jsonify({"message": "Robot data received", "data": robot_data}) 
+
+
 @app.route("/object-positions", methods=["POST"])
 def receive_object_positions():
     global object_positions
@@ -149,6 +159,7 @@ def receive_object_positions():
     object_positions = data.get("objectPositions", [])
     print("Object Positions Successful")
     return jsonify({"message": "Object positions received", "data": object_positions})
+
 
 # WebSocket Event Handlers
 @socketio.on('connect')
@@ -166,11 +177,14 @@ def handle_image_stream(data):
     try:
         print("📥 Received image frame")
         image_data = data.get("image")
-
+        robot_position = data.get("position")  # Extract robot position
+        robot_rotation = data.get("rotation")  # Extract robot rotation
         if not image_data:
             print("❌ No image received")
             return
-
+# Debugging: Log received data
+        print(f"📍 Position: {robot_position}")
+        print(f"🔄 Rotation: {robot_rotation}")
         # Throttle YOLO processing to every 1 second
         current_time = eventlet.time.time()
         if current_time - last_yolo_time < YOLO_INTERVAL:

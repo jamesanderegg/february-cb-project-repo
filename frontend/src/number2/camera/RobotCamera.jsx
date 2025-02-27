@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Robot Camera Component
-const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject }, ref) => {
+const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator }, ref) => {
   const cameraRef = useRef();
   const { gl, scene } = useThree();
   const renderTarget = useRef(new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }));
@@ -95,30 +95,35 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject }, ref) => {
         console.warn("No image available for YOLO processing.");
         return;
       }
-
+  
       isProcessing.current = true; // Lock new requests until YOLO responds
-
+  
+      const robotPosition = robotPositionRef.current;
+      const robotRotation = robotRotationRef.current;
+      const collision = collisionIndicator.current;
       const response = await fetch("http://127.0.0.1:5000/robot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image }),
+        body: JSON.stringify({ 
+          image,
+          position: robotPosition, 
+          rotation: robotRotation ,
+          collisionIndicator: collision
+        }),
       });
-
-      // pass into App.jsx
+  
       const detectionResults = await response.json();
       console.log("YOLO Detection Results:", detectionResults);
-
-      YOLOdetectObject.current = detectionResults;
-      // console.log("✅ After Update - YOLOdetectObject.current:", YOLOdetectObject.current);
       
-
-      // ✅ Once YOLO responds, process the next image
+      YOLOdetectObject.current = detectionResults;
+  
       isProcessing.current = false;
     } catch (error) {
-      // console.error("Error sending image to YOLO:", error);
+      console.error("Error sending data to YOLO:", error);
       isProcessing.current = false;
     }
   }
+  
 
   return null;
 });
