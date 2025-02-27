@@ -11,7 +11,9 @@ import numpy as np
 from PIL import Image
 import torch
 from ultralytics import YOLO
-import eventlet
+import time
+current_time = time.time()
+
 
 # Load environment variables
 load_dotenv()
@@ -27,7 +29,7 @@ socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=
 
 colab_socket = PSocketIO.Client()
 
-COLAB_WS_URL = "wss://e230-34-83-86-78.ngrok-free.app/socket.io/"
+COLAB_WS_URL = "wss://9b63-34-83-72-55.ngrok-free.app/socket.io/"
 
 try:
     colab_socket.connect(COLAB_WS_URL)
@@ -69,88 +71,6 @@ def send_test_message():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route('/robot', methods=['POST'])
-def robot():
-    print('Start robot')
-    try:
-        data = request.json
-        image_data = data.get("image")
-        robot_position = data.get("position")  # Extract position
-        robot_rotation = data.get("rotation")  # Extract rotation
-        collision_Indicator = data.get("collisionIndicator")  # Extract rotation
-        if not image_data:
-            return jsonify({"error": "No image received"}), 400
-
-        if robot_position is None or robot_rotation is None:
-            print("⚠️ Missing position or rotation data!")
-            return jsonify({"error": "Missing robot position or rotation"}), 400
-
-        print(f"📍 Robot Position: {robot_position}")
-        print(f"🔄 Robot Rotation: {robot_rotation}")
-        print(f"🔄 Collision: {collision_Indicator}")
-        # Decode Base64 image
-        image_data = re.sub(r"^data:image\/\w+;base64,", "", image_data)
-        image_bytes = base64.b64decode(image_data)
-
-        # Convert image bytes to PIL Image
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        image = image.resize((640, 640))  # Resize for YOLO input
-
-        # Convert image to NumPy array for YOLO
-        image_array = np.array(image)
-
-        # Run YOLO inference
-        results = model(image_array)
-
-        # Extract detections
-        detections = []
-        for result in results:
-            for box in result.boxes:
-                x1, y1, x2, y2 = box.xyxy.tolist()[0]  # Bounding box coordinates
-                conf = box.conf.tolist()[0]  # Confidence score
-                cls = int(box.cls.tolist()[0])  # Class ID
-
-                class_name = model.names.get(cls, "Unknown")  # Get class name
-
-                print(f"🎯 Detected: {class_name} (Confidence: {conf:.2f})")
-
-                detections.append({
-                    "x1": x1, "y1": y1, "x2": x2, "y2": y2,
-                    "confidence": conf,
-                    "class_id": cls,
-                    "class_name": class_name
-                })
-
-        return jsonify({
-            "message": "Image received and processed",
-            "position": robot_position,
-            "rotation": robot_rotation,
-            "collisionIndicator": collision_Indicator,
-            "detections": detections
-        })
-
-    except Exception as e:
-        print("❌ Error:", e)
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/robot-data", methods=["POST"])
-def receive_robot_data():
-    global robot_data
-    data = request.get_json()
-
-    # Extract all fields
-    robot_data = {
-        "robotCamera": data.get("robotCamera", None),
-        "robotPosition": data.get("robotPosition", {}),
-        "robotRotation": data.get("robotRotation", {}),
-        "YOLOdetectObject": data.get("YOLOdetectObject", [])
-    }
-
-    print("Received Robot Data:", robot_data)
-
-    return jsonify({"message": "Robot data received", "data": robot_data}) 
-
 
 @app.route("/object-positions", methods=["POST"])
 def receive_object_positions():
@@ -170,6 +90,9 @@ def handle_connect():
 def handle_disconnect():
     print("🔴 Client disconnected")
 
+import base64
+import cv2
+
 @socketio.on('send_frame')
 def handle_image_stream(data):
     """ Handles incoming image frames over WebSockets with throttling """
@@ -177,16 +100,19 @@ def handle_image_stream(data):
     try:
         print("📥 Received image frame")
         image_data = data.get("image")
-        robot_position = data.get("position")  # Extract robot position
-        robot_rotation = data.get("rotation")  # Extract robot rotation
+        robot_position = data.get("position")
+        robot_rotation = data.get("rotation")
+        collision_Indicator = data.get("collisionIndicator")
+
         if not image_data:
             print("❌ No image received")
             return
-# Debugging: Log received data
+        
         print(f"📍 Position: {robot_position}")
         print(f"🔄 Rotation: {robot_rotation}")
-        # Throttle YOLO processing to every 1 second
-        current_time = eventlet.time.time()
+
+        # Use built-in time module instead of eventlet.time
+        current_time = time.time()
         if current_time - last_yolo_time < YOLO_INTERVAL:
             print("⏳ Skipping YOLO processing (Throttled)")
             return
@@ -199,15 +125,16 @@ def handle_image_stream(data):
 
         # Convert image bytes to PIL Image
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        # print(f"🖼️ Image Size: {image.size}")
 
         # Convert image to NumPy array
         image_array = np.array(image)
-        # print(f"📊 Image Shape: {image_array.shape}")
+
+        # Encode the image array back into Base64 (for sending to Colab)
+        _, buffer = cv2.imencode('.png', cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR))
+        image_base64 = base64.b64encode(buffer).decode('utf-8')
 
         # Run YOLO inference
         results = model(image_array)
-        # print("⚡ YOLO Inference Complete")
 
         # Extract detections
         detections = []
@@ -227,13 +154,30 @@ def handle_image_stream(data):
                     "class_name": class_name
                 })
 
-        # Send detection results to client
-        socketio.emit('detection_results', {"detections": detections})
-        # print("📤 Sent detection results")
+        # Create JSON payload
+        json_payload = {
+            "robot_position": robot_position,
+            "robot_rotation": robot_rotation,
+            "collision_indicator": collision_Indicator,
+            "detections": detections,
+            "image": image_base64  # Send Base64 encoded image to Colab
+        }
+
+        # Send detection results to the frontend
+        socketio.emit('detection_results', json_payload)
+
+        # Send the same JSON payload to Google Colab
+        try:
+            colab_socket.emit("detection_data", json_payload)
+            print("✅ Sent detection data + image to Google Colab")
+        except Exception as e:
+            print(f"❌ Failed to send data to Colab: {e}")
 
     except Exception as e:
         print("❌ Error processing image:", e)
         socketio.emit('detection_results', {"error": str(e)})
+
+
 
 if __name__ == '__main__':
     print(f"🚀 Running Flask WebSocket Server on port {port}")

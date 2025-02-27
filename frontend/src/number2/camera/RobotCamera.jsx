@@ -1,14 +1,17 @@
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { io } from "socket.io-client";
 
-// Robot Camera Component
+// WebSocket connection
+const socket = io("http://127.0.0.1:5000");
+
 const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator }, ref) => {
   const cameraRef = useRef();
   const { gl, scene } = useThree();
   const renderTarget = useRef(new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }));
   const hudImageData = useRef(null);
-  const isProcessing = useRef(false); // Prevents sending another image before response
+  const isProcessing = useRef(false);
 
   useEffect(() => {
     const camera = new THREE.PerspectiveCamera(45, 1, 1, 15);
@@ -26,7 +29,7 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
         captureAndSendImage();
       }
     },
-    getHudImage: () => hudImageData.current, // ✅ Ensure HUD can access the latest image
+    getHudImage: () => hudImageData.current, 
   }));
 
   useFrame(() => {
@@ -70,19 +73,18 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
       // Create ImageData and manually flip the buffer vertically
       const imageData = ctx.createImageData(width, height);
       for (let y = 0; y < height; y++) {
-        const srcRow = height - 1 - y; // Flip the rows
+        const srcRow = height - 1 - y;
         const srcStart = srcRow * width * 4;
         const destStart = y * width * 4;
         imageData.data.set(buffer.subarray(srcStart, srcStart + width * 4), destStart);
       }
   
-      // Draw the flipped image onto the canvas
       ctx.putImageData(imageData, 0, 0);
   
       // ✅ Update HUD image every frame
       hudImageData.current = canvas.toDataURL("image/png");
 
-      // ✅ Send to YOLO only if no request is currently being processed
+      // ✅ Send via WebSocket instead of HTTP
       if (!isProcessing.current) {
         captureAndSendImage(hudImageData.current);
       }
@@ -90,40 +92,38 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
   });
 
   async function captureAndSendImage(image) {
-    try {
-      if (!image) {
-        console.warn("No image available for YOLO processing.");
-        return;
-      }
-  
-      isProcessing.current = true; // Lock new requests until YOLO responds
-  
-      const robotPosition = robotPositionRef.current;
-      const robotRotation = robotRotationRef.current;
-      const collision = collisionIndicator.current;
-      const response = await fetch("http://127.0.0.1:5000/robot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          image,
-          position: robotPosition, 
-          rotation: robotRotation ,
-          collisionIndicator: collision
-        }),
-      });
-  
-      const detectionResults = await response.json();
-      console.log("YOLO Detection Results:", detectionResults);
-      
-      YOLOdetectObject.current = detectionResults;
-  
-      isProcessing.current = false;
-    } catch (error) {
-      console.error("Error sending data to YOLO:", error);
-      isProcessing.current = false;
+    if (!image) {
+      console.warn("No image available for YOLO processing.");
+      return;
     }
+
+    isProcessing.current = true; // Lock new requests until YOLO responds
+
+    const robotPosition = robotPositionRef.current;
+    const robotRotation = robotRotationRef.current;
+    const collision = collisionIndicator.current;
+
+    // ✅ Send image & metadata over WebSocket
+    socket.emit("send_frame", {
+      image,
+      position: robotPosition,
+      rotation: robotRotation,
+      collisionIndicator: collision
+    });
   }
-  
+
+  // ✅ Listen for YOLO detection results from the server
+  useEffect(() => {
+    socket.on("detection_results", (detectionResults) => {
+      console.log("YOLO Detection Results:", detectionResults);
+      YOLOdetectObject.current = detectionResults;
+      isProcessing.current = false;
+    });
+
+    return () => {
+      socket.off("detection_results");
+    };
+  }, []);
 
   return null;
 });
