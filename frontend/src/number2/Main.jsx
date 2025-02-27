@@ -16,8 +16,8 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
-  const robotStateDisplayRef = useRef(null); 
-  
+  const robotStateDisplayRef = useRef(null);
+
   const robotMemoryRef = useRef([]);
 
   const [objectPositions, setObjectPositions] = useState(null);
@@ -31,12 +31,25 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
   //   YOLOdetectObject,
   //   collisionIndicator,
   // });
+
   useEffect(() => {
     if (objectPositions) {
       console.log("🚀 Grandparent - Updated Object Positions:", objectPositions);
+
+      fetch("http://localhost:5000/object-positions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ objectPositions }),
+      })
+        .then(response => response.json())
+        .then(data => console.log("✅ Server Response:", data))
+        .catch(error => console.error("Error posting object positions:", error));
     }
   }, [objectPositions]);
-  
+
+
   useEffect(() => {
     const updateHUD = () => {
       if (positionDisplayRef.current && rotationDisplayRef.current) {
@@ -68,7 +81,7 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
         const highConfidenceDetections = detections.filter(d => d.confidence >= 0.75); // ✅ 75% confidence threshold
 
         if (highConfidenceDetections.length > 0) {
-          const memoryMap = new Map(robotMemoryRef.current.map(item => [item.class_name, item])); 
+          const memoryMap = new Map(robotMemoryRef.current.map(item => [item.class_name, item]));
 
           highConfidenceDetections.forEach(detection => {
             if (!memoryMap.has(detection.class_name) || detection.confidence > memoryMap.get(detection.class_name).confidence) {
@@ -81,8 +94,8 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
 
         detectionDisplayRef.current.innerText =
           robotMemoryRef.current.length > 0
-            ? robotMemoryRef.current.map((item) => 
-                `${item.class_name} (${(item.confidence * 100).toFixed(1)}%)`).join(", ")
+            ? robotMemoryRef.current.map((item) =>
+              `${item.class_name} (${(item.confidence * 100).toFixed(1)}%)`).join(", ")
             : "No high-confidence detections.";
       }
 
@@ -94,39 +107,39 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
 
   return (
     <>
-      
-        <Canvas
-          shadows
-          camera={{ position: [7, 1, 30], fov: 50 }}
-          style={{ width: "100vw", height: "100vh" }}
-        >
-          <PrimaryCamera position={[7, 1, 30]} />
-          <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
-          <OrbitControls />
-          <SpotLights />
-          <MainScene 
-            robotCameraRef={robotCameraRef} 
-            robotPositionRef={robotPositionRef} 
-            robotRotationRef={robotRotationRef} 
-            YOLOdetectObject={YOLOdetectObject}
-            collisionIndicator={collisionIndicator}
-            objectPositions={objectPositions}
-            setObjectPositions={setObjectPositions} 
-          />
-          <Environment preset="apartment" />
-        </Canvas>
-      
+
+      <Canvas
+        shadows
+        camera={{ position: [7, 1, 30], fov: 50 }}
+        style={{ width: "100vw", height: "100vh" }}
+      >
+        <PrimaryCamera position={[7, 1, 30]} />
+        <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
+        <OrbitControls />
+        <SpotLights />
+        <MainScene
+          robotCameraRef={robotCameraRef}
+          robotPositionRef={robotPositionRef}
+          robotRotationRef={robotRotationRef}
+          YOLOdetectObject={YOLOdetectObject}
+          collisionIndicator={collisionIndicator}
+          objectPositions={objectPositions}
+          setObjectPositions={setObjectPositions}
+        />
+        <Environment preset="apartment" />
+      </Canvas>
+
 
       {/* HUD Views Container */}
       <div className="hud-container">
         <div className="mini-map-container">
           <MiniMapHUD miniMapCameraRef={miniMapCameraRef} />
         </div>
-        
+
         <div className="robot-camera-container">
           <HUDView robotCameraRef={robotCameraRef} />
         </div>
-        
+
         <div className="robot-state-container">
           <div className="robot-state-inline">
             <h3 ref={robotStateDisplayRef}>Robot State: Loading...</h3>

@@ -80,7 +80,7 @@ def robot():
             return jsonify({"error": "No image received"}), 400
 
         # Debugging: Print first few characters of the image
-        print("Received Base64 Data:", image_data[:100])
+        # print("Received Base64 Data:", image_data[:100])
 
         # Decode Base64 image
         image_data = re.sub(r"^data:image\/\w+;base64,", "", image_data)
@@ -91,7 +91,7 @@ def robot():
         image = image.resize((640, 640))  # Resize for YOLO input
 
         # Convert image to NumPy array for YOLO
-        print('image.size:', image.size)
+        # print('image.size:', image.size)
         image_array = np.array(image)
 
         # Run YOLO inference
@@ -126,12 +126,28 @@ def robot():
     except Exception as e:
         print("❌ Error:", e)
         return jsonify({"error": str(e)}), 500
-    
+@app.route("/robot-data", methods=["POST"])
+def receive_robot_data():
+    global robot_data
+    data = request.get_json()
+
+    # Extract all fields
+    robot_data = {
+        "robotCamera": data.get("robotCamera", None),
+        "robotPosition": data.get("robotPosition", {}),
+        "robotRotation": data.get("robotRotation", {}),
+        "YOLOdetectObject": data.get("YOLOdetectObject", [])
+    }
+
+    print("Received Robot Data:", robot_data)
+
+    return jsonify({"message": "Robot data received", "data": robot_data}) 
 @app.route("/object-positions", methods=["POST"])
 def receive_object_positions():
     global object_positions
     data = request.get_json()
     object_positions = data.get("objectPositions", [])
+    print("Object Positions Successful")
     return jsonify({"message": "Object positions received", "data": object_positions})
 
 # WebSocket Event Handlers
@@ -169,15 +185,15 @@ def handle_image_stream(data):
 
         # Convert image bytes to PIL Image
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        print(f"🖼️ Image Size: {image.size}")
+        # print(f"🖼️ Image Size: {image.size}")
 
         # Convert image to NumPy array
         image_array = np.array(image)
-        print(f"📊 Image Shape: {image_array.shape}")
+        # print(f"📊 Image Shape: {image_array.shape}")
 
         # Run YOLO inference
         results = model(image_array)
-        print("⚡ YOLO Inference Complete")
+        # print("⚡ YOLO Inference Complete")
 
         # Extract detections
         detections = []
@@ -199,7 +215,7 @@ def handle_image_stream(data):
 
         # Send detection results to client
         socketio.emit('detection_results', {"detections": detections})
-        print("📤 Sent detection results")
+        # print("📤 Sent detection results")
 
     except Exception as e:
         print("❌ Error processing image:", e)
