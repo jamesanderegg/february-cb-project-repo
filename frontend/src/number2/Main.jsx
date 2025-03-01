@@ -21,16 +21,6 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
   const robotMemoryRef = useRef([]);
 
   const [objectPositions, setObjectPositions] = useState(null);
-  // post request that sends the robot state to flask.
-
-  // console.log("Main re-rendering", {
-  //   robotCameraRef,
-  //   miniMapCameraRef,
-  //   robotPositionRef,
-  //   robotRotationRef,
-  //   YOLOdetectObject,
-  //   collisionIndicator,
-  // });
 
   useEffect(() => {
     if (objectPositions) {
@@ -55,11 +45,11 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
       if (positionDisplayRef.current && rotationDisplayRef.current) {
         const pos = Array.isArray(robotPositionRef.current) && robotPositionRef.current.length === 3
           ? robotPositionRef.current
-          : [0, 0, 0]; // Fallback
+          : [0, 0, 0]; 
 
         const rot = Array.isArray(robotRotationRef.current) && robotRotationRef.current.length === 4
           ? robotRotationRef.current
-          : [0, 0, 0, 1]; // Fallback
+          : [0, 0, 0, 1]; 
 
         positionDisplayRef.current.innerText = `Position: ${pos
           .map((val) => (typeof val === "number" ? val.toFixed(2) : "0.00"))
@@ -70,15 +60,15 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
           .join(", ")}`;
       }
 
-      // ✅ Update collision state display
+      
       if (robotStateDisplayRef.current) {
         robotStateDisplayRef.current.innerText = `Collision: ${collisionIndicator?.current ? "True" : "False"}`;
       }
 
-      // ✅ Process YOLO detections without re-rendering
+    
       if (detectionDisplayRef.current && YOLOdetectObject?.current) {
         const detections = YOLOdetectObject.current.detections || [];
-        const highConfidenceDetections = detections.filter(d => d.confidence >= 0.75); // ✅ 75% confidence threshold
+        const highConfidenceDetections = detections.filter(d => d.confidence >= 0.75); 
 
         if (highConfidenceDetections.length > 0) {
           const memoryMap = new Map(robotMemoryRef.current.map(item => [item.class_name, item]));
