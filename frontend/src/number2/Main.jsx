@@ -36,7 +36,7 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
     if (objectPositions) {
       console.log("🚀 Grandparent - Updated Object Positions:", objectPositions);
 
-      fetch("http://localhost:5000/object-positions", {
+      fetch("http://localhost:5001/object-positions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
