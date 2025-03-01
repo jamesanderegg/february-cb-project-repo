@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { io } from "socket.io-client";
 
 // WebSocket connection
-const socket = io("http://127.0.0.1:5000");
+const socket = io("http://127.0.0.1:5001");
 
 const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator }, ref) => {
   const cameraRef = useRef();

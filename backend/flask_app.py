@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO
 import socketio as PSocketIO
 from dotenv import load_dotenv
+import requests
 import os
 import base64
 import re
@@ -23,23 +24,24 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Enable WebSocket support
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+socketio = SocketIO(app, cors_allowed_origins="*", logger=False, engineio_logger=False)
 
 # Connect to Google Colab WebSocket
 
 colab_socket = PSocketIO.Client()
 
-COLAB_WS_URL = "wss://9b63-34-83-72-55.ngrok-free.app/socket.io/"
+COLAB_WS_URL = "https://47c8-35-230-169-175.ngrok-free.app/socket.io/"
 
 try:
-    colab_socket.connect(COLAB_WS_URL)
+    colab_socket.connect(COLAB_WS_URL, namespaces=["/"])  # Explicitly define namespace
     print(f"✅ Connected to Google Colab WebSocket at {COLAB_WS_URL}")
 except Exception as e:
     print(f"❌ Failed to connect to Colab WebSocket: {e}")
 
 
+
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret')
-port = os.getenv('PORT', 5000)
+port = os.getenv('PORT', 5001)
 
 # Load YOLOv11m model
 # model_path = os.getenv("YOLO_MODEL_PATH", "YOLOv11+keys/best.pt")  # Set in .env or use default
@@ -77,8 +79,28 @@ def receive_object_positions():
     global object_positions
     data = request.get_json()
     object_positions = data.get("objectPositions", [])
-    print("Object Positions Successful")
-    return jsonify({"message": "Object positions received", "data": object_positions})
+
+    print("✅ Object Positions Received:", object_positions)
+
+    # Debugging: Check WebSocket connection before emitting
+    if not colab_socket.connected:
+        print("❌ Colab WebSocket is NOT connected! Attempting to reconnect...")
+        try:
+            colab_socket.connect(COLAB_WS_URL, namespaces=["/"])
+            print("✅ Reconnected to Colab WebSocket")
+        except Exception as e:
+            print(f"❌ Reconnection failed: {e}")
+            return jsonify({"error": "Failed to reconnect to Colab"}), 500
+
+    # Send object positions to Google Colab WebSocket
+    try:
+        colab_socket.emit("object_positions", {"objectPositions": object_positions}, namespace="/")
+        print("✅ Sent object positions to Google Colab")
+    except Exception as e:
+        print(f"❌ Failed to send object positions to Colab: {e}")
+
+    return jsonify({"message": "Object positions received and sent to Colab", "data": object_positions})
+
 
 
 # WebSocket Event Handlers
@@ -98,7 +120,7 @@ def handle_image_stream(data):
     """ Handles incoming image frames over WebSockets with throttling """
     global last_yolo_time
     try:
-        print("📥 Received image frame")
+        # print("📥 Received image frame")
         image_data = data.get("image")
         robot_position = data.get("position")
         robot_rotation = data.get("rotation")
@@ -145,7 +167,7 @@ def handle_image_stream(data):
                 cls = int(box.cls.tolist()[0])
                 class_name = model.names.get(cls, "Unknown")
 
-                print(f"🎯 Detected: {class_name} (Confidence: {conf:.2f})")
+                # print(f"🎯 Detected: {class_name} (Confidence: {conf:.2f})")
 
                 detections.append({
                     "x1": x1, "y1": y1, "x2": x2, "y2": y2,
