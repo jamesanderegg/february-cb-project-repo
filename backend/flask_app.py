@@ -29,7 +29,7 @@ socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=
 
 colab_socket = PSocketIO.Client()
 
-COLAB_WS_URL = "wss://9b63-34-83-72-55.ngrok-free.app/socket.io/"
+COLAB_WS_URL = "wss://c543-35-194-171-141.ngrok-free.app/socket.io/"
 
 try:
     colab_socket.connect(COLAB_WS_URL)
@@ -39,7 +39,7 @@ except Exception as e:
 
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret')
-port = os.getenv('PORT', 5000)
+port = os.getenv('PORT', 5001)
 
 # Load YOLOv11m model
 # model_path = os.getenv("YOLO_MODEL_PATH", "YOLOv11+keys/best.pt")  # Set in .env or use default
