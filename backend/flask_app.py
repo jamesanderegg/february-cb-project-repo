@@ -3,23 +3,17 @@ from flask_cors import CORS
 from flask_socketio import SocketIO
 import socketio as PSocketIO
 from dotenv import load_dotenv
-import requests
 import os
 import base64
 import re
 import io
 import numpy as np
 from PIL import Image
-import torch
 from ultralytics import YOLO
 import time
-current_time = time.time()
 
-
-# Load environment variables
 load_dotenv()
 
-# Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -27,35 +21,23 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*", logger=False, engineio_logger=False)
 
 # Connect to Google Colab WebSocket
-
 colab_socket = PSocketIO.Client()
-
-COLAB_WS_URL = "wss://c543-35-194-171-141.ngrok-free.app/socket.io/"
-
+COLAB_WS_URL = "wss://ce0d-34-46-74-240.ngrok-free.app/socket.io/"
 try:
-    colab_socket.connect(COLAB_WS_URL, namespaces=["/"])  # Explicitly define namespace
+    colab_socket.connect(COLAB_WS_URL, namespaces=["/"])
     print(f"✅ Connected to Google Colab WebSocket at {COLAB_WS_URL}")
 except Exception as e:
     print(f"❌ Failed to connect to Colab WebSocket: {e}")
 
-
-
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret')
 port = os.getenv('PORT', 5001)
 
-# Load YOLOv11m model
-# model_path = os.getenv("YOLO_MODEL_PATH", "YOLOv11+keys/best.pt")  # Set in .env or use default
-# model = YOLO('YOLOv11+keys/best.pt')  # Load the YOLO model once
+# Load YOLOv8 model
+model = YOLO("yolov8m.pt")
 
-#Load Pre-trained YOLOv8 Model (Base Model)
-model = YOLO("yolov8m.pt")  # Loads a standard model instead of the custom trained model
-
-# Print available class names for debugging
-# print("Loaded YOLO Model Class Names:", model.names)
-
-# Store last YOLO processing time to throttle requests
+# Global variables for throttling
 last_yolo_time = 0
-YOLO_INTERVAL = 1  # Process YOLO every 1 second
+YOLO_INTERVAL = 1  # in seconds
 
 @app.route('/')
 def home():
@@ -64,25 +46,20 @@ def home():
         'secret_key': app.config['SECRET_KEY'],
         'port': port
     }
+
 @app.route('/send_test', methods=['GET'])
 def send_test_message():
-    """ Sends a test message to the Google Colab WebSocket """
     try:
         colab_socket.emit("test_message", {"data": "Hello from Flask!"})
         return jsonify({"message": "Test message sent to Colab WebSocket"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
 
 @app.route("/object-positions", methods=["POST"])
 def receive_object_positions():
-    global object_positions
     data = request.get_json()
     object_positions = data.get("objectPositions", [])
-
     print("✅ Object Positions Received:", object_positions)
-
-    # Debugging: Check WebSocket connection before emitting
     if not colab_socket.connected:
         print("❌ Colab WebSocket is NOT connected! Attempting to reconnect...")
         try:
@@ -91,19 +68,13 @@ def receive_object_positions():
         except Exception as e:
             print(f"❌ Reconnection failed: {e}")
             return jsonify({"error": "Failed to reconnect to Colab"}), 500
-
-    # Send object positions to Google Colab WebSocket
     try:
         colab_socket.emit("object_positions", {"objectPositions": object_positions}, namespace="/")
         print("✅ Sent object positions to Google Colab")
     except Exception as e:
         print(f"❌ Failed to send object positions to Colab: {e}")
-
     return jsonify({"message": "Object positions received and sent to Colab", "data": object_positions})
 
-
-
-# WebSocket Event Handlers
 @socketio.on('connect')
 def handle_connect():
     print("🟢 Client connected via WebSocket")
@@ -112,94 +83,92 @@ def handle_connect():
 def handle_disconnect():
     print("🔴 Client disconnected")
 
-import base64
-import cv2
-
 @socketio.on('send_frame')
 def handle_image_stream(data):
-    """ Handles incoming image frames over WebSockets with throttling """
     global last_yolo_time
     try:
-        # print("📥 Received image frame")
+        capture_timestamp = data.get("timestamp")
+        receive_timestamp = time.time() * 1000  # convert to ms for consistency
+
         image_data = data.get("image")
         robot_position = data.get("position")
         robot_rotation = data.get("rotation")
-        collision_Indicator = data.get("collisionIndicator")
+        collision_indicator = data.get("collisionIndicator")
 
         if not image_data:
             print("❌ No image received")
             return
-        
-        print(f"📍 Position: {robot_position}")
-        print(f"🔄 Rotation: {robot_rotation}")
 
-        # Use built-in time module instead of eventlet.time
         current_time = time.time()
         if current_time - last_yolo_time < YOLO_INTERVAL:
             print("⏳ Skipping YOLO processing (Throttled)")
             return
 
-        last_yolo_time = current_time  # Update last processed time
+        last_yolo_time = current_time
 
-        # Decode Base64 image
-        image_data = re.sub(r"^data:image\/\w+;base64,", "", image_data)
-        image_bytes = base64.b64decode(image_data)
+        # Process image (handle binary/Base64 as before)
+        if isinstance(image_data, bytes):
+            image_bytes = image_data
+        else:
+            image_data = re.sub(r"^data:image\/\w+;base64,", "", image_data)
+            image_bytes = base64.b64decode(image_data)
 
-        # Convert image bytes to PIL Image
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-
-        # Convert image to NumPy array
         image_array = np.array(image)
 
-        # Encode the image array back into Base64 (for sending to Colab)
-        _, buffer = cv2.imencode('.png', cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR))
-        image_base64 = base64.b64encode(buffer).decode('utf-8')
+        # Pass the original capture timestamp to the background task
+        data["capture_timestamp"] = capture_timestamp
+        data["receive_timestamp"] = receive_timestamp
 
-        # Run YOLO inference
-        results = model(image_array)
-
-        # Extract detections
-        detections = []
-        for result in results:
-            for box in result.boxes:
-                x1, y1, x2, y2 = box.xyxy.tolist()[0]
-                conf = box.conf.tolist()[0]
-                cls = int(box.cls.tolist()[0])
-                class_name = model.names.get(cls, "Unknown")
-
-                # print(f"🎯 Detected: {class_name} (Confidence: {conf:.2f})")
-
-                detections.append({
-                    "x1": x1, "y1": y1, "x2": x2, "y2": y2,
-                    "confidence": conf,
-                    "class_id": cls,
-                    "class_name": class_name
-                })
-
-        # Create JSON payload
-        json_payload = {
-            "robot_position": robot_position,
-            "robot_rotation": robot_rotation,
-            "collision_indicator": collision_Indicator,
-            "detections": detections,
-            "image": image_base64  # Send Base64 encoded image to Colab
-        }
-
-        # Send detection results to the frontend
-        socketio.emit('detection_results', json_payload)
-
-        # Send the same JSON payload to Google Colab
-        try:
-            colab_socket.emit("detection_data", json_payload)
-            print("✅ Sent detection data + image to Google Colab")
-        except Exception as e:
-            print(f"❌ Failed to send data to Colab: {e}")
+        socketio.start_background_task(process_yolo, image_array, data)
 
     except Exception as e:
         print("❌ Error processing image:", e)
         socketio.emit('detection_results', {"error": str(e)})
 
+def process_yolo(image_array, original_data):
+    global YOLO_INTERVAL
+    start_time = time.time()
+    
+    results = model(image_array)
+    detections = []
+    for result in results:
+        for box in result.boxes:
+            x1, y1, x2, y2 = box.xyxy.tolist()[0]
+            conf = box.conf.tolist()[0]
+            cls = int(box.cls.tolist()[0])
+            class_name = model.names.get(cls, "Unknown")
+            detections.append({
+                "x1": x1, "y1": y1, "x2": x2, "y2": y2,
+                "confidence": conf,
+                "class_id": cls,
+                "class_name": class_name
+            })
 
+    # Include timestamps in payload
+    json_payload = {
+        "robot_position": original_data.get("position"),
+        "robot_rotation": original_data.get("rotation"),
+        "collision_indicator": original_data.get("collisionIndicator"),
+        "detections": detections,
+        "capture_timestamp": original_data.get("capture_timestamp"),
+        "receive_timestamp": original_data.get("receive_timestamp"),
+        "yolo_complete_timestamp": time.time() * 1000,  # YOLO complete time in ms
+    }
+
+    socketio.emit('detection_results', json_payload)
+
+    try:
+        colab_socket.emit("detection_data", json_payload)
+        print("✅ Sent detection data to Google Colab")
+    except Exception as e:
+        print(f"❌ Failed to send data to Colab: {e}")
+
+    processing_time = time.time() - start_time
+    if processing_time > 0.5:
+        YOLO_INTERVAL = min(YOLO_INTERVAL * 1.1, 2.0)
+    else:
+        YOLO_INTERVAL = max(YOLO_INTERVAL * 0.9, 0.1)
 
 if __name__ == '__main__':
     print(f"🚀 Running Flask WebSocket Server on port {port}")
