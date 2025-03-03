@@ -4,6 +4,7 @@ import { Quaternion, Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
 import RobotCamera from "../camera/RobotCamera"; // Import RobotCamera
+import { COLLISION_GROUPS } from "./collisionGroups";
 
 const Buggy = ({
   scale = 1,
@@ -116,6 +117,8 @@ const Buggy = ({
       ref={ref}
       type="dynamic"
       colliders="cuboid"
+      collisionGroups={COLLISION_GROUPS.ROBOT}
+      collidingWith={COLLISION_GROUPS.DEFAULT | COLLISION_GROUPS.OBJECTS}
       position={position}
       rotation={rotation}
       lockRotations={[true, false, true]} // Allow Y rotation, lock X/Z

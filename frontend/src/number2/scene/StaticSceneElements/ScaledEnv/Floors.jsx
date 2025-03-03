@@ -1,5 +1,6 @@
 import React from "react";
 import { RigidBody } from "@react-three/rapier";
+import { COLLISION_GROUPS } from "./collisionGroups";
 
 function Floors() {
   const floorConfigs = [
@@ -19,7 +20,7 @@ function Floors() {
     <group>
       {/* Room Floors */}
       {floorConfigs.map((config, index) => (
-        <RigidBody key={index} type="fixed" position={config.position}>
+        <RigidBody key={index} type="fixed" position={config.position} collisionGroups={COLLISION_GROUPS.FLOOR}>
           <mesh rotation-x={Math.PI / 2}>
             <planeGeometry args={[5, 5]} />
             <meshBasicMaterial color={config.color} side={2} />
@@ -29,7 +30,7 @@ function Floors() {
 
       {/* Hallways */}
       {hallways.map((hall, index) => (
-        <RigidBody key={`hall-${index}`} type="fixed" position={hall.position}>
+        <RigidBody key={`hall-${index}`} type="fixed" position={hall.position} collisionGroups={COLLISION_GROUPS.FLOOR}>
           <mesh rotation-x={Math.PI / 2}>
             <planeGeometry args={hall.geometry} />
             <meshBasicMaterial color="brown" side={2} />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Physics } from "@react-three/rapier";
 import Model from "../helper/Model";
 import ScaledEnvUniform from "./StaticSceneElements/ScaledEnv/ScaledEnv";
@@ -7,15 +7,44 @@ import Tables from "./StaticSceneElements/TheManyTables/Tables.jsx";
 import { tableConfigs } from './StaticSceneElements/TheManyTables/tableConfig.js';
 import ObjectRandomizer from './ModelFunctions/ObjectRandomizer.jsx';
 
-const MainScene = ({ robotCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject, collisionIndicator, objectPositions, setObjectPositions }) => {
-  console.log("MainScene re-rendering");
+const MainScene = ({ 
+  robotCameraRef, 
+  robotPositionRef, 
+  robotRotationRef, 
+  YOLOdetectObject, 
+  collisionIndicator, 
+  objectPositions, 
+  setObjectPositions 
+}) => {
+  // Add a ref for the ObjectRandomizer
+  const randomizerRef = useRef(null);
+  
+  // Expose the reset function for parent components or DQN
+  React.useEffect(() => {
+    // This makes the reset function available globally
+    window.resetEnvironment = () => {
+      if (randomizerRef.current) {
+        console.log("Resetting environment...");
+        randomizerRef.current.resetEnvironment();
+      }
+    };
+    
+    return () => {
+      delete window.resetEnvironment;
+    };
+  }, []);
+  
   return (
     <Physics gravity={[0, -9.81, 0]}>
       <ScaledEnvUniform scale={2} />
       <Tables tableConfigs={tableConfigs} />
       
-      {/* ✅ Load objects only after `objectPositions` is ready */}
-      <ObjectRandomizer tableConfigs={tableConfigs} setObjectPositions={setObjectPositions} />
+      {/* Pass the ref to ObjectRandomizer */}
+      <ObjectRandomizer 
+        ref={randomizerRef}
+        tableConfigs={tableConfigs} 
+        setObjectPositions={setObjectPositions} 
+      />
 
       <Buggy
         position={[7, 0.1, 15]}
