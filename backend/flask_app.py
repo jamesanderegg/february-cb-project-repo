@@ -11,6 +11,7 @@ import numpy as np
 from PIL import Image
 from ultralytics import YOLO
 import time
+import threading
 
 load_dotenv()
 
@@ -174,7 +175,7 @@ def process_yolo(image_array, original_data):
 from replay_collector import ReplayCollector
 
 # Initialize the replay collector
-replay_collector = ReplayCollector(save_dir='replays')
+replay_collector = ReplayCollector(save_dir='experiences')
 
 # Socket handler for replay control
 @socketio.on("replay_control")
