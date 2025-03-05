@@ -4,7 +4,6 @@ import { Quaternion, Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
 import RobotCamera from "../camera/RobotCamera"; // Import RobotCamera
-import { COLLISION_GROUPS } from "./StaticSceneElements/ScaledEnv/collisionGroups";
 
 const Buggy = ({
   scale = 1,

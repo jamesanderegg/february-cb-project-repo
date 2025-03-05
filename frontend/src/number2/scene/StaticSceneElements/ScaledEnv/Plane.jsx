@@ -2,7 +2,6 @@ import React from "react";
 import { RigidBody } from "@react-three/rapier";
 import { DoubleSide } from "three";
 import { useRef } from "react";
-import { COLLISION_GROUPS } from "./collisionGroups";
 
 const Plane = ({ width = 50, height = 50, color = "darkgray" }) => {
   const ref = useRef();

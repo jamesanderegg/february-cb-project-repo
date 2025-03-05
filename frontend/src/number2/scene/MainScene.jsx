@@ -6,7 +6,7 @@ import Buggy from "./Buggy";
 import Tables from "./StaticSceneElements/TheManyTables/Tables.jsx";
 import { tableConfigs } from './StaticSceneElements/TheManyTables/tableConfig.js';
 import ObjectRandomizer from './ModelFunctions/ObjectRandomizer.jsx';
-import ReplayControls from '../../components/ReplayControls.jsx';
+// import ReplayControls from '../../components/ReplayControls.jsx';
 
 const MainScene = ({ 
   robotCameraRef, 
@@ -16,7 +16,7 @@ const MainScene = ({
   collisionIndicator, 
   objectPositions, 
   setObjectPositions, 
-  socket
+  // socket
 }) => {
   // Add a ref for the ObjectRandomizer
   const randomizerRef = useRef(null);

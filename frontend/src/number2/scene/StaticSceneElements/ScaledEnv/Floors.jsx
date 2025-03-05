@@ -1,6 +1,5 @@
 import React from "react";
 import { RigidBody } from "@react-three/rapier";
-import { COLLISION_GROUPS } from "./collisionGroups";
 
 function Floors() {
   const floorConfigs = [
