@@ -10,62 +10,6 @@
     <div id="root"></div>
     <canvas class='threejs'></canvas>
     <script type="module" src="/src/main.jsx"></script>
-    <div class="control-panel">
-      <h3>Experience Replay Controls</h3>
-      
-      <div class="control-row">
-        <button id="startRecording" class="btn btn-primary">Start Recording</button>
-        <button id="stopRecording" class="btn btn-danger">Stop Recording</button>
-      </div>
-      
-      <div class="control-row">
-        <input type="text" id="replayFilename" placeholder="replay_filename.json" class="form-control">
-      </div>
-      
-      <div class="control-row">
-        <button id="saveReplay" class="btn btn-success">Save Replay</button>
-        <button id="loadReplay" class="btn btn-info">Load Replay</button>
-        <button id="replayToAgent" class="btn btn-warning">Feed to Agent</button>
-      </div>
-      
-      <div id="replayStatus" class="status">No recording in progress</div>
-    </div>
-    
-    <style>
-    .control-panel {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 5px;
-      background-color: #f8f9fa;
-    }
-    
-    .control-row {
-      margin-bottom: 10px;
-      display: flex;
-      gap: 10px;
-    }
-    
-    .status {
-      margin-top: 10px;
-      padding: 5px;
-      border-radius: 3px;
-    }
-    
-    .status-recording {
-      background-color: rgba(255, 0, 0, 0.1);
-      color: #d9534f;
-    }
-    
-    .status-stopped, .status-saved, .status-loaded, .status-replayed {
-      background-color: rgba(40, 167, 69, 0.1);
-      color: #28a745;
-    }
-    
-    .status-error {
-      background-color: rgba(255, 193, 7, 0.1);
-      color: #ffc107;
-    }
-    </style>
+
   </body>
 </html>

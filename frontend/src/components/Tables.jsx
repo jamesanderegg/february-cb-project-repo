@@ -17,7 +17,7 @@ const Table = ({ color, position }) => {
       
       {/* Top */}
       <mesh position={[0, 1.125, 0]}>
-        <boxGeometry args={[1.4, 0.025, 1.4]} />
+        <boxGeometry args={[2, 0.025, 2]} />
         <meshBasicMaterial color={color} side={2} />
       </mesh>
     </group>

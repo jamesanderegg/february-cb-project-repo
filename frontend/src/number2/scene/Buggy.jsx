@@ -25,12 +25,11 @@ const Buggy = ({
   const rotationSpeed = 1.5;
   console.log("Buggy");
 
-
   // Load GLTF Model & Texture
   const { scene: loadedScene } = useGLTF("/models/robot.glb");
   const texture = texturePath ? useTexture(texturePath) : null;
 
-  // Add missing collision handlers
+  // Add collision handlers
   const handleCollisionEnter = () => {
     collisionIndicator.current = true;
   };
@@ -73,7 +72,6 @@ const Buggy = ({
     let turnDirection = 0;
 
     let VictorIndicator;
-
 
     // Movement Input
     if (keysPressed.current["w"]) moveDirection = moveSpeed;

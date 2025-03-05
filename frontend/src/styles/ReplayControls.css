@@ -1,0 +1,272 @@
+/* ReplayControls.css */
+
+.replay-controls {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 300px; /* Increased width for better layout of training controls */
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  color: #f0f0f0;
+  padding: 15px;
+  font-family: Arial, sans-serif;
+  z-index: 100;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.replay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.replay-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.minimize-button {
+  background: none;
+  border: none;
+  color: #f0f0f0;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.replay-controls.minimized {
+  width: auto;
+  height: auto;
+}
+
+.replay-controls.minimized .replay-content {
+  display: none;
+}
+
+.replay-tabs {
+  display: flex;
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tab-button {
+  flex: 1;
+  background-color: rgba(40, 40, 40, 0.7);
+  color: #f0f0f0;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 8px 5px;
+  font-size: 12px;
+  border-radius: 3px 3px 0 0;
+}
+
+.tab-button:hover {
+  background-color: rgba(60, 60, 60, 0.7);
+}
+
+.tab-button.active {
+  background-color: rgba(70, 130, 180, 0.7);
+  color: white;
+}
+
+.tab-content {
+  padding: 10px 0;
+}
+
+.control-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.button-group {
+  display: flex;
+  gap: 5px;
+}
+
+.button-group .btn {
+  flex: 1;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.input-group label {
+  font-size: 12px;
+  margin-bottom: 3px;
+  color: #ddd;
+}
+
+.btn {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.9;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #333;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.loading-container {
+  margin: 10px 0;
+}
+
+.loading-bar-container {
+  height: 10px;
+  background-color: rgba(40, 40, 40, 0.7);
+  border-radius: 4px;
+  margin-bottom: 5px;
+  overflow: hidden;
+}
+
+.loading-bar {
+  height: 100%;
+  width: 0%;
+  background-color: #4CAF50;
+  transition: width 0.3s;
+}
+
+.loading-status {
+  font-size: 12px;
+  color: #ddd;
+}
+
+.replay-info {
+  background-color: rgba(40, 40, 40, 0.7);
+  border-radius: 4px;
+  padding: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.replay-count {
+  color: #ddd;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.status {
+  margin-top: 15px;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: rgba(40, 40, 40, 0.7);
+  font-size: 13px;
+}
+
+.status-recording {
+  background-color: rgba(220, 53, 69, 0.3);
+  color: #f8d7da;
+}
+
+.status-stopped, .status-saved, .status-loaded, .status-replayed {
+  background-color: rgba(40, 167, 69, 0.3);
+  color: #d4edda;
+}
+
+.status-loading, .status-preloaded {
+  background-color: rgba(0, 123, 255, 0.3);
+  color: #cce5ff;
+}
+
+.status-error {
+  background-color: rgba(255, 193, 7, 0.3);
+  color: #fff3cd;
+}
+
+/* Additional styles for training */
+.training-config {
+  background-color: rgba(40, 40, 40, 0.7);
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.parameter-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.parameter-row label {
+  flex: 1;
+  font-size: 12px;
+  color: #ddd;
+}
+
+.parameter-row input {
+  flex: 2;
+  padding: 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #333;
+  font-size: 12px;
+}
+
+.stats-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: #ddd;
+  margin: 10px 0 5px 0;
+}

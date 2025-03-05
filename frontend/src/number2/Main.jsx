@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
+import io from 'socket.io-client';
 
 // Scene Components
 import PrimaryCamera from "./camera/PrimaryCamera";
@@ -12,7 +13,8 @@ import MiniMapHUD from "./camera/MiniMapHUD";
 import TopDownCamera from "./camera/TopDownCamera";
 
 const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject, collisionIndicator }) => {
-  // Set up refs for position, rotation, detection, and state display
+  const [socket, setSocket] = useState(null);
+  // Set up refs for position, rotation, detection, and state displays
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
@@ -22,6 +24,15 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
 
   const [objectPositions, setObjectPositions] = useState(null);
 
+  useEffect(() => {
+    const newSocket = io('http://localhost:5000'); // Use your Flask server URL
+    setSocket(newSocket);
+    
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+  
   useEffect(() => {
     if (objectPositions) {
       console.log("🚀 Grandparent - Updated Object Positions:", objectPositions);
@@ -108,6 +119,7 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
         <OrbitControls />
         <SpotLights />
         <MainScene
+          socket={socket} // Pass the socket to MainScene
           robotCameraRef={robotCameraRef}
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
