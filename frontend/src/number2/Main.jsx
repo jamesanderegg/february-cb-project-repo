@@ -11,6 +11,7 @@ import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
 import MiniMapHUD from "./camera/MiniMapHUD";
 import TopDownCamera from "./camera/TopDownCamera";
+import ReplayControlsModal from '../components/ReplayControls';  // Updated import
 
 const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject, collisionIndicator }) => {
   const [socket, setSocket] = useState(null);
@@ -25,7 +26,7 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
   const [objectPositions, setObjectPositions] = useState(null);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:5000'); // Use your Flask server URL
+    const newSocket = io('http://localhost:5001'); // Use your Flask server URL
     setSocket(newSocket);
     
     return () => {
@@ -50,7 +51,6 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
     }
   }, [objectPositions]);
 
-
   useEffect(() => {
     const updateHUD = () => {
       if (positionDisplayRef.current && rotationDisplayRef.current) {
@@ -71,12 +71,10 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
           .join(", ")}`;
       }
 
-      
       if (robotStateDisplayRef.current) {
         robotStateDisplayRef.current.innerText = `Collision: ${collisionIndicator?.current ? "True" : "False"}`;
       }
 
-    
       if (detectionDisplayRef.current && YOLOdetectObject?.current) {
         const detections = YOLOdetectObject.current.detections || [];
         const highConfidenceDetections = detections.filter(d => d.confidence >= 0.75); 
@@ -108,7 +106,6 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
 
   return (
     <>
-
       <Canvas
         shadows
         camera={{ position: [7, 1, 30], fov: 50 }}
@@ -119,7 +116,7 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
         <OrbitControls />
         <SpotLights />
         <MainScene
-          socket={socket} // Pass the socket to MainScene
+          // socket={socket} // Pass the socket to MainScene
           robotCameraRef={robotCameraRef}
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
@@ -130,7 +127,6 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
         />
         <Environment preset="apartment" />
       </Canvas>
-
 
       {/* HUD Views Container */}
       <div className="hud-container">
@@ -151,9 +147,11 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
           </div>
         </div>
       </div>
+
+      {/* Render the replay controls modal outside of Canvas
+      {socket && <ReplayControlsModal socket={socket} />} */}
     </>
   );
 };
-
 
 export default React.memo(Main);

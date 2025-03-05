@@ -7,6 +7,7 @@ import Tables from "./StaticSceneElements/TheManyTables/Tables.jsx";
 import { tableConfigs } from './StaticSceneElements/TheManyTables/tableConfig.js';
 import ObjectRandomizer from './ModelFunctions/ObjectRandomizer.jsx';
 import ReplayControls from '../../components/ReplayControls.jsx';
+
 const MainScene = ({ 
   robotCameraRef, 
   robotPositionRef, 
@@ -62,7 +63,7 @@ const MainScene = ({
         />
       </Physics>
       
-      {socket && <ReplayControls socket={socket} />}
+      {/* {socket && <ReplayControls socket={socket} />} */}
     </>
   );
 };

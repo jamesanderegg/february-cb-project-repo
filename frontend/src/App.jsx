@@ -9,7 +9,7 @@ import ReplayControls from './components/ReplayControls';
 
 
 function App() {
-  const [socket, setSocket] = useState(null);
+  // const [socket, setSocket] = useState(null);
   const robotCameraRef = useRef(null);
   const miniMapCameraRef = useRef(null);
   const robotPositionRef = useRef([7, 0.1, 15]);
