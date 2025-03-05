@@ -115,8 +115,6 @@ const Buggy = ({
       ref={ref}
       type="dynamic"
       colliders="cuboid"
-      collisionGroups={COLLISION_GROUPS.ROBOT}
-      collidingWith={COLLISION_GROUPS.DEFAULT | COLLISION_GROUPS.OBJECTS}
       position={position}
       rotation={rotation}
       lockRotations={[true, false, true]} // Allow Y rotation, lock X/Z
@@ -139,7 +137,6 @@ const Buggy = ({
         robotRotationRef={robotRotationRef}
         collisionIndicator={collisionIndicator}
       />
-
     </RigidBody>
   );
 };
