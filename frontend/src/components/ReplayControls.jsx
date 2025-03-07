@@ -236,263 +236,92 @@ const ReplayControlsModal = ({ socket }) => {
 
   return (
     <div className="replay-controls-container">
-      <div className={`replay-controls-modal ${isMinimized ? 'minimized' : ''}`}>
-        <div className="replay-header">
-          <h3>Robot Replay & Training</h3>
-          <button 
-            className="minimize-button" 
-            onClick={() => setIsMinimized(!isMinimized)}
-          >
-            {isMinimized ? '+' : '−'}
-          </button>
+      {/* Record Button Panel */}
+      <div className="control-panel-item">
+        <button 
+          className={`action-button action-record ${isRecording ? 'disabled' : ''}`}
+          onClick={startRecording}
+          disabled={isRecording}
+        >
+          Start Recording
+        </button>
+      </div>
+
+      {/* Stop Button Panel */}
+      <div className="control-panel-item">
+        <button 
+          className={`action-button action-stop ${!isRecording ? 'disabled' : ''}`}
+          onClick={stopRecording}
+          disabled={!isRecording}
+        >
+          Stop
+        </button>
+      </div>
+
+      {/* Filename Input Panel */}
+      <div className="control-panel-item">
+        <div className="panel-content">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="replay_name.json"
+            value={filename}
+            onChange={(e) => setFilename(e.target.value)}
+          />
         </div>
+      </div>
 
-        {!isMinimized && (
-          <div className="replay-content">
-            <div className="replay-tabs">
-              <button 
-                className={`tab-button ${activeTab === 'record' ? 'active' : ''}`}
-                onClick={() => setActiveTab('record')}
-              >
-                Record
-              </button>
-              <button 
-                className={`tab-button ${activeTab === 'playback' ? 'active' : ''}`}
-                onClick={() => setActiveTab('playback')}
-              >
-                Play
-              </button>
-              <button 
-                className={`tab-button ${activeTab === 'train' ? 'active' : ''}`}
-                onClick={() => setActiveTab('train')}
-              >
-                Train
-              </button>
-              <button 
-                className={`tab-button ${activeTab === 'manage' ? 'active' : ''}`}
-                onClick={() => setActiveTab('manage')}
-              >
-                Manage
-              </button>
-            </div>
+      {/* Save Button Panel */}
+      <div className="control-panel-item">
+        <button 
+          className="action-button action-save"
+          onClick={saveReplay}
+        >
+          Save
+        </button>
+      </div>
 
-            {activeTab === 'record' && (
-              <div className="tab-content">
-                <div className="control-row">
-                  <button 
-                    className="btn btn-primary"
-                    onClick={startRecording}
-                    disabled={isRecording}
-                  >
-                    Start Recording
-                  </button>
-                  <button 
-                    className="btn btn-danger"
-                    onClick={stopRecording}
-                    disabled={!isRecording}
-                  >
-                    Stop
-                  </button>
-                </div>
-                <div className="control-row">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="replay_name.json"
-                    value={filename}
-                    onChange={(e) => setFilename(e.target.value)}
-                  />
-                  <button 
-                    className="btn btn-success"
-                    onClick={saveReplay}
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            )}
+      {/* Play Button Panel */}
+      <div className="control-panel-item">
+        <button 
+          className="action-button action-play"
+          onClick={() => {
+            if (replays.length > 0) {
+              loadReplay(replays[0].filename);
+            }
+          }}
+          disabled={isLoading || replays.length === 0}
+        >
+          Load Replay
+        </button>
+      </div>
 
-            {activeTab === 'playback' && (
-              <div className="tab-content">
-                <div className="control-row">
-                  <select 
-                    className="form-control"
-                    onChange={(e) => loadReplay(e.target.value)}
-                    disabled={isLoading}
-                  >
-                    <option value="">Select a replay...</option>
-                    {replays.map((replay) => (
-                      <option key={replay.filename} value={replay.filename}>
-                        {replay.filename} ({replay.episodes} eps)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                {isLoading && (
-                  <div className="loading-container">
-                    <div className="loading-bar-container">
-                      <div 
-                        className="loading-bar" 
-                        style={{ width: `${loadingProgress}%` }}
-                      ></div>
-                    </div>
-                    <div className="loading-status">
-                      Loading replay data...
-                    </div>
-                  </div>
-                )}
+      {/* Feed to Agent Button Panel */}
+      <div className="control-panel-item">
+        <button 
+          className="action-button action-feed"
+          onClick={feedToAgent}
+        >
+          Feed to Agent
+        </button>
+      </div>
 
-                {currentScreenData && (
-                  <div className="replay-info">
-                    <div className="info-row">
-                      <span>Episode:</span><span>{currentScreenData.episode + 1}</span>
-                    </div>
-                    <div className="info-row">
-                      <span>Step:</span><span>{currentScreenData.step + 1}</span>
-                    </div>
-                    <div className="info-row">
-                      <span>Action:</span><span>{currentScreenData.action}</span>
-                    </div>
-                    <div className="info-row">
-                      <span>Reward:</span><span>{currentScreenData.reward?.toFixed(2) || '-'}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+      {/* Train Button Panel */}
+      <div className="control-panel-item">
+        <button 
+          className="action-button action-train"
+          onClick={startTraining}
+          disabled={isTraining}
+        >
+          Train Agent
+        </button>
+      </div>
 
-            {activeTab === 'train' && (
-              <div className="tab-content">
-                <div className="control-row">
-                  <div className="input-group">
-                    <label>Training Episodes:</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={trainingEpisodes}
-                      onChange={(e) => setTrainingEpisodes(parseInt(e.target.value) || 10)}
-                      min="1"
-                      max="1000"
-                    />
-                  </div>
-                  <div className="input-group">
-                    <label>Batch Size:</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={batchSize}
-                      onChange={(e) => setBatchSize(parseInt(e.target.value) || 32)}
-                      min="8"
-                      max="256"
-                      step="8"
-                    />
-                  </div>
-                </div>
-
-                <div className="control-row">
-                  <button 
-                    className="btn btn-primary"
-                    onClick={startTraining}
-                    disabled={isTraining}
-                  >
-                    Start Training
-                  </button>
-                  <button 
-                    className="btn btn-danger"
-                    onClick={stopTraining}
-                    disabled={!isTraining}
-                  >
-                    Stop Training
-                  </button>
-                </div>
-
-                {isTraining && (
-                  <div className="loading-container">
-                    <div className="loading-bar-container">
-                      <div 
-                        className="loading-bar" 
-                        style={{ width: `${trainingProgress}%` }}
-                      ></div>
-                    </div>
-                    <div className="loading-status">
-                      Training in progress ({trainingProgress.toFixed(1)}%)...
-                    </div>
-                  </div>
-                )}
-
-                {trainingStats && (
-                  <div className="replay-info">
-                    <div className="info-row">
-                      <span>Episodes:</span><span>{trainingStats.episodes}</span>
-                    </div>
-                    <div className="info-row">
-                      <span>Loss:</span><span>{trainingStats.loss?.toFixed(4) || '-'}</span>
-                    </div>
-                    <div className="info-row">
-                      <span>Avg Reward:</span><span>{trainingStats.avg_reward?.toFixed(2) || '-'}</span>
-                    </div>
-                    <div className="info-row">
-                      <span>Epsilon:</span><span>{trainingStats.epsilon?.toFixed(3) || '-'}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="control-row">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="model_name.h5"
-                    value={filename}
-                    onChange={(e) => setFilename(e.target.value)}
-                  />
-                  <div className="button-group">
-                    <button 
-                      className="btn btn-success"
-                      onClick={saveModel}
-                      disabled={isTraining}
-                    >
-                      Save Model
-                    </button>
-                    <button 
-                      className="btn btn-warning"
-                      onClick={loadModel}
-                      disabled={isTraining}
-                    >
-                      Load Model
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'manage' && (
-              <div className="tab-content">
-                <div className="control-row">
-                  <button 
-                    className="btn btn-warning"
-                    onClick={feedToAgent}
-                  >
-                    Feed to Agent
-                  </button>
-                  <button 
-                    className="btn btn-secondary"
-                    onClick={refreshList}
-                  >
-                    Refresh List
-                  </button>
-                </div>
-                <div className="replay-count">
-                  {replays.length} replays available
-                </div>
-              </div>
-            )}
-
-            <div className={`status status-${status.type}`}>
-              {status.message}
-            </div>
-          </div>
-        )}
+      {/* Status Panel */}
+      <div className="control-panel-item">
+        <div className={`status status-${status.type}`}>
+          {status.message}
+        </div>
       </div>
     </div>
   );

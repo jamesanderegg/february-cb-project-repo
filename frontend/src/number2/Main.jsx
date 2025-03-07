@@ -146,6 +146,9 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
             <p ref={detectionDisplayRef}>Detected Objects: Waiting...</p>
           </div>
         </div>
+        <div className="replay-controls-container">
+          <ReplayControlsModal socket={socket} />
+        </div>
       </div>
 
       {/* Render the replay controls modal outside of Canvas
