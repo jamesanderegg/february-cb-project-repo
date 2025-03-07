@@ -12,6 +12,8 @@ from PIL import Image
 from ultralytics import YOLO
 import time
 import threading
+import json
+from flask_socketio import SocketIO, Namespace
 
 load_dotenv()
 
@@ -23,7 +25,7 @@ socketio = SocketIO(app, cors_allowed_origins="*", logger=False, engineio_logger
 
 # Connect to Google Colab WebSocket
 colab_socket = PSocketIO.Client()
-COLAB_WS_URL = "wss://4c7e-35-185-17-110.ngrok-free.app/socket.io/"
+COLAB_WS_URL = "wss://be84-34-127-2-180.ngrok-free.app/socket.io/"
 try:
     colab_socket.connect(COLAB_WS_URL, namespaces=["/"])
     print(f"✅ Connected to Google Colab WebSocket at {COLAB_WS_URL}")
@@ -170,6 +172,33 @@ def process_yolo(image_array, original_data):
         YOLO_INTERVAL = min(YOLO_INTERVAL * 1.1, 2.0)
     else:
         YOLO_INTERVAL = max(YOLO_INTERVAL * 0.9, 0.1)
+        
+    # Add experience to replay collector if we're recording
+    if replay_collector.is_recording:
+        # Extract state from detections and robot position
+        state = {
+            "robot_position": original_data.get("position"),
+            "robot_rotation": original_data.get("rotation"),
+            "detections": detections
+        }
+        
+        # You'll need to define these based on your specific use case
+        action = original_data.get("action", 0)  # Default to no action
+        reward = 0  # Default reward
+        done = original_data.get("collisionIndicator", False)  # Consider collision as done
+        
+        # Add to replay collector
+        replay_collector.add_experience(
+            state=state,
+            action=action,
+            reward=reward,
+            next_state=None,  # Will be updated in the next frame
+            done=done,
+            metadata={
+                "timestamp": time.time(),
+                "capture_timestamp": original_data.get("capture_timestamp")
+            }
+        )
 
 # Import the ReplayCollector
 from replay_collector import ReplayCollector
@@ -177,308 +206,227 @@ from replay_collector import ReplayCollector
 # Initialize the replay collector
 replay_collector = ReplayCollector(save_dir='experiences')
 
-# Socket handler for replay control
-@socketio.on("replay_control")
+# Replay WebSocket event handlers
+@socketio.on('replay_control')
 def handle_replay_control(data):
-    """Handle replay control commands from the client"""
-    command = data.get('command', '')
-    
-    if command == 'start':
-        # Start recording replay
-        replay_collector.start_recording()
-        socketio.emit("replay_status", {
-            "status": "recording", 
-            "episode": replay_collector.episode_count + 1
-        })
-    
-    elif command == 'stop':
-        # Stop recording replay
-        replay_collector.stop_recording()
-        socketio.emit("replay_status", {
-            "status": "stopped", 
-            "episode": replay_collector.episode_count
-        })
-    
-    elif command == 'save':
-        # Save current replay buffer
-        filename = data.get('filename', f'replay_{int(time.time())}.json')
-        saved_path = replay_collector.save_episodes(filename)
-        if saved_path:
-            socketio.emit("replay_status", {
-                "status": "saved",
-                "episodes": replay_collector.episode_count,
-                "steps": sum(len(ep) for ep in replay_collector.episodes),
-                "filename": os.path.basename(saved_path)
-            })
-    
-    elif command == 'load':
-        # Load replay from file
-        filename = data.get('filename')
-        background = data.get('background', False)
-        if filename:
-            # Start loading in a background thread to prevent blocking
-            threading.Thread(
-                target=replay_collector.load_episodes,
-                args=(filename, background, socketio)
-            ).start()
-    
-    elif command == 'replay':
-        # Add replay data to agent memory
-        if 'agent' in globals():
-            count = replay_collector.replay_to_memory(agent)
-            socketio.emit("replay_status", {
-                "status": "replayed",
-                "experiences": count
-            })
-        else:
-            socketio.emit("replay_status", {
-                "status": "error",
-                "message": "Agent not initialized"
-            })
-    
-    elif command == 'get_screen':
-        # Get a specific screen by ID
-        screen_id = data.get('screen_id')
-        if screen_id:
-            screen_data = replay_collector.get_screen(screen_id)
-            if screen_data:
-                socketio.emit("replay_screen", screen_data)
-            else:
-                socketio.emit("replay_status", {
-                    "status": "error",
-                    "message": f"Screen not found: {screen_id}"
-                })
-    
-    elif command == 'preload_screens':
-        # Preload nearby screens for smoother playback
-        current_screen = data.get('current_screen')
-        count = data.get('count', 5)
-        if current_screen:
-            preloaded = replay_collector.preload_screens(current_screen, count)
-            # Send each preloaded screen to the client
-            for screen_id in preloaded:
-                screen_data = replay_collector.get_screen(screen_id)
-                if screen_data:
-                    socketio.emit("replay_screen", screen_data)
-            
-            socketio.emit("replay_status", {
-                "status": "preloaded",
-                "count": len(preloaded)
-            })
-    
-    elif command == 'list_replays':
-        # List available replays
-        try:
-            replay_files = []
-            for filename in os.listdir(replay_collector.save_dir):
-                if filename.endswith('.json'):
-                    # Get file stats
-                    file_path = os.path.join(replay_collector.save_dir, filename)
-                    file_size = os.path.getsize(file_path)
-                    
-                    # Try to load the file to get episode count
-                    try:
-                        with open(file_path, 'r') as f:
-                            replay_data = json.load(f)
-                        episode_count = len(replay_data.get('episodes', []))
-                        step_count = sum(len(ep.get('steps', [])) for ep in replay_data.get('episodes', []))
-                    except:
-                        episode_count = 0
-                        step_count = 0
-                    
-                    replay_files.append({
-                        'filename': filename,
-                        'episodes': episode_count,
-                        'steps': step_count,
-                        'size': file_size,
-                        'creation_time': os.path.getctime(file_path)
-                    })
-            
-            # Sort by creation time (newest first)
-            replay_files.sort(key=lambda x: x['creation_time'], reverse=True)
-            
-            socketio.emit('replay_status', {
-                'status': 'available_replays',
-                'replays': replay_files
-            })
-        except Exception as e:
-            socketio.emit('replay_status', {
-                'status': 'error',
-                'message': f"Error listing replays: {str(e)}"
-            })
-
-# Socket handler for training control
-@socketio.on('training_control')
-def handle_training_control(data):
-    """Handle training control commands from the client"""
-    global agent  # Access the global agent variable
-    
     command = data.get('command')
     
-    if command == 'start_training':
-        # Start training on loaded replay data
-        episodes = data.get('episodes', 10)
-        batch_size = data.get('batch_size', 32)
+    if command == 'start':
+        # Start recording
+        result = replay_collector.start_recording()
+        socketio.emit('replay_status', result)
         
-        # Check if agent exists
-        if 'agent' not in globals() or agent is None:
-            socketio.emit('training_status', {
+        # Also forward to Colab
+        try:
+            colab_socket.emit('replay_control', {'command': 'start'})
+        except Exception as e:
+            print(f"❌ Failed to forward replay command to Colab: {e}")
+    
+    elif command == 'stop':
+        # Stop recording
+        result = replay_collector.stop_recording()
+        socketio.emit('replay_status', result)
+        
+        # Also forward to Colab
+        try:
+            colab_socket.emit('replay_control', {'command': 'stop'})
+        except Exception as e:
+            print(f"❌ Failed to forward replay command to Colab: {e}")
+    
+    elif command == 'save':
+        # Save recorded episodes
+        filename = data.get('filename', f'replay_{int(time.time())}.json')
+        result = replay_collector.save_replay(filename)
+        socketio.emit('replay_status', result)
+        
+        # Also forward to Colab
+        try:
+            colab_socket.emit('replay_control', {
+                'command': 'save',
+                'filename': filename,
+                'result': result
+            })
+        except Exception as e:
+            print(f"❌ Failed to forward replay command to Colab: {e}")
+    
+    elif command == 'load':
+        # Load episodes from a file
+        filename = data.get('filename')
+        background = data.get('background', False)
+        
+        if not filename:
+            socketio.emit('replay_status', {
                 'status': 'error',
-                'message': 'Agent not initialized'
+                'message': 'No filename provided'
             })
             return
         
-        # Start training in a background thread
-        threading.Thread(
-            target=start_training_thread,
-            args=(agent, episodes, batch_size, socketio)
-        ).start()
-    
-    elif command == 'stop_training':
-        # Signal to stop training
-        if 'agent' in globals() and agent is not None:
-            agent.stop_training_flag = True
-            socketio.emit('training_status', {
-                'status': 'stopping'
-            })
-        else:
-            socketio.emit('training_status', {
-                'status': 'error',
-                'message': 'Agent not initialized'
-            })
-    
-    elif command == 'save_model':
-        # Save the current model
-        if 'agent' in globals() and agent is not None:
-            filename = data.get('filename', f'model_{int(time.time())}.pth')
+        result = replay_collector.load_replay(filename, background)
+        
+        if result['status'] == 'loading':
+            # Loading in background, send initial status
+            socketio.emit('replay_status', result)
             
-            # Make sure model directory exists
-            model_dir = 'models'
-            os.makedirs(model_dir, exist_ok=True)
-            
-            model_path = os.path.join(model_dir, filename)
-            
-            try:
-                agent.save(model_path)
-                socketio.emit('training_status', {
-                    'status': 'saved',
-                    'filename': filename,
-                    'path': model_path
-                })
-            except Exception as e:
-                socketio.emit('training_status', {
-                    'status': 'error',
-                    'message': f'Failed to save model: {str(e)}'
-                })
+            # Start a background task to monitor loading
+            socketio.start_background_task(
+                monitor_loading,
+                filename=filename
+            )
         else:
-            socketio.emit('training_status', {
-                'status': 'error',
-                'message': 'Agent not initialized'
+            # Loaded synchronously, send full result
+            socketio.emit('replay_status', result)
+        
+        # Also forward to Colab
+        try:
+            colab_socket.emit('replay_control', {
+                'command': 'load',
+                'filename': filename
             })
+        except Exception as e:
+            print(f"❌ Failed to forward replay command to Colab: {e}")
     
-    elif command == 'load_model':
-        # Load a saved model
-        if 'agent' in globals() and agent is not None:
-            filename = data.get('filename')
-            if filename:
-                model_dir = 'models'
-                model_path = os.path.join(model_dir, filename)
-                
-                if os.path.exists(model_path):
-                    try:
-                        agent.load(model_path)
-                        socketio.emit('training_status', {
-                            'status': 'loaded',
-                            'filename': filename
-                        })
-                    except Exception as e:
-                        socketio.emit('training_status', {
-                            'status': 'error',
-                            'message': f'Failed to load model: {str(e)}'
-                        })
-                else:
-                    socketio.emit('training_status', {
-                        'status': 'error',
-                        'message': f'Model file not found: {filename}'
-                    })
-        else:
-            socketio.emit('training_status', {
+    elif command == 'list_replays':
+        # Get list of available replays
+        replays = replay_collector.list_replays()
+        socketio.emit('replay_status', {
+            'status': 'available_replays',
+            'replays': replays
+        })
+    
+    elif command == 'replay':
+        # Forward this command to Colab
+        try:
+            colab_socket.emit('replay_control', {
+                'command': 'replay_to_agent'
+            })
+            socketio.emit('replay_status', {
+                'status': 'replaying',
+                'message': 'Forwarded replay command to Colab'
+            })
+        except Exception as e:
+            print(f"❌ Failed to forward replay command to Colab: {e}")
+            socketio.emit('replay_status', {
                 'status': 'error',
-                'message': 'Agent not initialized'
+                'message': f"Failed to forward replay command to Colab: {e}"
             })
 
-def start_training_thread(agent, episodes, batch_size, socketio):
-    """Background thread to run training and emit progress updates"""
-    
-    try:
-        # Reset stop flag
-        agent.stop_training_flag = False
+def monitor_loading(filename):
+    """Background task to monitor replay loading and send updates"""
+    total_files = 1  # Just one file for now
+    for i in range(1, 11):  # Simulate progress 10%, 20%, ..., 100%
+        time.sleep(0.2)  # Short delay
         
-        # Emit initial status
-        socketio.emit('training_status', {
-            'status': 'training',
-            'progress': 0
+        socketio.emit('replay_status', {
+            'status': 'loading_progress',
+            'progress': i,
+            'total': 10,
+            'filename': filename
         })
+    
+    # Once loading is complete, emit the final status
+    result = {
+        'status': 'loaded',
+        'episodes': len(replay_collector.episodes),
+        'steps': sum(len(episode) for episode in replay_collector.episodes),
+        'filename': filename
+    }
+    
+    socketio.emit('replay_status', result)
+
+# Training websocket event handlers
+@socketio.on('training_control')
+def handle_training_control(data):
+    command = data.get('command')
+    
+    # Forward all training commands to Colab
+    try:
+        colab_socket.emit('training_control', data)
         
-        # Check if we have enough samples
-        if len(agent.memory) < batch_size:
-            socketio.emit('training_status', {
-                'status': 'error',
-                'message': f'Not enough samples in memory. Need {batch_size}, have {len(agent.memory)}'
-            })
-            return
-        
-        # Train for specified number of episodes
-        for episode in range(episodes):
-            if getattr(agent, 'stop_training_flag', False):
-                # Training was stopped by user
-                socketio.emit('training_status', {
-                    'status': 'stopped',
-                    'progress': (episode / episodes) * 100
-                })
-                return
+        # Send initial status to client
+        if command == 'start_training':
+            episodes = data.get('episodes', 10)
+            batch_size = data.get('batch_size', 32)
             
-            # Train on a batch
-            stats = agent.train_batch(batch_size)
-            
-            # Calculate progress
-            progress = ((episode + 1) / episodes) * 100
-            
-            # Emit progress update
             socketio.emit('training_status', {
                 'status': 'training',
-                'progress': progress,
-                'episode': episode + 1,
-                'total_episodes': episodes
+                'progress': 0,
+                'episodes': episodes,
+                'batch_size': batch_size,
+                'message': f'Starting training with {episodes} episodes, batch size {batch_size}'
             })
-            
-            # Emit training stats
-            socketio.emit('training_stats', {
-                'episodes': episode + 1,
-                'loss': stats.get('loss', 0),
-                'avg_reward': stats.get('avg_reward', 0),
-                'epsilon': stats.get('epsilon', 0)
+        
+        elif command == 'stop_training':
+            socketio.emit('training_status', {
+                'status': 'stopping',
+                'message': 'Stopping training...'
             })
-            
-            # Sleep briefly to avoid socketio flooding
-            time.sleep(0.01)
         
-        # Save metrics after training
-        if hasattr(agent, 'save_metrics'):
-            agent.save_metrics()
+        elif command == 'save_model':
+            filename = data.get('filename', f'model_{int(time.time())}.h5')
+            socketio.emit('training_status', {
+                'status': 'saving',
+                'filename': filename,
+                'message': f'Saving model to {filename}...'
+            })
         
-        # Training completed successfully
-        socketio.emit('training_status', {
-            'status': 'completed',
-            'episodes': episodes
-        })
-        
+        elif command == 'load_model':
+            filename = data.get('filename', 'model.h5')
+            socketio.emit('training_status', {
+                'status': 'loading',
+                'filename': filename,
+                'message': f'Loading model from {filename}...'
+            })
+    
     except Exception as e:
-        # Handle training errors
+        print(f"❌ Failed to forward training command to Colab: {e}")
         socketio.emit('training_status', {
             'status': 'error',
-            'message': str(e)
+            'message': f"Failed to forward training command to Colab: {e}"
         })
+
+# Receive training updates from Colab
+
+class ColabNamespace(socketio.Namespace):
+    def on_connect(self):
+        print("🟢 Colab connected to Flask WebSocket")
+    
+    def on_disconnect(self):
+        print("🔴 Colab disconnected from Flask WebSocket")
+    
+    def on_training_status(self, data):
+        # Forward training status to client
+        socketio.emit('training_status', data)
+    
+    def on_training_stats(self, data):
+        # Forward training stats to client
+        socketio.emit('training_stats', data)
+    
+    def on_replay_status(self, data):
+        # Forward replay status to client
+        socketio.emit('replay_status', data)
+
+socketio.on_namespace(ColabNamespace('/colab'))
+
+# Handle Colab training status updates
+@app.route('/training/status', methods=['POST'])
+def update_training_status():
+    data = request.json
+    
+    # Forward to connected clients
+    socketio.emit('training_status', data)
+    
+    return jsonify({"status": "success"})
+
+# Handle Colab training stats updates
+@app.route('/training/stats', methods=['POST'])
+def update_training_stats():
+    data = request.json
+    
+    # Forward to connected clients
+    socketio.emit('training_stats', data)
+    
+    return jsonify({"status": "success"})
+
 if __name__ == '__main__':
     print(f"🚀 Running Flask WebSocket Server on port {port}")
     socketio.run(app, debug=True, port=int(port), host='0.0.0.0')
