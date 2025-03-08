@@ -6,6 +6,7 @@ import Buggy from "./Buggy";
 import Tables from "./StaticSceneElements/TheManyTables/Tables.jsx";
 import { tableConfigs } from './StaticSceneElements/TheManyTables/tableConfig.js';
 import ObjectRandomizer from './ModelFunctions/ObjectRandomizer.jsx';
+import AmbientLight from "../lights/AmbientLight.jsx";
 // import ReplayControls from '../../components/ReplayControls.jsx';
 
 const MainScene = ({ 
@@ -39,6 +40,7 @@ const MainScene = ({
   return (
     <>
       <Physics gravity={[0, -9.81, 0]}>
+        <AmbientLight/>
         <ScaledEnvUniform scale={2} />
         <Tables tableConfigs={tableConfigs} />
         

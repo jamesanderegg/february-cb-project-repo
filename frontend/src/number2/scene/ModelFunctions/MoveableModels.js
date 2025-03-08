@@ -1,3 +1,5 @@
+import AmbientLight from "../../lights/AmbientLight";
+
 export const movableModels = [
   {
     name: 'apple',
@@ -13,6 +15,7 @@ export const movableModels = [
     angularDamping: 0.3,
     castShadow: true,
     receiveShadow: true,
+    AmbientLight: 1
   },
   {
     name: 'alarmClock',
@@ -20,13 +23,13 @@ export const movableModels = [
     scale: 0.1,
     rotation: [0, 0, 0],
     height: 0.3,
-    metallic: 0.7,
     roughness: 0.3,
     mass: 0.5,
     linearDamping: 0.5,
     angularDamping: 0.5,
     castShadow: true,
     receiveShadow: true,
+    AmbientLight: 1
   },
   {
     name: 'backpack',
@@ -41,6 +44,7 @@ export const movableModels = [
     angularDamping: 0.6,
     castShadow: true,
     receiveShadow: true,
+    AmbientLight: 1
   },
   {
     name: 'baseballGlove',
@@ -55,6 +59,7 @@ export const movableModels = [
     angularDamping: 0.6,
     castShadow: true,
     receiveShadow: true,
+    AmbientLight: 1
   },
   // {
   //   name: 'bicycle',
@@ -82,6 +87,7 @@ export const movableModels = [
     angularDamping: 0.6,
     castShadow: true,
     receiveShadow: true,
+    AmbientLight: 1
   },
   {
     name: 'handbag',
@@ -97,6 +103,7 @@ export const movableModels = [
     angularDamping: 0.4,
     castShadow: true,
     receiveShadow: true,
+    AmbientLight: 1
   },
   {
     name: 'teddy',
@@ -111,6 +118,7 @@ export const movableModels = [
     angularDamping: 0.7,
     castShadow: true,
     receiveShadow: true,
+    AmbientLight: 1
   },
   {
     name: 'phone',
@@ -126,21 +134,20 @@ export const movableModels = [
     angularDamping: 0.2,
     castShadow: false,
     receiveShadow: true,
+    AmbientLight: 1
   },
   {
     name: 'pottedPlant',
-    filePath: '/models/PottedPlant+Texture.glb',
+    filePath: '/models/pottedPlant.glb',
     scale: 5,
     rotation: [0, -Math.PI / 5, 0],
-    color: 'green',
     height: 0.8,
-    metallic: 0.2,
-    roughness: 0.7,
     mass: 1.5,
     linearDamping: 0.5,
     angularDamping: 0.5,
     castShadow: true,
     receiveShadow: true,
+    AmbientLight: 1
   },
   {
     name: 'spoon',
@@ -156,6 +163,7 @@ export const movableModels = [
     angularDamping: 0.4,
     castShadow: true,
     receiveShadow: true,
+    AmbientLight: 1
   },
   {
     name: 'umbrella',
@@ -200,5 +208,6 @@ export const movableModels = [
     angularDamping: 0.1,
     castShadow: false,
     receiveShadow: true,
+    AmbientLight: 1
   }
 ];
