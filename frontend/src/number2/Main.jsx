@@ -11,56 +11,38 @@ import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
 import MiniMapHUD from "./camera/MiniMapHUD";
 import TopDownCamera from "./camera/TopDownCamera";
-import ReplayControlsModal from '../components/ReplayControls';  // Updated import
+import ReplayControlsModal from '../components/ReplayControls';
+import AmbientLight from "./lights/AmbientLight";
 
-const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject, collisionIndicator }) => {
+const Main = ({ 
+  robotCameraRef, 
+  miniMapCameraRef, 
+  robotPositionRef, 
+  robotRotationRef, 
+  YOLOdetectObject, 
+  collisionIndicator, 
+  isRunning, 
+  setIsRunning 
+}) => {
   const [socket, setSocket] = useState(null);
-  // Set up refs for position, rotation, detection, and state displays
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
   const robotStateDisplayRef = useRef(null);
-
   const robotMemoryRef = useRef([]);
 
   const [objectPositions, setObjectPositions] = useState(null);
-
-  useEffect(() => {
-    const newSocket = io('http://localhost:5001'); // Use your Flask server URL
-    setSocket(newSocket);
-    
-    return () => {
-      newSocket.disconnect();
-    };
-  }, []);
-  
-  useEffect(() => {
-    if (objectPositions) {
-      console.log("🚀 Grandparent - Updated Object Positions:", objectPositions);
-
-      fetch("http://localhost:5001/object-positions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ objectPositions }),
-      })
-        .then(response => response.json())
-        .then(data => console.log("✅ Server Response:", data))
-        .catch(error => console.error("Error posting object positions:", error));
-    }
-  }, [objectPositions]);
 
   useEffect(() => {
     const updateHUD = () => {
       if (positionDisplayRef.current && rotationDisplayRef.current) {
         const pos = Array.isArray(robotPositionRef.current) && robotPositionRef.current.length === 3
           ? robotPositionRef.current
-          : [0, 0, 0]; 
+          : [0, 0, 0];
 
         const rot = Array.isArray(robotRotationRef.current) && robotRotationRef.current.length === 4
           ? robotRotationRef.current
-          : [0, 0, 0, 1]; 
+          : [0, 0, 0, 1];
 
         positionDisplayRef.current.innerText = `Position: ${pos
           .map((val) => (typeof val === "number" ? val.toFixed(2) : "0.00"))
@@ -76,8 +58,8 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
       }
 
       if (detectionDisplayRef.current && YOLOdetectObject?.current) {
-        const detections = YOLOdetectObject.current.detections || [];
-        const highConfidenceDetections = detections.filter(d => d.confidence >= 0.75); 
+        const detections = YOLOdetectObject.current || [];
+        const highConfidenceDetections = detections.filter(d => d.confidence >= 0.5);
 
         if (highConfidenceDetections.length > 0) {
           const memoryMap = new Map(robotMemoryRef.current.map(item => [item.class_name, item]));
@@ -103,6 +85,33 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
 
     requestAnimationFrame(updateHUD);
   }, []);
+  useEffect(() => {
+    if (collisionIndicator?.current) {
+      console.log("🚨 Collision detected! Resetting scene...");
+      setIsRunning(false); // Stop the scene
+
+      setTimeout(() => {
+        console.log("🔄 Resetting robot and objects...");
+
+        // Reset robot position & rotation
+        if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
+        if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
+
+        // Reset objects using the ObjectRandomizer function
+        if (window.resetEnvironment) {
+          window.resetEnvironment();
+        } else {
+          console.warn("❗ Reset function not available.");
+        }
+
+        // Restart scene after a brief pause
+        setTimeout(() => {
+          setIsRunning(true);
+          console.log("▶️ Scene restarted.");
+        }, 500);
+      }, 2000);
+    }
+  }, [collisionIndicator?.current]); // Runs whenever collisionIndicator changes
 
   return (
     <>
@@ -114,9 +123,9 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
         <PrimaryCamera position={[7, 1, 30]} />
         <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
         <OrbitControls />
+        <AmbientLight />
         <SpotLights />
         <MainScene
-          // socket={socket} // Pass the socket to MainScene
           robotCameraRef={robotCameraRef}
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
@@ -124,8 +133,9 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
           collisionIndicator={collisionIndicator}
           objectPositions={objectPositions}
           setObjectPositions={setObjectPositions}
+          isRunning={isRunning} 
         />
-        <Environment preset="apartment" />
+        <Environment preset="apartment" intensity={20} />
       </Canvas>
 
       {/* HUD Views Container */}
@@ -150,9 +160,6 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
           <ReplayControlsModal socket={socket} />
         </div>
       </div>
-
-      {/* Render the replay controls modal outside of Canvas
-      {socket && <ReplayControlsModal socket={socket} />} */}
     </>
   );
 };

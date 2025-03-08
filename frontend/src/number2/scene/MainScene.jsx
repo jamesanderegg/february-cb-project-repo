@@ -48,7 +48,7 @@ const MainScene = ({
           tableConfigs={tableConfigs}
           setObjectPositions={setObjectPositions}
         />
-        
+  
         <Buggy 
           position={[7, 0.1, 15]}
           scale={0.025}

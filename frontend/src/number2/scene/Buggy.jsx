@@ -15,8 +15,7 @@ const Buggy = ({
   robotCameraRef,
   robotPositionRef,
   robotRotationRef,
-  YOLOdetectObject,
-  collisionIndicator
+  
 }) => {
   const ref = useRef();
   const keysPressed = useRef({});
@@ -30,11 +29,11 @@ const Buggy = ({
 
   // Add collision handlers
   const handleCollisionEnter = () => {
-    collisionIndicator.current = true;
+    // collisionIndicator.current = true;
   };
 
   const handleCollisionExit = () => {
-    collisionIndicator.current = false;
+    // collisionIndicator.current = false;
   };
 
   useEffect(() => {
@@ -131,10 +130,10 @@ const Buggy = ({
       <RobotCamera
         robotRef={ref}
         ref={robotCameraRef}
-        YOLOdetectObject={YOLOdetectObject}
+        
         robotPositionRef={robotPositionRef}
         robotRotationRef={robotRotationRef}
-        collisionIndicator={collisionIndicator}
+     
       />
     </RigidBody>
   );

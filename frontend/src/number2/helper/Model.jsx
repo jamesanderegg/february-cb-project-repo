@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo, forwardRef } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { Color } from "three";
 import { useThree } from "@react-three/fiber";
 
-const Model = ({
+const Model = forwardRef(({
   filePath,
   scale = 1,
   position = [0, 0, 0],
@@ -17,8 +17,7 @@ const Model = ({
   castShadow = true,
   receiveShadow = true,
   physicsProps = { mass: 1, linearDamping: 0.5, angularDamping: 0.5 }
-}) => {
-  const ref = useRef(null);
+}, ref) => {
   const { scene } = useThree();
 
   // Load GLTF Model
@@ -52,7 +51,7 @@ const Model = ({
 
   return (
     <RigidBody
-      ref={ref}
+      ref={ref} // Now Model supports refs correctly
       type={physicsProps.mass === 0 ? "fixed" : "dynamic"}
       colliders="cuboid"
       mass={physicsProps.mass}
@@ -68,6 +67,6 @@ const Model = ({
       />
     </RigidBody>
   );
-};
+});
 
 export default Model;
