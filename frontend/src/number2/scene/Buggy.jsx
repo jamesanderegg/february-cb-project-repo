@@ -20,7 +20,7 @@ const Buggy = forwardRef(({
   const buggyRef = useRef();  // ✅ Corrected use of ref
   const keysPressed = useRef({});
   const moveSpeed = 90;
-  const rotationSpeed = 1.5;
+  const rotationSpeed = 4;
 
   console.log("Buggy initialized...");
 

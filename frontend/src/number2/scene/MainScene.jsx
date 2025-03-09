@@ -28,7 +28,7 @@ const MainScene = ({
 
       // Clear object positions
       setObjectPositions([]);
-
+      collisionIndicator.current = 0
       // Reset buggy position & rotation
       if (buggyRef.current) {
         console.log("🔄 Resetting buggy...");

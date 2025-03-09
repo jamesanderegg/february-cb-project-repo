@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
-import io from 'socket.io-client';
 
 // Scene Components
 import PrimaryCamera from "./camera/PrimaryCamera";
@@ -30,8 +29,65 @@ const Main = ({
   const detectionDisplayRef = useRef(null);
   const robotStateDisplayRef = useRef(null);
   const robotMemoryRef = useRef([]);
+  const timerDisplayRef = useRef(null);
+  const timerRef = useRef(120); // Countdown timer starting at 120 seconds
+  const timerIntervalRef = useRef(null); // Holds the interval so it can be restarted
 
   const [objectPositions, setObjectPositions] = useState([]);
+
+  const startTimer = () => {
+    // Clear any existing interval to avoid multiple timers
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+
+    // Start a new countdown timer
+    timerIntervalRef.current = setInterval(() => {
+      if (timerRef.current > 0) {
+        timerRef.current -= 1;
+      } else {
+        clearInterval(timerIntervalRef.current);
+        console.log("⏳ Timer reached 0. Resetting scene...");
+        resetScene(); // Reset scene when timer reaches 0
+      }
+    }, 1000);
+  };
+
+  const resetScene = () => {
+    console.log("🔄 Resetting scene...");
+    setIsRunning(false);
+
+    setTimeout(() => {
+      console.log("🛠 Resetting robot and objects...");
+
+      // Reset robot position & rotation
+      if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
+      if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
+
+      // Reset objects using the ObjectRandomizer function
+      if (window.resetEnvironment) {
+        window.resetEnvironment();
+      } else {
+        console.warn("❗ Reset function not available.");
+      }
+
+      // Reset the timer to 120 seconds
+      timerRef.current = 120;
+      startTimer(); // Restart the timer
+
+      // Clear detection display
+      if (detectionDisplayRef.current) {
+        detectionDisplayRef.current.innerText = "Detected Objects: Waiting...";
+      }
+      robotMemoryRef.current = []; // Clear memory of past detections
+
+      // Restart scene after a brief pause
+      setTimeout(() => {
+        setIsRunning(true);
+        console.log("▶️ Scene restarted.");
+      }, 500);
+    }, 2000);
+  };
 
   useEffect(() => {
     const updateHUD = () => {
@@ -80,36 +136,26 @@ const Main = ({
             : "No high-confidence detections.";
       }
 
+      if (timerDisplayRef.current) {
+        timerDisplayRef.current.innerText = `Time Remaining: ${timerRef.current}s`;
+      }
+
       requestAnimationFrame(updateHUD);
     };
 
     requestAnimationFrame(updateHUD);
   }, []);
+
+  useEffect(() => {
+    startTimer(); // Start the countdown when the component mounts
+
+    return () => clearInterval(timerIntervalRef.current); // Cleanup on unmount
+  }, []);
+
   useEffect(() => {
     if (collisionIndicator?.current) {
       console.log("🚨 Collision detected! Resetting scene...");
-      setIsRunning(false); // Stop the scene
-
-      setTimeout(() => {
-        console.log("🔄 Resetting robot and objects...");
-
-        // Reset robot position & rotation
-        if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
-        if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
-
-        // Reset objects using the ObjectRandomizer function
-        if (window.resetEnvironment) {
-          window.resetEnvironment();
-        } else {
-          console.warn("❗ Reset function not available.");
-        }
-
-        // Restart scene after a brief pause
-        setTimeout(() => {
-          setIsRunning(true);
-          console.log("▶️ Scene restarted.");
-        }, 500);
-      }, 2000);
+      resetScene(); // Reset scene on collision
     }
   }, [collisionIndicator?.current]); // Runs whenever collisionIndicator changes
 
@@ -154,6 +200,7 @@ const Main = ({
             <p ref={positionDisplayRef}>Position: Loading...</p>
             <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
             <p ref={detectionDisplayRef}>Detected Objects: Waiting...</p>
+            <p ref={timerDisplayRef}>Time Remaining: 120s</p>
           </div>
         </div>
         <div className="replay-controls-container">

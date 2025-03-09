@@ -28,12 +28,21 @@ const ReplayControlsModal = ( {setObjectPositions}) => {
   const fetchReplays = async () => {
     try {
       const response = await fetch(`${COLAB_API_URL}/list_replays`);
+  
+      // Ensure response is JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server returned non-JSON response");
+      }
+  
       const data = await response.json();
       setReplays(data.replays || []);
     } catch (error) {
       console.error("❌ Error fetching replays:", error);
+      setStatus({ message: "Failed to fetch replays", type: "error" });
     }
   };
+  
 
   const handleReplayStatus = (data) => {
     console.log('Replay status update:', data);
