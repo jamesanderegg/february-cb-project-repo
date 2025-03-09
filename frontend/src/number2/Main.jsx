@@ -21,9 +21,10 @@ const Main = ({
   YOLOdetectObject, 
   collisionIndicator, 
   isRunning, 
-  setIsRunning 
+  setIsRunning,
+  target,
+  setTarget
 }) => {
- 
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
@@ -36,19 +37,17 @@ const Main = ({
   const [objectPositions, setObjectPositions] = useState([]);
 
   const startTimer = () => {
-    // Clear any existing interval to avoid multiple timers
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
     }
 
-    // Start a new countdown timer
     timerIntervalRef.current = setInterval(() => {
       if (timerRef.current > 0) {
         timerRef.current -= 1;
       } else {
         clearInterval(timerIntervalRef.current);
         console.log("⏳ Timer reached 0. Resetting scene...");
-        resetScene(); // Reset scene when timer reaches 0
+        resetScene();
       }
     }, 1000);
   };
@@ -60,28 +59,22 @@ const Main = ({
     setTimeout(() => {
       console.log("🛠 Resetting robot and objects...");
 
-      // Reset robot position & rotation
       if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
       if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
 
-      // Reset objects using the ObjectRandomizer function
       if (window.resetEnvironment) {
         window.resetEnvironment();
-      } else {
-        console.warn("❗ Reset function not available.");
       }
 
-      // Reset the timer to 120 seconds
       timerRef.current = 120;
-      startTimer(); // Restart the timer
+      startTimer();
 
-      // Clear detection display
       if (detectionDisplayRef.current) {
         detectionDisplayRef.current.innerText = "Detected Objects: Waiting...";
       }
-      robotMemoryRef.current = []; // Clear memory of past detections
 
-      // Restart scene after a brief pause
+      robotMemoryRef.current = [];
+
       setTimeout(() => {
         setIsRunning(true);
         console.log("▶️ Scene restarted.");
@@ -140,24 +133,32 @@ const Main = ({
         timerDisplayRef.current.innerText = `Time Remaining: ${timerRef.current}s`;
       }
 
+      if (target) { 
+        console.log("Target: ", target);
+        const targetDisplayRef = document.getElementById('target-display');
+        if (targetDisplayRef) {
+          targetDisplayRef.innerText = `Target: ${target}`; // Ensure target is displayed
+        }
+      }
+
       requestAnimationFrame(updateHUD);
     };
 
     requestAnimationFrame(updateHUD);
-  }, []);
+  }, [target]);
 
   useEffect(() => {
-    startTimer(); // Start the countdown when the component mounts
+    startTimer(); 
 
-    return () => clearInterval(timerIntervalRef.current); // Cleanup on unmount
+    return () => clearInterval(timerIntervalRef.current);
   }, []);
 
   useEffect(() => {
     if (collisionIndicator?.current) {
       console.log("🚨 Collision detected! Resetting scene...");
-      resetScene(); // Reset scene on collision
+      resetScene(); 
     }
-  }, [collisionIndicator?.current]); // Runs whenever collisionIndicator changes
+  }, [collisionIndicator?.current]);
 
   return (
     <>
@@ -179,12 +180,12 @@ const Main = ({
           collisionIndicator={collisionIndicator}
           objectPositions={objectPositions}
           setObjectPositions={setObjectPositions}
-          isRunning={isRunning} 
+          isRunning={isRunning}
+          setTarget={setTarget} 
         />
         <Environment preset="apartment" intensity={20} />
       </Canvas>
 
-      {/* HUD Views Container */}
       <div className="hud-container">
         <div className="mini-map-container">
           <MiniMapHUD miniMapCameraRef={miniMapCameraRef} />
@@ -201,6 +202,7 @@ const Main = ({
             <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
             <p ref={detectionDisplayRef}>Detected Objects: Waiting...</p>
             <p ref={timerDisplayRef}>Time Remaining: 120s</p>
+            <p id="target-display">Target: Loading...</p> {/* Ensure this element is present */}
           </div>
         </div>
         <div className="replay-controls-container">

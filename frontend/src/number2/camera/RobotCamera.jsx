@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Google Colab API URL (replace this after starting Colab Flask)
-const COLAB_API_URL = "https://466a-35-221-10-216.ngrok-free.app/receive_image";
+const COLAB_API_URL = "https://5106-34-125-19-115.ngrok-free.app/receive_image";
 
 const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator }, ref) => {
   const cameraRef = useRef();
@@ -84,6 +84,8 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
   });
 
   async function captureAndSendImage(imageBlob) {
+
+    
     if (!imageBlob) {
       console.warn("No image available for YOLO processing.");
       return;

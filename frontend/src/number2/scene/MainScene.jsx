@@ -16,6 +16,7 @@ const MainScene = ({
   collisionIndicator,
   objectPositions,
   setObjectPositions,
+  setTarget
   // socket
 }) => {
   // Add a ref for the ObjectRandomizer
@@ -48,7 +49,7 @@ const MainScene = ({
 
   useEffect(() => {
     if (objectPositions && Array.isArray(objectPositions) && objectPositions.length > 0) {
-      fetch("https://466a-35-221-10-216.ngrok-free.app/update_objects", {  // Change to your Google Colab URL
+      fetch("https://5106-34-125-19-115.ngrok-free.app/update_objects", {  // Change to your Google Colab URL
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -56,7 +57,14 @@ const MainScene = ({
         body: JSON.stringify({ objectPositions }),
       })
         .then(response => response.json())
-        .then(data => console.log("✅ Object positions sent:", data))
+        .then(data => {
+          console.log("✅ Object positions sent:", data);
+
+          // Update the target with the value from the response data
+          if (data.target) {
+            setTarget(data.target);  // Update the target state
+          }
+        })
         .catch(error => console.error("❌ Error sending object positions:", error));
     } else {
       console.warn("⚠️ objectPositions is not an array or is empty:", objectPositions);

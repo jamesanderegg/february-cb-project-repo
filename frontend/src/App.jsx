@@ -16,7 +16,7 @@ function App() {
   const collisionIndicator = useRef(0);
 
   const [isRunning, setIsRunning] = useState(true); // ✅ Add isRunning state
-
+  const [target, setTarget] = useState(null);
   console.log("App re-rendering");
 
   useEffect(() => {
@@ -33,8 +33,9 @@ function App() {
     YOLOdetectObject: detectObj,
     collisionIndicator,
     isRunning,         
-    setIsRunning     
-  }), [isRunning]); 
+    setIsRunning,
+    setTarget   
+  }), [isRunning, target]); 
 
   return (
     <>
