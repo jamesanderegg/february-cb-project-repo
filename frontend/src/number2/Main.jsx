@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
-import io from 'socket.io-client';
 
 // Scene Components
 import PrimaryCamera from "./camera/PrimaryCamera";
@@ -11,56 +10,95 @@ import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
 import MiniMapHUD from "./camera/MiniMapHUD";
 import TopDownCamera from "./camera/TopDownCamera";
-import ReplayControlsModal from '../components/ReplayControls';  // Updated import
+import ReplayControlsModal from '../components/ReplayControls';
+import AmbientLight from "./lights/AmbientLight";
 
-const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotationRef, YOLOdetectObject, collisionIndicator }) => {
-  const [socket, setSocket] = useState(null);
-  // Set up refs for position, rotation, detection, and state displays
+const Main = ({ 
+  robotCameraRef, 
+  miniMapCameraRef, 
+  robotPositionRef, 
+  robotRotationRef, 
+  YOLOdetectObject, 
+  collisionIndicator, 
+  isRunning, 
+  setIsRunning 
+}) => {
+ 
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
   const robotStateDisplayRef = useRef(null);
-
   const robotMemoryRef = useRef([]);
+  const timerDisplayRef = useRef(null);
+  const timerRef = useRef(120); // Countdown timer starting at 120 seconds
+  const timerIntervalRef = useRef(null); // Holds the interval so it can be restarted
 
-  const [objectPositions, setObjectPositions] = useState(null);
+  const [objectPositions, setObjectPositions] = useState([]);
 
-  useEffect(() => {
-    const newSocket = io('http://localhost:5001'); // Use your Flask server URL
-    setSocket(newSocket);
-    
-    return () => {
-      newSocket.disconnect();
-    };
-  }, []);
-  
-  useEffect(() => {
-    if (objectPositions) {
-      console.log("🚀 Grandparent - Updated Object Positions:", objectPositions);
-
-      fetch("http://localhost:5001/object-positions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ objectPositions }),
-      })
-        .then(response => response.json())
-        .then(data => console.log("✅ Server Response:", data))
-        .catch(error => console.error("Error posting object positions:", error));
+  const startTimer = () => {
+    // Clear any existing interval to avoid multiple timers
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
     }
-  }, [objectPositions]);
+
+    // Start a new countdown timer
+    timerIntervalRef.current = setInterval(() => {
+      if (timerRef.current > 0) {
+        timerRef.current -= 1;
+      } else {
+        clearInterval(timerIntervalRef.current);
+        console.log("⏳ Timer reached 0. Resetting scene...");
+        resetScene(); // Reset scene when timer reaches 0
+      }
+    }, 1000);
+  };
+
+  const resetScene = () => {
+    console.log("🔄 Resetting scene...");
+    setIsRunning(false);
+
+    setTimeout(() => {
+      console.log("🛠 Resetting robot and objects...");
+
+      // Reset robot position & rotation
+      if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
+      if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
+
+      // Reset objects using the ObjectRandomizer function
+      if (window.resetEnvironment) {
+        window.resetEnvironment();
+      } else {
+        console.warn("❗ Reset function not available.");
+      }
+
+      // Reset the timer to 120 seconds
+      timerRef.current = 120;
+      startTimer(); // Restart the timer
+
+      // Clear detection display
+      if (detectionDisplayRef.current) {
+        detectionDisplayRef.current.innerText = "Detected Objects: Waiting...";
+      }
+      robotMemoryRef.current = []; // Clear memory of past detections
+
+      // Restart scene after a brief pause
+      setTimeout(() => {
+        setIsRunning(true);
+        console.log("▶️ Scene restarted.");
+      }, 500);
+    }, 2000);
+  };
 
   useEffect(() => {
     const updateHUD = () => {
       if (positionDisplayRef.current && rotationDisplayRef.current) {
         const pos = Array.isArray(robotPositionRef.current) && robotPositionRef.current.length === 3
           ? robotPositionRef.current
-          : [0, 0, 0]; 
+          : [0, 0, 0];
 
         const rot = Array.isArray(robotRotationRef.current) && robotRotationRef.current.length === 4
           ? robotRotationRef.current
-          : [0, 0, 0, 1]; 
+          : [0, 0, 0, 1];
 
         positionDisplayRef.current.innerText = `Position: ${pos
           .map((val) => (typeof val === "number" ? val.toFixed(2) : "0.00"))
@@ -76,8 +114,8 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
       }
 
       if (detectionDisplayRef.current && YOLOdetectObject?.current) {
-        const detections = YOLOdetectObject.current.detections || [];
-        const highConfidenceDetections = detections.filter(d => d.confidence >= 0.75); 
+        const detections = YOLOdetectObject.current || [];
+        const highConfidenceDetections = detections.filter(d => d.confidence >= 0.5);
 
         if (highConfidenceDetections.length > 0) {
           const memoryMap = new Map(robotMemoryRef.current.map(item => [item.class_name, item]));
@@ -98,11 +136,28 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
             : "No high-confidence detections.";
       }
 
+      if (timerDisplayRef.current) {
+        timerDisplayRef.current.innerText = `Time Remaining: ${timerRef.current}s`;
+      }
+
       requestAnimationFrame(updateHUD);
     };
 
     requestAnimationFrame(updateHUD);
   }, []);
+
+  useEffect(() => {
+    startTimer(); // Start the countdown when the component mounts
+
+    return () => clearInterval(timerIntervalRef.current); // Cleanup on unmount
+  }, []);
+
+  useEffect(() => {
+    if (collisionIndicator?.current) {
+      console.log("🚨 Collision detected! Resetting scene...");
+      resetScene(); // Reset scene on collision
+    }
+  }, [collisionIndicator?.current]); // Runs whenever collisionIndicator changes
 
   return (
     <>
@@ -114,9 +169,9 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
         <PrimaryCamera position={[7, 1, 30]} />
         <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
         <OrbitControls />
+        <AmbientLight />
         <SpotLights />
         <MainScene
-          // socket={socket} // Pass the socket to MainScene
           robotCameraRef={robotCameraRef}
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
@@ -124,8 +179,9 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
           collisionIndicator={collisionIndicator}
           objectPositions={objectPositions}
           setObjectPositions={setObjectPositions}
+          isRunning={isRunning} 
         />
-        <Environment preset="apartment" />
+        <Environment preset="apartment" intensity={20} />
       </Canvas>
 
       {/* HUD Views Container */}
@@ -144,15 +200,13 @@ const Main = ({ robotCameraRef, miniMapCameraRef, robotPositionRef, robotRotatio
             <p ref={positionDisplayRef}>Position: Loading...</p>
             <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
             <p ref={detectionDisplayRef}>Detected Objects: Waiting...</p>
+            <p ref={timerDisplayRef}>Time Remaining: 120s</p>
           </div>
         </div>
         <div className="replay-controls-container">
-          <ReplayControlsModal socket={socket} />
+          <ReplayControlsModal setObjectPositions={setObjectPositions} />
         </div>
       </div>
-
-      {/* Render the replay controls modal outside of Canvas
-      {socket && <ReplayControlsModal socket={socket} />} */}
     </>
   );
 };

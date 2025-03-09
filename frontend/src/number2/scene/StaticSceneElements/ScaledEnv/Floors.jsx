@@ -19,7 +19,7 @@ function Floors() {
     <group>
       {/* Room Floors */}
       {floorConfigs.map((config, index) => (
-        <RigidBody key={index} type="fixed" position={config.position} >
+        <RigidBody key={index} type="fixed" position={config.position} name={"RoomFloor"} >
           <mesh rotation-x={Math.PI / 2}>
             <planeGeometry args={[5, 5]} />
             <meshBasicMaterial color={config.color} side={2} />
@@ -29,7 +29,7 @@ function Floors() {
 
       {/* Hallways */}
       {hallways.map((hall, index) => (
-        <RigidBody key={`hall-${index}`} type="fixed" position={hall.position} >
+        <RigidBody key={`hall-${index}`} type="fixed" position={hall.position} name={"HallFloor"}>
           <mesh rotation-x={Math.PI / 2}>
             <planeGeometry args={hall.geometry} />
             <meshBasicMaterial color="brown" side={2} />

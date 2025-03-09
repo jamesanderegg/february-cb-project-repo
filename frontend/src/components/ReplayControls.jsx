@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/ReplayControls.css';
 
-const ReplayControlsModal = ({ socket }) => {
+const ReplayControlsModal = ( {setObjectPositions}) => {
   const [activeTab, setActiveTab] = useState('record');
   const [isRecording, setIsRecording] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -18,71 +18,40 @@ const ReplayControlsModal = ({ socket }) => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [trainingStats, setTrainingStats] = useState(null);
 
+  const COLAB_API_URL = "https://466a-35-221-10-216.ngrok-free.app";  // Replace with your Google Colab endpoint
+
   useEffect(() => {
-    if (!socket) return;
+    // Fetch initial list of replays when the component mounts
+    fetchReplays();
+  }, []);
 
-    // Set up socket listeners
-    socket.on('replay_status', handleReplayStatus);
-    socket.on('replay_screen', handleReplayScreen);
-    socket.on('training_status', handleTrainingStatus);
-    socket.on('training_stats', handleTrainingStats);
-
-    // Get initial list of replays
-    socket.emit('replay_control', { command: 'list_replays' });
-
-    // Clean up listeners
-    return () => {
-      socket.off('replay_status', handleReplayStatus);
-      socket.off('replay_screen', handleReplayScreen);
-      socket.off('training_status', handleTrainingStatus);
-      socket.off('training_stats', handleTrainingStats);
-    };
-  }, [socket]);
+  const fetchReplays = async () => {
+    try {
+      const response = await fetch(`${COLAB_API_URL}/list_replays`);
+  
+      // Ensure response is JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server returned non-JSON response");
+      }
+  
+      const data = await response.json();
+      setReplays(data.replays || []);
+    } catch (error) {
+      console.error("❌ Error fetching replays:", error);
+      setStatus({ message: "Failed to fetch replays", type: "error" });
+    }
+  };
+  
 
   const handleReplayStatus = (data) => {
     console.log('Replay status update:', data);
-    
-    // Update status message
-    setStatus({ 
-      message: getStatusMessage(data), 
-      type: data.status 
-    });
-
-    // Handle specific status updates
-    switch (data.status) {
-      case 'recording':
-        setIsRecording(true);
-        break;
-      case 'stopped':
-        setIsRecording(false);
-        break;
-      case 'available_replays':
-        setReplays(data.replays || []);
-        break;
-      case 'loading':
-        setIsLoading(true);
-        setLoadingProgress(0);
-        break;
-      case 'loading_progress':
-        setLoadingProgress((data.progress / data.total) * 100);
-        break;
-      case 'loaded':
-        setIsLoading(false);
-        break;
-      default:
-        break;
-    }
+    setStatus({ message: getStatusMessage(data), type: data.status });
   };
 
   const handleReplayScreen = (data) => {
     if (data && data.screen_id) {
-      // Add screen to loaded screens
-      setLoadedScreens(prev => ({
-        ...prev,
-        [data.screen_id]: data
-      }));
-
-      // If this is first screen, set it as current
+      setLoadedScreens(prev => ({ ...prev, [data.screen_id]: data }));
       if (Object.keys(loadedScreens).length === 0) {
         setCurrentScreenData(data);
       }
@@ -91,12 +60,9 @@ const ReplayControlsModal = ({ socket }) => {
 
   const handleTrainingStatus = (data) => {
     console.log('Training status update:', data);
-    
     if (data.status === 'training') {
       setIsTraining(true);
       setTrainingProgress(data.progress || 0);
-      
-      // Update status message
       setStatus({
         message: `Training in progress: ${data.progress}%`,
         type: 'loading'
@@ -104,16 +70,12 @@ const ReplayControlsModal = ({ socket }) => {
     } else if (data.status === 'completed') {
       setIsTraining(false);
       setTrainingProgress(100);
-      
-      // Update status message
       setStatus({
         message: `Training completed (${data.episodes} episodes)`,
         type: 'saved'
       });
     } else if (data.status === 'error') {
       setIsTraining(false);
-      
-      // Update status message
       setStatus({
         message: `Training error: ${data.message}`,
         type: 'error'
@@ -126,97 +88,104 @@ const ReplayControlsModal = ({ socket }) => {
     setTrainingStats(data);
   };
 
-  const startRecording = () => {
-    socket.emit('replay_control', { command: 'start' });
+  const startRecording = async () => {
+    try {
+      await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
+      setIsRecording(true);
+    } catch (error) {
+      console.error("❌ Error starting recording:", error);
+    }
   };
 
-  const stopRecording = () => {
-    socket.emit('replay_control', { command: 'stop' });
+  const stopRecording = async () => {
+    try {
+      await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
+      setIsRecording(false);
+    } catch (error) {
+      console.error("❌ Error stopping recording:", error);
+    }
   };
 
-  const saveReplay = () => {
+  const saveReplay = async () => {
     const replayName = filename || `replay_${Date.now()}.json`;
-    socket.emit('replay_control', { 
-      command: 'save',
-      filename: replayName 
-    });
+    try {
+      await fetch(`${COLAB_API_URL}/save_replay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: replayName })
+      });
+    } catch (error) {
+      console.error("❌ Error saving replay:", error);
+    }
   };
 
-  const loadReplay = (replayName) => {
+  const loadReplay = async (replayName) => {
     if (!replayName) return;
-    
-    setIsLoading(true);
-    setLoadedScreens({});
-    
-    socket.emit('replay_control', {
-      command: 'load',
-      filename: replayName,
-      background: true
-    });
+    try {
+      setIsLoading(true);
+      await fetch(`${COLAB_API_URL}/load_replay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: replayName })
+      });
+      fetchReplays(); // Refresh replay list
+    } catch (error) {
+      console.error("❌ Error loading replay:", error);
+    }
   };
 
-  const feedToAgent = () => {
-    socket.emit('replay_control', { command: 'replay' });
+  const feedToAgent = async () => {
+    try {
+      await fetch(`${COLAB_API_URL}/feed_to_agent`, { method: 'POST' });
+    } catch (error) {
+      console.error("❌ Error feeding to agent:", error);
+    }
   };
 
-  const refreshList = () => {
-    socket.emit('replay_control', { command: 'list_replays' });
-  };
-
-  const startTraining = () => {
+  const startTraining = async () => {
     setIsTraining(true);
     setTrainingProgress(0);
     setTrainingStats(null);
-    
-    socket.emit('training_control', {
-      command: 'start_training',
-      episodes: trainingEpisodes,
-      batch_size: batchSize
-    });
-    
-    setStatus({
-      message: 'Starting training...',
-      type: 'loading'
-    });
+
+    try {
+      await fetch(`${COLAB_API_URL}/start_training`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          episodes: trainingEpisodes,
+          batch_size: batchSize
+        })
+      });
+    } catch (error) {
+      console.error("❌ Error starting training:", error);
+    }
   };
 
-  const stopTraining = () => {
-    socket.emit('training_control', {
-      command: 'stop_training'
-    });
-    
-    setStatus({
-      message: 'Stopping training...',
-      type: 'warning'
-    });
+  const stopTraining = async () => {
+    try {
+      await fetch(`${COLAB_API_URL}/stop_training`, { method: 'POST' });
+    } catch (error) {
+      console.error("❌ Error stopping training:", error);
+    }
   };
 
-  const saveModel = () => {
-    socket.emit('training_control', {
-      command: 'save_model',
-      filename: filename || `model_${Date.now()}.h5`
-    });
-    
-    setStatus({
-      message: 'Saving model...',
-      type: 'loading'
-    });
-  };
+  const resetScene = () => {
+    console.log("🔄 Resetting scene...");
 
-  const loadModel = () => {
-    socket.emit('training_control', {
-      command: 'load_model',
-      filename: filename || 'model.h5'
-    });
-    
-    setStatus({
-      message: 'Loading model...',
-      type: 'loading'
-    });
+    // Call the global reset function if available
+    if (window.resetEnvironment) {
+      window.resetEnvironment();
+    }
+
+    // Force an update by clearing objectPositions (handled in MainScene)
+    setObjectPositions([]);
+
+    // Set status message
+    setStatus({ message: "Scene reset!", type: "info" });
   };
 
   const getStatusMessage = (data) => {
-    switch(data.status) {
+    switch (data.status) {
       case 'recording':
         return `Recording episode ${data.episode}...`;
       case 'stopped':
@@ -238,7 +207,7 @@ const ReplayControlsModal = ({ socket }) => {
     <div className="replay-controls-container">
       {/* Record Button Panel */}
       <div className="control-panel-item">
-        <button 
+        <button
           className={`action-button action-record ${isRecording ? 'disabled' : ''}`}
           onClick={startRecording}
           disabled={isRecording}
@@ -249,7 +218,7 @@ const ReplayControlsModal = ({ socket }) => {
 
       {/* Stop Button Panel */}
       <div className="control-panel-item">
-        <button 
+        <button
           className={`action-button action-stop ${!isRecording ? 'disabled' : ''}`}
           onClick={stopRecording}
           disabled={!isRecording}
@@ -273,7 +242,7 @@ const ReplayControlsModal = ({ socket }) => {
 
       {/* Save Button Panel */}
       <div className="control-panel-item">
-        <button 
+        <button
           className="action-button action-save"
           onClick={saveReplay}
         >
@@ -281,9 +250,9 @@ const ReplayControlsModal = ({ socket }) => {
         </button>
       </div>
 
-      {/* Play Button Panel */}
+      {/* Load Replay Button Panel */}
       <div className="control-panel-item">
-        <button 
+        <button
           className="action-button action-play"
           onClick={() => {
             if (replays.length > 0) {
@@ -298,7 +267,7 @@ const ReplayControlsModal = ({ socket }) => {
 
       {/* Feed to Agent Button Panel */}
       <div className="control-panel-item">
-        <button 
+        <button
           className="action-button action-feed"
           onClick={feedToAgent}
         >
@@ -308,12 +277,22 @@ const ReplayControlsModal = ({ socket }) => {
 
       {/* Train Button Panel */}
       <div className="control-panel-item">
-        <button 
+        <button
           className="action-button action-train"
           onClick={startTraining}
           disabled={isTraining}
         >
           Train Agent
+        </button>
+      </div>
+
+      {/* Reset Button Panel */}
+      <div className="control-panel-item">
+        <button
+          className="action-button action-stop"
+          onClick={resetScene}
+        >
+          Reset Scene
         </button>
       </div>
 

@@ -1,61 +1,43 @@
-import React, { useMemo, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useMemo, useEffect, useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { movableModels } from './MoveableModels';
 import Model from '../../helper/Model';
 
 const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) => {
-  // For tracking reset iterations
-  const resetCounterRef = useRef(0);
-  // For tracking physics objects
-  const objectRefsRef = useRef([]);
-  
-  // Expose the reset function to parent components
+  const [resetCounter, setResetCounter] = useState(0);
+  const objectRefs = useRef(new Map()); // Store refs for object persistence
+
+  // Expose reset function for parent components
   useImperativeHandle(ref, () => ({
     resetEnvironment: () => {
-      // Clean up physics bodies if needed
-      objectRefsRef.current.forEach(objRef => {
-        if (objRef.current?.api) {
-          // Remove from physics world
-          objRef.current.api.removeFromWorld();
-        }
-      });
-      
-      // Reset refs array
-      objectRefsRef.current = [];
-      
-      // Increment counter to force re-randomization
-      resetCounterRef.current += 1;
-      // Force re-render with new value
-      forceUpdate();
+      console.log("🔄 Resetting object positions...");
+      setResetCounter((prev) => prev + 1);
     }
   }));
-  
-  // Simple hook to force update
-  const [, forceUpdate] = React.useReducer(x => x + 1, 0);
-  
-  // Generate random object positions
+
+  // Memoize object positions to minimize recalculations
   const objectPositions = useMemo(() => {
     if (!tableConfigs.length) return [];
-    console.log("Generating new object positions, reset counter:", resetCounterRef.current);
 
-    const availableTables = [...tableConfigs];
-    const availableModels = [...movableModels];
-    const positions = [];
+    console.log(`🔄 Generating new positions | Reset Count: ${resetCounter}`);
+
+    let availableTables = [...tableConfigs];
+    let availableModels = [...movableModels];
+    let positions = [];
 
     const modelCount = Math.min(availableModels.length, availableTables.length);
 
     for (let i = 0; i < modelCount; i++) {
-      const randomTableIndex = Math.floor(Math.random() * availableTables.length);
-      const selectedTable = availableTables.splice(randomTableIndex, 1)[0];
+      const tableIndex = Math.floor(Math.random() * availableTables.length);
+      const selectedTable = availableTables.splice(tableIndex, 1)[0];
 
-      const randomModelIndex = Math.floor(Math.random() * availableModels.length);
-      const selectedModel = availableModels.splice(randomModelIndex, 1)[0];
+      const modelIndex = Math.floor(Math.random() * availableModels.length);
+      const selectedModel = availableModels.splice(modelIndex, 1)[0];
 
       const modelHeight = selectedModel.height || 0.5;
-      
-      // Add some randomization within the table bounds
       const tableWidth = selectedTable.size?.[0] || 2;
       const tableDepth = selectedTable.size?.[2] || 2;
-      
+
+      // Randomized position within table bounds
       const offsetX = (Math.random() - 0.5) * (tableWidth * 0.7);
       const offsetZ = (Math.random() - 0.5) * (tableDepth * 0.7);
       
@@ -65,48 +47,40 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
         selectedTable.position[2] + offsetZ
       ];
 
-      // Random rotation for more variety
-      const randomRotation = [0, Math.random() * Math.PI * 2, 0];
+      const rotation = selectedModel.rotation || [0, Math.random() * Math.PI * 2, 0];
 
       positions.push({
         ...selectedModel,
-        id: `${selectedModel.name}-${i}-${resetCounterRef.current}`, // Add unique ID with reset counter
-        tableIndex: tableConfigs.indexOf(selectedTable),
+        id: `${selectedModel.name}-${i}-${resetCounter}`,
         position,
-        rotation: selectedModel.rotation || randomRotation
+        rotation
       });
     }
     return positions;
-  }, [tableConfigs, resetCounterRef.current]); // Depends on tableConfigs and reset counter
+  }, [tableConfigs, resetCounter]); // Recalculate only on reset
 
-  // Update parent component with new positions
+  // Batch update the state only if positions change
   useEffect(() => {
     setObjectPositions((prevPositions) => {
-      // Only update if changed
-      const isSame = JSON.stringify(prevPositions) === JSON.stringify(objectPositions);
-      return isSame ? prevPositions : objectPositions;
+      if (JSON.stringify(prevPositions) === JSON.stringify(objectPositions)) return prevPositions;
+      return objectPositions;
     });
   }, [objectPositions, setObjectPositions]);
 
   return (
     <>
       {objectPositions.map((obj, index) => {
-        // Create a new ref for each object
-        const objRef = React.useRef();
-        
-        // Store ref for cleanup
-        if (!objectRefsRef.current[index]) {
-          objectRefsRef.current[index] = objRef;
+        if (!objectRefs.current.has(obj.id)) {
+          objectRefs.current.set(obj.id, React.createRef());
         }
-        
         return (
           <Model
-            key={obj.id || `${obj.name}-${index}-${resetCounterRef.current}`}
-            ref={objRef}
+            key={obj.id}
+            ref={objectRefs.current.get(obj.id)}
             filePath={obj.filePath}
             scale={obj.scale}
             position={obj.position}
-            rotation={obj.rotation || [0, 0, 0]}
+            rotation={obj.rotation}
             color={obj.color}
             metallic={obj.metallic || 1}
             roughness={obj.roughness || 0.2}

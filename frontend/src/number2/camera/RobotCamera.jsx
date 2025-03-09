@@ -1,21 +1,20 @@
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { io } from "socket.io-client";
 
-// WebSocket connection
-const socket = io("http://127.0.0.1:5001");
+// Google Colab API URL (replace this after starting Colab Flask)
+const COLAB_API_URL = "https://466a-35-221-10-216.ngrok-free.app/receive_image";
 
 const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator }, ref) => {
   const cameraRef = useRef();
   const offscreenCanvasRef = useRef(document.createElement("canvas"));
-  // Set canvas size to match render target dimensions
   offscreenCanvasRef.current.width = 640;
   offscreenCanvasRef.current.height = 640;
 
   const { gl, scene } = useThree();
   const renderTarget = useRef(new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }));
   const isProcessing = useRef(false);
+  const imageCount = useRef(0);  // Track number of images sent
 
   useEffect(() => {
     const camera = new THREE.PerspectiveCamera(45, 1, 1, 15);
@@ -30,10 +29,9 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
   useImperativeHandle(ref, () => ({
     startStreaming: () => {
       if (!isProcessing.current) {
-        captureAndSendImage(); // This may be used to force a capture if needed.
+        captureAndSendImage();
       }
     },
-    // Expose the latest image (if needed)
     getHudImage: () => offscreenCanvasRef.current.toDataURL("image/png"),
   }));
 
@@ -41,11 +39,9 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
     if (robotRef.current && cameraRef.current) {
       const body = robotRef.current;
 
-      // Calculate Buggy's world position and adjust camera height
+      // Get robot position & rotation
       const buggyPosition = new THREE.Vector3().copy(body.translation());
       buggyPosition.y += 2.5;
-
-      // Calculate Buggy's rotation and look direction
       const buggyRotation = new THREE.Quaternion().copy(body.rotation());
       const lookDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(buggyRotation);
 
@@ -54,18 +50,18 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
       const lookTarget = new THREE.Vector3().copy(buggyPosition).add(lookDirection.multiplyScalar(5));
       cameraRef.current.lookAt(lookTarget);
 
-      // Render the scene to our render target
+      // Render the scene to a render target
       gl.setRenderTarget(renderTarget.current);
       gl.render(scene, cameraRef.current);
       gl.setRenderTarget(null);
 
-      // Read pixel data from the render target
+      // Read pixel data from render target
       const width = renderTarget.current.width;
       const height = renderTarget.current.height;
       const buffer = new Uint8Array(4 * width * height);
       gl.readRenderTargetPixels(renderTarget.current, 0, 0, width, height, buffer);
 
-      // Reuse our offscreen canvas to flip the image vertically
+      // Flip the image vertically
       const canvas = offscreenCanvasRef.current;
       const ctx = canvas.getContext("2d");
       const imageData = ctx.createImageData(width, height);
@@ -77,7 +73,6 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
       }
       ctx.putImageData(imageData, 0, 0);
 
-      // If not already processing, capture the canvas as a Blob and send it.
       if (!isProcessing.current) {
         canvas.toBlob((blob) => {
           if (blob) {
@@ -93,39 +88,45 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
       console.warn("No image available for YOLO processing.");
       return;
     }
-  
-    // Capture the current timestamp (in milliseconds)
-    const captureTimestamp = Date.now();
-  
-    isProcessing.current = true; // Lock new requests until YOLO responds
-  
-    const robotPosition = robotPositionRef.current;
-    const robotRotation = robotRotationRef.current;
-    const collision = collisionIndicator.current;
-  
-    // Send binary image & metadata over WebSocket, including the timestamp
-    socket.emit("send_frame", {
-      image: imageBlob, 
-      position: robotPosition,
-      rotation: robotRotation,
-      collisionIndicator: collision,
-      timestamp: captureTimestamp, // embed capture time
-    });
-  }
-  
 
-  // Listen for YOLO detection results from the server
-  useEffect(() => {
-    socket.on("detection_results", (detectionResults) => {
-      console.log("YOLO Detection Results:", detectionResults);
-      YOLOdetectObject.current = detectionResults;
+    if (isProcessing.current) {
+      console.log("⏳ Waiting for the previous image to process...");
+      return;
+    }
+
+    isProcessing.current = true;
+    imageCount.current += 1;
+    console.log(`📸 Sending image #${imageCount.current}`);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(imageBlob);
+    reader.onloadend = async () => {
+      const base64Image = reader.result;
+    
+      try {
+        const response = await fetch(COLAB_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: base64Image,
+            position: robotPositionRef.current,
+            rotation: robotRotationRef.current,
+            collisionIndicator: collisionIndicator.current,
+            imageCount: imageCount.current,
+          }),
+        });
+
+        const data = await response.json();
+        console.log("✅ YOLO Detection Results:", data);
+        YOLOdetectObject.current = data.detections;
+      } catch (error) {
+        console.error("❌ Error sending image:", error);
+      }
+
       isProcessing.current = false;
-    });
-
-    return () => {
-      socket.off("detection_results");
     };
-  }, []);
+  }
+
 
   return null;
 });
