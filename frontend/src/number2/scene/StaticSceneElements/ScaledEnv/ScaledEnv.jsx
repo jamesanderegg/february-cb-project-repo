@@ -22,7 +22,7 @@ const ScaledEnvUniform = ({ scale = 2 }) => {
 
       {/* Remove duplicate Room rendering */}
       {roomConfigs.map((config, index) => (
-        <Room key={index} config={config} />
+        <Room key={index} config={config} name={`wall ${index}`} />
       ))}
     </group>
   );

@@ -24,14 +24,14 @@ const Main = ({
   isRunning, 
   setIsRunning 
 }) => {
-  const [socket, setSocket] = useState(null);
+ 
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
   const robotStateDisplayRef = useRef(null);
   const robotMemoryRef = useRef([]);
 
-  const [objectPositions, setObjectPositions] = useState(null);
+  const [objectPositions, setObjectPositions] = useState([]);
 
   useEffect(() => {
     const updateHUD = () => {
@@ -157,7 +157,7 @@ const Main = ({
           </div>
         </div>
         <div className="replay-controls-container">
-          <ReplayControlsModal socket={socket} />
+          <ReplayControlsModal setObjectPositions={setObjectPositions} />
         </div>
       </div>
     </>
