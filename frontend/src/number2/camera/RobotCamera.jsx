@@ -3,7 +3,11 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Google Colab API URL (replace this after starting Colab Flask)
+<<<<<<< HEAD
 const COLAB_API_URL = "https://4ee4-34-138-54-92.ngrok-free.app/receive_image";
+=======
+const COLAB_API_URL = "https://c134-35-188-227-234.ngrok-free.app/receive_image";
+>>>>>>> aa8f06bce80616f50b5015b068462fe9403dfe29
 
 const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator }, ref) => {
   const cameraRef = useRef();
@@ -84,19 +88,21 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
   });
 
   async function captureAndSendImage(imageBlob) {
+
+    
     if (!imageBlob) {
       console.warn("No image available for YOLO processing.");
       return;
     }
 
     if (isProcessing.current) {
-      console.log("⏳ Waiting for the previous image to process...");
+      // console.log("⏳ Waiting for the previous image to process...");
       return;
     }
 
     isProcessing.current = true;
     imageCount.current += 1;
-    console.log(`📸 Sending image #${imageCount.current}`);
+    // console.log(`📸 Sending image #${imageCount.current}`);
 
     const reader = new FileReader();
     reader.readAsDataURL(imageBlob);
@@ -117,7 +123,7 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
         });
 
         const data = await response.json();
-        console.log("✅ YOLO Detection Results:", data);
+        // console.log("✅ YOLO Detection Results:", data);
         YOLOdetectObject.current = data.detections;
       } catch (error) {
         console.error("❌ Error sending image:", error);

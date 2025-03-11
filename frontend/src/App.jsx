@@ -1,11 +1,10 @@
-import { useRef, useEffect, useState, useMemo } from "react";
+import { useRef, useEffect, useState } from "react";
 import Button from "./components/Button";
 import VoiceToText from "./components/VoiceToText";
 import "./styles/App.css";
 import Main from "./number2/Main";
 import Modal from "./components/Modal";
 import "./styles/modal.css";
-
 
 function App() {
   const robotCameraRef = useRef(null);
@@ -15,8 +14,8 @@ function App() {
   const detectObj = useRef(null);
   const collisionIndicator = useRef(0);
 
-  const [isRunning, setIsRunning] = useState(true); // ✅ Add isRunning state
-
+  const [isRunning, setIsRunning] = useState(true);
+  const [target, setTarget] = useState(null);
   console.log("App re-rendering");
 
   useEffect(() => {
@@ -25,23 +24,28 @@ function App() {
     }
   }, []);
 
-  const mainProps = useMemo(() => ({
-    robotCameraRef,
-    miniMapCameraRef,
-    robotPositionRef,
-    robotRotationRef,
-    YOLOdetectObject: detectObj,
-    collisionIndicator,
-    isRunning,         
-    setIsRunning     
-  }), [isRunning]); 
+  useEffect(() => {
+    console.log("*****************************************");
+    console.log(target);
+  }, [target]);
 
   return (
     <>
       <VoiceToText />
       <Modal success={false} collisionIndicator={collisionIndicator} />
       <div className="main">
-        <Main {...mainProps} />
+        <Main
+          robotCameraRef={robotCameraRef}
+          miniMapCameraRef={miniMapCameraRef}
+          robotPositionRef={robotPositionRef}
+          robotRotationRef={robotRotationRef}
+          YOLOdetectObject={detectObj}
+          collisionIndicator={collisionIndicator}
+          isRunning={isRunning}
+          setIsRunning={setIsRunning}
+          target={target}
+          setTarget={setTarget}  // Passing the target directly
+        />
       </div>
     </>
   );

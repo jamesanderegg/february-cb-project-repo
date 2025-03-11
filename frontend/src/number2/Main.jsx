@@ -21,34 +21,35 @@ const Main = ({
   YOLOdetectObject, 
   collisionIndicator, 
   isRunning, 
-  setIsRunning 
+  setIsRunning,
+  target,
+  setTarget
 }) => {
- 
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
   const robotStateDisplayRef = useRef(null);
+  const targetDisplayRef = useRef(null);
   const robotMemoryRef = useRef([]);
   const timerDisplayRef = useRef(null);
   const timerRef = useRef(120); // Countdown timer starting at 120 seconds
   const timerIntervalRef = useRef(null); // Holds the interval so it can be restarted
 
   const [objectPositions, setObjectPositions] = useState([]);
+  const targetRef = useRef(target);  // Create a ref for the target
 
   const startTimer = () => {
-    // Clear any existing interval to avoid multiple timers
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
     }
 
-    // Start a new countdown timer
     timerIntervalRef.current = setInterval(() => {
       if (timerRef.current > 0) {
         timerRef.current -= 1;
       } else {
         clearInterval(timerIntervalRef.current);
         console.log("⏳ Timer reached 0. Resetting scene...");
-        resetScene(); // Reset scene when timer reaches 0
+        resetScene();
       }
     }, 1000);
   };
@@ -60,28 +61,22 @@ const Main = ({
     setTimeout(() => {
       console.log("🛠 Resetting robot and objects...");
 
-      // Reset robot position & rotation
       if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
       if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
 
-      // Reset objects using the ObjectRandomizer function
       if (window.resetEnvironment) {
         window.resetEnvironment();
-      } else {
-        console.warn("❗ Reset function not available.");
       }
 
-      // Reset the timer to 120 seconds
       timerRef.current = 120;
-      startTimer(); // Restart the timer
+      startTimer();
 
-      // Clear detection display
       if (detectionDisplayRef.current) {
         detectionDisplayRef.current.innerText = "Detected Objects: Waiting...";
       }
-      robotMemoryRef.current = []; // Clear memory of past detections
 
-      // Restart scene after a brief pause
+      robotMemoryRef.current = [];
+
       setTimeout(() => {
         setIsRunning(true);
         console.log("▶️ Scene restarted.");
@@ -90,6 +85,9 @@ const Main = ({
   };
 
   useEffect(() => {
+    console.log("Target updated:", target);
+    targetRef.current = target;  // Update the targetRef value
+
     const updateHUD = () => {
       if (positionDisplayRef.current && rotationDisplayRef.current) {
         const pos = Array.isArray(robotPositionRef.current) && robotPositionRef.current.length === 3
@@ -111,6 +109,9 @@ const Main = ({
 
       if (robotStateDisplayRef.current) {
         robotStateDisplayRef.current.innerText = `Collision: ${collisionIndicator?.current ? "True" : "False"}`;
+      }
+      if (targetDisplayRef.current) {
+        targetDisplayRef.current.innerText = `Target: ${targetRef.current || "Loading..."}`;
       }
 
       if (detectionDisplayRef.current && YOLOdetectObject?.current) {
@@ -144,21 +145,24 @@ const Main = ({
     };
 
     requestAnimationFrame(updateHUD);
-  }, []);
+  }, [target]);  // Re-run effect when target changes
 
   useEffect(() => {
-    startTimer(); // Start the countdown when the component mounts
+    startTimer(); 
 
-    return () => clearInterval(timerIntervalRef.current); // Cleanup on unmount
+    return () => clearInterval(timerIntervalRef.current);
   }, []);
 
   useEffect(() => {
     if (collisionIndicator?.current) {
       console.log("🚨 Collision detected! Resetting scene...");
-      resetScene(); // Reset scene on collision
+      resetScene(); 
     }
-  }, [collisionIndicator?.current]); // Runs whenever collisionIndicator changes
-
+  }, [collisionIndicator?.current]);
+  useEffect(() => {
+        console.log("*****************************************")
+        console.log(target)
+      }, [target]);
   return (
     <>
       <Canvas
@@ -179,12 +183,13 @@ const Main = ({
           collisionIndicator={collisionIndicator}
           objectPositions={objectPositions}
           setObjectPositions={setObjectPositions}
-          isRunning={isRunning} 
+          isRunning={isRunning}
+          setTarget={setTarget}
+          target={target}
         />
         <Environment preset="apartment" intensity={20} />
       </Canvas>
 
-      {/* HUD Views Container */}
       <div className="hud-container">
         <div className="mini-map-container">
           <MiniMapHUD miniMapCameraRef={miniMapCameraRef} />
@@ -201,6 +206,9 @@ const Main = ({
             <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
             <p ref={detectionDisplayRef}>Detected Objects: Waiting...</p>
             <p ref={timerDisplayRef}>Time Remaining: 120s</p>
+            {/* Display the target using targetRef */}
+            <p id="target-display" ref={robotStateDisplayRef}></p>
+            <p id="target-display" ref={targetDisplayRef}></p>
           </div>
         </div>
         <div className="replay-controls-container">
