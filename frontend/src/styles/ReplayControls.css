@@ -1,7 +1,7 @@
 /* Container for all replay controls - using vertical grid layout */
 .replay-controls-container {
   position: fixed;
-  top: 20px;
+  top: 75px;
   right: 20px;
   bottom: 20px;
   width: 220px;
@@ -15,9 +15,9 @@
 
 /* Each control panel item */
 .control-panel-item {
-  background-color: rgba(30, 30, 40, 0.85);
+  /* background-color: rgba(30, 30, 40, 0.85); */
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); */
   overflow: hidden;
   pointer-events: auto;
   backdrop-filter: blur(5px);
