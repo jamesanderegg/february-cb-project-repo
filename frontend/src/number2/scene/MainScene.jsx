@@ -16,8 +16,8 @@ const MainScene = ({
   collisionIndicator,
   objectPositions,
   setObjectPositions,
-  setTarget
-  // socket
+  setTarget,
+  target
 }) => {
   // Add a ref for the ObjectRandomizer
   const randomizerRef = useRef(null);
@@ -46,10 +46,10 @@ const MainScene = ({
       delete window.resetEnvironment;
     };
   }, [setObjectPositions]);
-
+  
   useEffect(() => {
     if (objectPositions && Array.isArray(objectPositions) && objectPositions.length > 0) {
-      fetch("https://5106-34-125-19-115.ngrok-free.app/update_objects", {  // Change to your Google Colab URL
+      fetch("https://c134-35-188-227-234.ngrok-free.app/update_objects", {  // Change to your Google Colab URL
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,9 @@ const MainScene = ({
           console.log("✅ Object positions sent:", data);
 
           // Update the target with the value from the response data
+          
           if (data.target) {
+            console.log(data.target)
             setTarget(data.target);  // Update the target state
           }
         })

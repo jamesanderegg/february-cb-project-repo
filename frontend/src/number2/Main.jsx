@@ -29,12 +29,14 @@ const Main = ({
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
   const robotStateDisplayRef = useRef(null);
+  const targetDisplayRef = useRef(null);
   const robotMemoryRef = useRef([]);
   const timerDisplayRef = useRef(null);
   const timerRef = useRef(120); // Countdown timer starting at 120 seconds
   const timerIntervalRef = useRef(null); // Holds the interval so it can be restarted
 
   const [objectPositions, setObjectPositions] = useState([]);
+  const targetRef = useRef(target);  // Create a ref for the target
 
   const startTimer = () => {
     if (timerIntervalRef.current) {
@@ -83,6 +85,9 @@ const Main = ({
   };
 
   useEffect(() => {
+    console.log("Target updated:", target);
+    targetRef.current = target;  // Update the targetRef value
+
     const updateHUD = () => {
       if (positionDisplayRef.current && rotationDisplayRef.current) {
         const pos = Array.isArray(robotPositionRef.current) && robotPositionRef.current.length === 3
@@ -104,6 +109,9 @@ const Main = ({
 
       if (robotStateDisplayRef.current) {
         robotStateDisplayRef.current.innerText = `Collision: ${collisionIndicator?.current ? "True" : "False"}`;
+      }
+      if (targetDisplayRef.current) {
+        targetDisplayRef.current.innerText = `Target: ${targetRef.current || "Loading..."}`;
       }
 
       if (detectionDisplayRef.current && YOLOdetectObject?.current) {
@@ -133,19 +141,11 @@ const Main = ({
         timerDisplayRef.current.innerText = `Time Remaining: ${timerRef.current}s`;
       }
 
-      if (target) { 
-        console.log("Target: ", target);
-        const targetDisplayRef = document.getElementById('target-display');
-        if (targetDisplayRef) {
-          targetDisplayRef.innerText = `Target: ${target}`; // Ensure target is displayed
-        }
-      }
-
       requestAnimationFrame(updateHUD);
     };
 
     requestAnimationFrame(updateHUD);
-  }, [target]);
+  }, [target]);  // Re-run effect when target changes
 
   useEffect(() => {
     startTimer(); 
@@ -159,7 +159,10 @@ const Main = ({
       resetScene(); 
     }
   }, [collisionIndicator?.current]);
-
+  useEffect(() => {
+        console.log("*****************************************")
+        console.log(target)
+      }, [target]);
   return (
     <>
       <Canvas
@@ -181,7 +184,8 @@ const Main = ({
           objectPositions={objectPositions}
           setObjectPositions={setObjectPositions}
           isRunning={isRunning}
-          setTarget={setTarget} 
+          setTarget={setTarget}
+          target={target}
         />
         <Environment preset="apartment" intensity={20} />
       </Canvas>
@@ -202,7 +206,9 @@ const Main = ({
             <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
             <p ref={detectionDisplayRef}>Detected Objects: Waiting...</p>
             <p ref={timerDisplayRef}>Time Remaining: 120s</p>
-            <p id="target-display">Target: Loading...</p> {/* Ensure this element is present */}
+            {/* Display the target using targetRef */}
+            <p id="target-display" ref={robotStateDisplayRef}></p>
+            <p id="target-display" ref={targetDisplayRef}></p>
           </div>
         </div>
         <div className="replay-controls-container">
