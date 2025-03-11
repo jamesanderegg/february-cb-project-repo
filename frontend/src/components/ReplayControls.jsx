@@ -18,7 +18,7 @@ const ReplayControlsModal = ( {setObjectPositions}) => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [trainingStats, setTrainingStats] = useState(null);
 
-  const COLAB_API_URL = "https://c134-35-188-227-234.ngrok-free.app";  // Replace with your Google Colab endpoint
+  const COLAB_API_URL = "https://a127-35-237-59-67.ngrok-free.app";  // Replace with your Google Colab endpoint
 
   useEffect(() => {
     // Fetch initial list of replays when the component mounts
@@ -42,7 +42,6 @@ const ReplayControlsModal = ( {setObjectPositions}) => {
       setStatus({ message: "Failed to fetch replays", type: "error" });
     }
   };
-  
 
   const handleReplayStatus = (data) => {
     console.log('Replay status update:', data);

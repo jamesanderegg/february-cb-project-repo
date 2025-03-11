@@ -3,15 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Google Colab API URL (replace this after starting Colab Flask)
-<<<<<<< HEAD
-<<<<<<< HEAD
-const COLAB_API_URL = "https://4ee4-34-138-54-92.ngrok-free.app/receive_image";
-=======
-const COLAB_API_URL = "https://c134-35-188-227-234.ngrok-free.app/receive_image";
->>>>>>> aa8f06bce80616f50b5015b068462fe9403dfe29
-=======
-const COLAB_API_URL = "https://c134-35-188-227-234.ngrok-free.app/receive_image";
->>>>>>> aa8f06bce80616f50b5015b068462fe9403dfe29
+const COLAB_API_URL = "https://a127-35-237-59-67.ngrok-free.app/receive_image";
 
 const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator }, ref) => {
   const cameraRef = useRef();
