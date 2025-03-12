@@ -44,7 +44,7 @@ const AgentDashboard = ({
       </div>
       
       {/* Agent Controls */}
-      <div className="dashboard-section">
+      <div className="agent-controls dashboard-section">
         <button 
           onClick={onStartTraining} 
           className={`control-button training ${agentStatus === 'training' ? 'active' : ''}`}

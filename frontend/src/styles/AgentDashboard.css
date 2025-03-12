@@ -1,152 +1,213 @@
 /* AgentDashboard.css */
 .agent-dashboard {
-    background-color: #2d3748;
-    color: white;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 320px;
-    font-family: Arial, sans-serif;
-  }
+  background-color: #2d3748;
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 320px;
+  font-family: Arial, sans-serif;
+  position: relative;
+}
   
-  .dashboard-title {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 16px;
-    border-bottom: 1px solid #4a5568;
-    padding-bottom: 8px;
-  }
+.dashboard-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #4a5568;
+  padding-bottom: 8px;
+}
   
-  .dashboard-section {
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #4a5568;
-  }
+.dashboard-section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #4a5568;
+}
+
+/* URL input section */
+.url-input-container {
+  margin-bottom: 8px;
+}
   
-  .url-input-container {
-    margin-bottom: 8px;
-  }
+.url-input {
+  background-color: #4a5568;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* Status indicator */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-top: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #4a5568;
+}
   
-  .url-input {
-    background-color: #4a5568;
-    color: white;
-    border: none;
-    padding: 8px;
-    border-radius: 4px;
-    width: 100%;
-    margin-bottom: 8px;
-  }
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
   
-  .connect-button {
-    background-color: #4299e1;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    width: 100%;
-  }
+.status-dot.connected {
+  background-color: #48bb78;
+}
   
-  .connect-button:hover {
-    background-color: #3182ce;
-  }
+.status-dot.disconnected {
+  background-color: #f56565;
+}
+
+/* Agent Controls - positioned in the middle */
+.agent-controls.dashboard-section {
+  position: relative;
+  width: 100%;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  /* Provide clear space around the controls */
+  margin-top: 20px;
+  margin-bottom: 20px;
+  /* No border needed anymore since we have a dedicated area */
+  border-bottom: none;
+  padding-bottom: 5px;
+}
+
+/* Manually position each button */
+.control-button.training {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 31%;
+  height: 38px;
+  background-color: #ecc94b;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.control-button.stop {
+  position: absolute;
+  left: 33%;
+  top: 0;
+  width: 31%;
+  height: 38px;
+  background-color: #f56565;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.control-button.inference {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 31%;
+  height: 38px;
+  background-color: #9f7aea;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
   
-  .connect-button.connected {
-    background-color: #48bb78;
-    cursor: not-allowed;
-  }
+.control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
   
-  .status-indicator {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    margin-top: 8px;
-  }
+.control-button.training:hover:not(:disabled) {
+  background-color: #d69e2e;
+}
   
-  .status-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 8px;
-  }
+.control-button.stop:hover:not(:disabled) {
+  background-color: #e53e3e;
+}
   
-  .status-dot.connected {
-    background-color: #48bb78;
-  }
+.control-button.inference:hover:not(:disabled) {
+  background-color: #805ad5;
+}
   
-  .status-dot.disconnected {
-    background-color: #f56565;
-  }
+.control-button.active {
+  box-shadow: 0 0 0 2px white;
+}
+
+/* Connect button pushed below */
+.connect-button {
+  background-color: #4299e1;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 95%;
+  height: 38px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px auto;
+  top: 150px;
+}
   
-  .control-button {
-    margin-right: 8px;
-    margin-bottom: 8px;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    color: white;
-  }
+.connect-button:hover {
+  background-color: #3182ce;
+}
   
-  .control-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+.connect-button.connected {
+  background-color: #48bb78;
+  cursor: not-allowed;
+}
   
-  .control-button.training {
-    background-color: #ecc94b;
-  }
+/* Status Grid - comes after the controls */
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 14px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #4a5568;
+}
   
-  .control-button.training:hover:not(:disabled) {
-    background-color: #d69e2e;
-  }
+.status-label {
+  font-weight: bold;
+}
   
-  .control-button.stop {
-    background-color: #f56565;
-  }
+.status-value {
+  text-align: right;
+}
   
-  .control-button.stop:hover:not(:disabled) {
-    background-color: #e53e3e;
-  }
+.section-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
   
-  .control-button.inference {
-    background-color: #9f7aea;
-  }
-  
-  .control-button.inference:hover:not(:disabled) {
-    background-color: #805ad5;
-  }
-  
-  .control-button.active {
-    box-shadow: 0 0 0 2px white;
-  }
-  
-  .status-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    font-size: 14px;
-  }
-  
-  .status-label {
-    font-weight: bold;
-  }
-  
-  .status-value {
-    text-align: right;
-  }
-  
-  .section-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 8px;
-  }
-  
-  .rewards-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-  }
+.rewards-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}

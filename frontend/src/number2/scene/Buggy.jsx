@@ -227,48 +227,54 @@ const Buggy = forwardRef(({
         </Html>
       </RigidBody>
       
-      {/* Dashboard toggle button */}
-      <div style={{
-        position: 'absolute',
-        top: '10px',
-        right: '10px',
-        zIndex: 1000
-      }}>
-        <button 
-          onClick={toggleDashboard}
-          style={{
-            padding: '5px 10px',
-            backgroundColor: '#4a5568',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          {showDashboard ? 'Hide Dashboard' : 'Show Dashboard'}
-        </button>
-      </div>
-      
-      {/* Dashboard overlay */}
-      {showDashboard && (
+      {/* Use Html from drei to mount UI elements in 3D space */}
+      <Html fullscreen>
+        {/* Dashboard toggle button */}
         <div style={{
           position: 'absolute',
-          top: '50px',
+          top: '10px',
           right: '10px',
           zIndex: 1000
         }}>
-          <AgentDashboard
-            agentStatus={agentStatus}
-            isConnected={isConnected}
-            lastAction={lastAction}
-            metrics={metrics}
-            onConnect={connectToAgent}
-            onStartTraining={startTraining}
-            onStopTraining={stopTraining}
-            onStartInference={startInference}
-          />
+          <button 
+            onClick={toggleDashboard}
+            style={{
+              padding: '5px 10px',
+              backgroundColor: '#4a5568',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            {showDashboard ? 'Hide Dashboard' : 'Show Dashboard'}
+          </button>
         </div>
-      )}
+        
+        {/* Dashboard overlay */}
+        {showDashboard && (
+          <div style={{
+            position: 'absolute',
+            top: '50px',
+            right: '10px',
+            zIndex: 1000,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            padding: '10px',
+            borderRadius: '5px'
+          }}>
+            <AgentDashboard
+              agentStatus={agentStatus}
+              isConnected={isConnected}
+              lastAction={lastAction}
+              metrics={metrics}
+              onConnect={connectToAgent}
+              onStartTraining={startTraining}
+              onStopTraining={stopTraining}
+              onStartInference={startInference}
+            />
+          </div>
+        )}
+      </Html>
     </>
   );
 });
