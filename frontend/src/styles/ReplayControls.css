@@ -81,27 +81,27 @@
 
 /* Button colors */
 .btn-primary, .action-record {
-  background-color: #4f8cff;
+  background-color: #e7ba67;
 }
 
 .btn-danger, .action-stop {
-  background-color: #ff4f4f;
+  background-color: #fc9960;
 }
 
 .btn-success, .action-save {
-  background-color: #4fbb4f;
+  background-color: #ee8104;
 }
 
 .btn-warning, .action-play {
-  background-color: #ffaa4f;
-}
-
-.btn-purple, .action-train {
-  background-color: #9966ff;
+  background-color: #ff6c4f;
 }
 
 .btn-teal, .action-feed {
-  background-color: #3a9191;
+  background-color: #8e6ece;
+}
+
+.btn-purple, .action-train {
+  background-color: #6314c4;
 }
 
 /* Form control elements */
