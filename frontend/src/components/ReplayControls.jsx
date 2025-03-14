@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/ReplayControls.css';
 
-const ReplayControlsModal = ( {setObjectPositions}) => {
+const ReplayControlsModal = ({ setObjectPositions, onReset }) => {
   const [activeTab, setActiveTab] = useState('record');
   const [isRecording, setIsRecording] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -169,15 +169,29 @@ const ReplayControlsModal = ( {setObjectPositions}) => {
   };
 
   const resetScene = () => {
-    console.log("🔄 Resetting scene...");
-
-    // Call the global reset function if available
-    if (window.resetEnvironment) {
-      window.resetEnvironment();
+    console.log("🔄 Resetting scene from ReplayControls...");
+    
+    // Use the reset function passed from parent
+    if (onReset && typeof onReset === 'function') {
+      onReset();
+    } else {
+      console.warn("Reset function not provided to ReplayControls!");
+      
+      // Call the global reset function if available as fallback
+      if (window.resetEnvironment) {
+        window.resetEnvironment();
+      }
+      
+      // Force an update by clearing objectPositions (handled in MainScene)
+      setObjectPositions([]);
     }
 
-    // Force an update by clearing objectPositions (handled in MainScene)
-    setObjectPositions([]);
+    // Also call reset_scene endpoint in the backend
+    try {
+      fetch(`${COLAB_API_URL}/reset_scene`, { method: 'POST' });
+    } catch (error) {
+      console.error("❌ Error calling reset_scene API:", error);
+    }
 
     // Set status message
     setStatus({ message: "Scene reset!", type: "info" });

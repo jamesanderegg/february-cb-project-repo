@@ -55,8 +55,15 @@ const Main = ({
   };
 
   const resetScene = () => {
-    console.log("🔄 Resetting scene...");
+    console.log("🔄 Resetting scene from Main component...");
     setIsRunning(false);
+
+    // Make an API call to the reset endpoint
+    fetch("https://a127-35-237-59-67.ngrok-free.app/reset_scene", { 
+      method: 'POST' 
+    }).catch(error => {
+      console.error("❌ Error calling reset_scene API:", error);
+    });
 
     setTimeout(() => {
       console.log("🛠 Resetting robot and objects...");
@@ -76,6 +83,9 @@ const Main = ({
       }
 
       robotMemoryRef.current = [];
+
+      // Reset object positions
+      setObjectPositions([]);
 
       setTimeout(() => {
         setIsRunning(true);
@@ -159,10 +169,12 @@ const Main = ({
       resetScene(); 
     }
   }, [collisionIndicator?.current]);
+  
   useEffect(() => {
-        console.log("*****************************************")
-        console.log(target)
-      }, [target]);
+    console.log("*****************************************")
+    console.log(target)
+  }, [target]);
+  
   return (
     <>
       <Canvas
@@ -212,7 +224,10 @@ const Main = ({
           </div>
         </div>
         <div className="replay-controls-container">
-          <ReplayControlsModal setObjectPositions={setObjectPositions} />
+          <ReplayControlsModal 
+            setObjectPositions={setObjectPositions} 
+            onReset={resetScene} // Pass the resetScene function to the ReplayControls component
+          />
         </div>
       </div>
     </>
