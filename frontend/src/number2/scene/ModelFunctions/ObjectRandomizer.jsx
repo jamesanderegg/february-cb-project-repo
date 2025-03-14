@@ -63,6 +63,7 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
   useEffect(() => {
     setObjectPositions((prevPositions) => {
       if (JSON.stringify(prevPositions) === JSON.stringify(objectPositions)) return prevPositions;
+      console.log(objectPositions)
       return objectPositions;
     });
   }, [objectPositions, setObjectPositions]);

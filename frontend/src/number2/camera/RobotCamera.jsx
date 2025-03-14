@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Google Colab API URL (replace this after starting Colab Flask)
-const COLAB_API_URL = "https://a127-35-237-59-67.ngrok-free.app/receive_image";
+const COLAB_API_URL = "https://340d-35-204-12-27.ngrok-free.app/receive_image";
 
 const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator }, ref) => {
   const cameraRef = useRef();
@@ -44,7 +44,7 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
       buggyPosition.y += 2.5;
       const buggyRotation = new THREE.Quaternion().copy(body.rotation());
       const lookDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(buggyRotation);
-
+     
       // Update camera position and orientation
       cameraRef.current.position.copy(buggyPosition);
       const lookTarget = new THREE.Vector3().copy(buggyPosition).add(lookDirection.multiplyScalar(5));
@@ -119,10 +119,10 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
         });
 
         const data = await response.json();
-        // console.log("✅ YOLO Detection Results:", data);
+        console.log("✅ YOLO Detection Results:", data);
         YOLOdetectObject.current = data.detections;
       } catch (error) {
-        console.error("❌ Error sending image:", error);
+        // console.error("❌ Error sending image:", error);
       }
 
       isProcessing.current = false;

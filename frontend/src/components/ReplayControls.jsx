@@ -18,7 +18,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset }) => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [trainingStats, setTrainingStats] = useState(null);
 
-  const COLAB_API_URL = "https://a127-35-237-59-67.ngrok-free.app";  // Replace with your Google Colab endpoint
+  const COLAB_API_URL = "https://340d-35-204-12-27.ngrok-free.app";  
 
   useEffect(() => {
     // Fetch initial list of replays when the component mounts
