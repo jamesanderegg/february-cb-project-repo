@@ -244,7 +244,10 @@ const Buggy = forwardRef(({
               color: 'white',
               border: 'none',
               borderRadius: '4px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              position: 'absolute',
+              top: '4px',
+              right: '60px',
             }}
           >
             {showDashboard ? 'Hide Dashboard' : 'Show Dashboard'}

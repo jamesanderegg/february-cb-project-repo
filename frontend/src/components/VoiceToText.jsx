@@ -69,7 +69,7 @@ const VoiceToText = () => {
           cursor: isProcessing ? "not-allowed" : "pointer",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "center",                                                                                                                                    
         }}
       >
         <span role="img" aria-label="microphone">
