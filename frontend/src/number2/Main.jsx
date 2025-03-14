@@ -41,6 +41,9 @@ const Main = ({
   const closestObjectDisplayRef = useRef(null);
 
   const targetRef = useRef(target);  // Create a ref for the target
+  
+  // Get the ngrok URL from an environment variable or use a default
+  const COLAB_API_URL = "https://55c6-34-74-169-33.ngrok-free.app"; // Update this with your current ngrok URL
 
   const startTimer = () => {
     if (timerIntervalRef.current) {
@@ -63,17 +66,39 @@ const Main = ({
     setIsRunning(false);
 
     // Make an API call to the reset endpoint
-    fetch("https://a127-35-237-59-67.ngrok-free.app/reset_scene", { 
-      method: 'POST' 
-    }).catch(error => {
+    fetch(`${COLAB_API_URL}/reset_scene`, { 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("✅ Reset successful, updating local state:", data);
+      // Update robot position and rotation directly from the response if available
+      if (data.data && data.data.robot_position && robotPositionRef.current) {
+        robotPositionRef.current = data.data.robot_position;
+      } else {
+        // Default position if not provided
+        if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
+      }
+      
+      if (data.data && data.data.robot_rotation && robotRotationRef.current) {
+        robotRotationRef.current = data.data.robot_rotation;
+      } else {
+        // Default rotation if not provided
+        if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
+      }
+    })
+    .catch(error => {
       console.error("❌ Error calling reset_scene API:", error);
+      // Fall back to default reset behavior
+      if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
+      if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
     });
 
     setTimeout(() => {
       console.log("🛠 Resetting robot and objects...");
-
-      if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
-      if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
 
       if (window.resetEnvironment) {
         window.resetEnvironment();
