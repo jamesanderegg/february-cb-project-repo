@@ -3,9 +3,9 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 // Google Colab API URL (replace this after starting Colab Flask)
-const COLAB_API_URL = "https://8fe1-34-75-243-94.ngrok-free.app/receive_image";
+const COLAB_API_URL = "https://1acd-104-199-170-14.ngrok-free.app/receive_image";
 
-const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator }, ref) => {
+const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator, objectPositions }, ref) => {
   const cameraRef = useRef();
   const offscreenCanvasRef = useRef(document.createElement("canvas"));
   offscreenCanvasRef.current.width = 640;
@@ -15,14 +15,21 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
   const renderTarget = useRef(new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }));
   const isProcessing = useRef(false);
   const imageCount = useRef(0);  // Track number of images sent
+  const frustumHelperRef = useRef(null);
 
   useEffect(() => {
-    const camera = new THREE.PerspectiveCamera(45, 1, 1, 15);
+    const camera = new THREE.PerspectiveCamera(45, 1, 1, 10);
     cameraRef.current = camera;
     scene.add(camera);
 
+    // ✅ Add a Frustum Helper (renders the frustum as a visible wireframe)
+    const frustumHelper = new THREE.CameraHelper(camera);
+    scene.add(frustumHelper);
+    frustumHelperRef.current = frustumHelper;
+
     return () => {
       scene.remove(camera);
+      scene.remove(frustumHelper);
     };
   }, [scene]);
 
@@ -44,11 +51,46 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
       buggyPosition.y += 2.5;
       const buggyRotation = new THREE.Quaternion().copy(body.rotation());
       const lookDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(buggyRotation);
-     
+
       // Update camera position and orientation
       cameraRef.current.position.copy(buggyPosition);
       const lookTarget = new THREE.Vector3().copy(buggyPosition).add(lookDirection.multiplyScalar(5));
       cameraRef.current.lookAt(lookTarget);
+
+    
+
+      // ✅ Compute the Camera's Frustum
+      const frustum = new THREE.Frustum();
+      const projScreenMatrix = new THREE.Matrix4();
+      projScreenMatrix.multiplyMatrices(
+        cameraRef.current.projectionMatrix,
+        cameraRef.current.matrixWorldInverse
+      );
+      frustum.setFromProjectionMatrix(projScreenMatrix);
+
+      // ✅ Debug Frustum
+      console.log("🧩 Frustum Matrix:", projScreenMatrix.elements);
+
+      // ✅ Update the Frustum Helper to match new position
+      if (frustumHelperRef.current) {
+        frustumHelperRef.current.update();
+      }
+
+     
+
+      const visibleObjects = objectPositions.filter(({ position }) => {
+        const objectVector = new THREE.Vector3(position[0], position[1], position[2]);
+        const cameraToObject = objectVector.clone().sub(cameraRef.current.position);
+        const dotProduct = cameraToObject.dot(lookDirection);
+        const isInFront = dotProduct > 0;
+        const isVisible = isInFront && frustum.containsPoint(objectVector);        
+
+        return isVisible;
+      });
+
+      console.log("📸 Objects in View:", visibleObjects);
+
+
 
       // Render the scene to a render target
       gl.setRenderTarget(renderTarget.current);
@@ -84,27 +126,23 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
   });
 
   async function captureAndSendImage(imageBlob) {
-
-    
     if (!imageBlob) {
       console.warn("No image available for YOLO processing.");
       return;
     }
 
     if (isProcessing.current) {
-      // console.log("⏳ Waiting for the previous image to process...");
       return;
     }
 
     isProcessing.current = true;
     imageCount.current += 1;
-    // console.log(`📸 Sending image #${imageCount.current}`);
 
     const reader = new FileReader();
     reader.readAsDataURL(imageBlob);
     reader.onloadend = async () => {
       const base64Image = reader.result;
-    
+
       try {
         const response = await fetch(COLAB_API_URL, {
           method: "POST",
@@ -122,13 +160,12 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
         console.log("✅ YOLO Detection Results:", data);
         YOLOdetectObject.current = data.detections;
       } catch (error) {
-        // console.error("❌ Error sending image:", error);
+        console.error("❌ Error sending image:", error);
       }
 
       isProcessing.current = false;
     };
   }
-
 
   return null;
 });

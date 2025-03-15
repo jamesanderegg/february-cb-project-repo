@@ -17,6 +17,7 @@ const Buggy = forwardRef(({
   robotPositionRef,
   robotRotationRef,
   collisionIndicator,
+  objectPositions,
   setObjectPositions,
 }, ref) => {
   const buggyRef = useRef();
@@ -204,6 +205,7 @@ const Buggy = forwardRef(({
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
           collisionIndicator={collisionIndicator}
+          objectPositions={objectPositions}
         />
         <Html position={[0, 1.5, 0]} distanceFactor={10}>
           <div style={{ 

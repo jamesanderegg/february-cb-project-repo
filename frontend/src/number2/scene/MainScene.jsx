@@ -50,7 +50,7 @@ const MainScene = ({
   
   useEffect(() => {
     if (objectPositions && Array.isArray(objectPositions) && objectPositions.length > 0) {
-      fetch("https://8fe1-34-75-243-94.ngrok-free.app/update_objects", {  // Change to your Google Colab URL
+      fetch("https://1acd-104-199-170-14.ngrok-free.app/update_objects", {  // Change to your Google Colab URL
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,6 +99,7 @@ const MainScene = ({
           robotRotationRef={robotRotationRef}
           YOLOdetectObject={YOLOdetectObject}
           collisionIndicator={collisionIndicator}
+          objectPositions={objectPositions}
           setObjectPositions={setObjectPositions}
         />
       </Physics>
