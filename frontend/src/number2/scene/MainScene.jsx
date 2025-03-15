@@ -74,9 +74,6 @@ const MainScene = ({
     }
   }, [objectPositions]);
 
-  
-
-
   return (
     <>
       <Physics gravity={[0, -9.81, 0]}>

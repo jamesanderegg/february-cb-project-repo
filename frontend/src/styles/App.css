@@ -180,3 +180,9 @@ canvas {
   margin-top: 0;
   margin-bottom: 8px;
 }
+
+.voice-to-text-container, 
+.replay-controls-container button {
+  position: relative;
+  z-index: 10; /* Higher than Canvas and HUD */
+}

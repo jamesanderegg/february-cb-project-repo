@@ -246,7 +246,10 @@ const Main = ({
       <Canvas
         shadows
         camera={{ position: [7, 1, 30], fov: 50 }}
-        style={{ width: "100vw", height: "100vh" }}
+        style={{ width: "100vw", 
+                height: "100vh",
+                position: "absolute",
+                zIndex: 1}}
       >
         <PrimaryCamera position={[7, 1, 30]} />
         <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
@@ -268,7 +271,7 @@ const Main = ({
         <Environment preset="apartment" intensity={20} />
       </Canvas>
 
-      <div className="hud-container">
+      <div className="hud-container" style={{ position: "relative", zIndex: 2 }}>
         <div className="mini-map-container">
           <MiniMapHUD miniMapCameraRef={miniMapCameraRef} />
         </div>
