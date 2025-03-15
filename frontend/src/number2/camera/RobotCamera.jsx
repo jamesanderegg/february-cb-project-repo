@@ -2,10 +2,17 @@ import React, { useRef, useEffect, forwardRef, useImperativeHandle } from "react
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-// Google Colab API URL (replace this after starting Colab Flask)
-const COLAB_API_URL = "https://1acd-104-199-170-14.ngrok-free.app/receive_image";
 
-const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, robotRotationRef, collisionIndicator, objectPositions }, ref) => {
+
+const RobotCamera = forwardRef((
+  { robotRef, 
+    YOLOdetectObject, 
+    robotPositionRef, 
+    robotRotationRef, 
+    collisionIndicator, 
+    objectPositions, 
+    COLAB_API_URL 
+  }, ref) => {
   const cameraRef = useRef();
   const offscreenCanvasRef = useRef(document.createElement("canvas"));
   offscreenCanvasRef.current.width = 640;
@@ -15,21 +22,17 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
   const renderTarget = useRef(new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }));
   const isProcessing = useRef(false);
   const imageCount = useRef(0);  // Track number of images sent
-  const frustumHelperRef = useRef(null);
 
   useEffect(() => {
     const camera = new THREE.PerspectiveCamera(45, 1, 1, 10);
     cameraRef.current = camera;
     scene.add(camera);
 
-    // ✅ Add a Frustum Helper (renders the frustum as a visible wireframe)
-    const frustumHelper = new THREE.CameraHelper(camera);
-    scene.add(frustumHelper);
-    frustumHelperRef.current = frustumHelper;
+
 
     return () => {
       scene.remove(camera);
-      scene.remove(frustumHelper);
+      
     };
   }, [scene]);
 
@@ -67,16 +70,6 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
         cameraRef.current.matrixWorldInverse
       );
       frustum.setFromProjectionMatrix(projScreenMatrix);
-
-      // ✅ Debug Frustum
-      console.log("🧩 Frustum Matrix:", projScreenMatrix.elements);
-
-      // ✅ Update the Frustum Helper to match new position
-      if (frustumHelperRef.current) {
-        frustumHelperRef.current.update();
-      }
-
-     
 
       const visibleObjects = objectPositions.filter(({ position }) => {
         const objectVector = new THREE.Vector3(position[0], position[1], position[2]);
@@ -144,7 +137,7 @@ const RobotCamera = forwardRef(({ robotRef, YOLOdetectObject, robotPositionRef, 
       const base64Image = reader.result;
 
       try {
-        const response = await fetch(COLAB_API_URL, {
+        const response = await fetch(`${COLAB_API_URL}/receive_image`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

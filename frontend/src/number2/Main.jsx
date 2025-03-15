@@ -13,6 +13,9 @@ import TopDownCamera from "./camera/TopDownCamera";
 import ReplayControlsModal from '../components/ReplayControls';
 import AmbientLight from "./lights/AmbientLight";
 
+import { useAgentController } from "./scene/AgentController";
+import AgentDashboard from "./scene/AgentDashboard";
+
 const Main = ({ 
   robotCameraRef, 
   miniMapCameraRef, 
@@ -23,7 +26,8 @@ const Main = ({
   isRunning, 
   setIsRunning,
   target,
-  setTarget
+  setTarget,
+  COLAB_API_URL
 }) => {
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
@@ -32,19 +36,34 @@ const Main = ({
   const targetDisplayRef = useRef(null);
   const robotMemoryRef = useRef([]);
   const timerDisplayRef = useRef(null);
-  const timerRef = useRef(500); // Countdown timer starting at 500 seconds
-  const timerIntervalRef = useRef(null); // Holds the interval so it can be restarted
+  const timerRef = useRef(500); 
+  const timerIntervalRef = useRef(null);
 
-  
+  const [showDashboard, setShowDashboard] = useState(false);
   const [objectPositions, setObjectPositions] = useState([]);
   const objectPositionsRef = useRef([]);
   const closestObjectDisplayRef = useRef(null);
 
-  const targetRef = useRef(target);  // Create a ref for the target
-  
-  // Get the ngrok URL from an environment variable or use a default
-  const COLAB_API_URL = "https://55c6-34-74-169-33.ngrok-free.app"; // Update this with your current ngrok URL
-
+  const targetRef = useRef(target);  
+  const buggyRef = useRef();
+  const {
+    connectToAgent,
+    startTraining,
+    stopTraining,
+    startInference,
+    agentStatus,
+    isConnected,
+    lastAction,
+    metrics
+  } = useAgentController({
+    robotRef: buggyRef,  // Pass buggy reference
+    robotCameraRef,
+    robotPositionRef,
+    robotRotationRef,
+    collisionIndicator,
+    targetObject: YOLOdetectObject,
+    setObjectPositions
+  });
   const startTimer = () => {
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
@@ -65,7 +84,7 @@ const Main = ({
     console.log("🔄 Resetting scene from Main component...");
     setIsRunning(false);
 
-    // Make an API call to the reset endpoint
+
     fetch(`${COLAB_API_URL}/reset_scene`, { 
       method: 'POST',
       headers: {
@@ -125,7 +144,7 @@ const Main = ({
 
   useEffect(() => {
     console.log("Target updated:", target);
-    targetRef.current = target;  // Update the targetRef value
+    targetRef.current = target;  
 
     const updateHUD = () => {
       // Update robot's position
@@ -257,6 +276,7 @@ const Main = ({
         <AmbientLight />
         <SpotLights />
         <MainScene
+          buggyRef={buggyRef}
           robotCameraRef={robotCameraRef}
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
@@ -267,6 +287,7 @@ const Main = ({
           isRunning={isRunning}
           setTarget={setTarget}
           target={target}
+          COLAB_API_URL={COLAB_API_URL}
         />
         <Environment preset="apartment" intensity={20} />
       </Canvas>
@@ -297,8 +318,42 @@ const Main = ({
           <ReplayControlsModal 
             setObjectPositions={setObjectPositions} 
             onReset={resetScene} // Pass the resetScene function to the ReplayControls component
+            COLAB_API_URL={COLAB_API_URL}
           />
         </div>
+        <div className="agent-dashboard-container">
+          <button 
+            onClick={() => setShowDashboard(prev => !prev)}
+            style={{
+              padding: '5px 10px',
+              backgroundColor: '#4a5568',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              position: 'absolute',
+              top: '4px',
+              right: '10px',
+              zIndex: '100',
+            }}
+          >
+            {showDashboard ? 'Hide Dashboard' : 'Show Dashboard'}
+          </button>
+
+          {showDashboard && (
+            <AgentDashboard
+              agentStatus={agentStatus}
+              isConnected={isConnected}
+              lastAction={lastAction}
+              metrics={metrics}
+              onConnect={connectToAgent}
+              onStartTraining={startTraining}
+              onStopTraining={stopTraining}
+              onStartInference={startInference}
+            />
+          )}
+        </div>
+
       </div>
     </>
   );

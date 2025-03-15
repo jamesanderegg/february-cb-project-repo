@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/ReplayControls.css';
 
-const ReplayControlsModal = ({ setObjectPositions, onReset }) => {
+const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL }) => {
   const [activeTab, setActiveTab] = useState('record');
   const [isRecording, setIsRecording] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -18,7 +18,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset }) => {
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [trainingStats, setTrainingStats] = useState(null);
 
-  const COLAB_API_URL = "https://1acd-104-199-170-14.ngrok-free.app";  
+   
 
   useEffect(() => {
     // Fetch initial list of replays when the component mounts
