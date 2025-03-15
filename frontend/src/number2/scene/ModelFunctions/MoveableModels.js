@@ -2,6 +2,22 @@ import AmbientLight from "../../lights/AmbientLight";
 
 export const movableModels = [
   {
+    name: 'bike',
+    filePath: '/models/bike.glb',
+    scale: 4,
+    rotation: [0, Math.PI / 4, 0],
+    
+    height: 0.5,
+    metallic: 0.3,
+    roughness: 0.6,
+    mass: 0.2,
+    linearDamping: 0.3,
+    angularDamping: 0.3,
+    castShadow: true,
+    receiveShadow: true,
+    AmbientLight: 1
+  },
+  {
     name: 'apple',
     filePath: '/models/apple.glb',
     scale: 0.01,
