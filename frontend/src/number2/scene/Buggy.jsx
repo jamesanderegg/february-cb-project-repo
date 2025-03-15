@@ -228,7 +228,7 @@ const Buggy = forwardRef(({
       </RigidBody>
       
       {/* Use Html from drei to mount UI elements in 3D space */}
-      <Html fullscreen>
+      <Html fullscreen pointerEvents="none">
         {/* Dashboard toggle button */}
         <div style={{
           position: 'absolute',
@@ -248,6 +248,8 @@ const Buggy = forwardRef(({
               position: 'absolute',
               top: '4px',
               right: '60px',
+              zIndex: '100',
+              pointerEvents: 'auto' // Make this button clickable
             }}
           >
             {showDashboard ? 'Hide Dashboard' : 'Show Dashboard'}
@@ -263,7 +265,8 @@ const Buggy = forwardRef(({
             zIndex: 1000,
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             padding: '10px',
-            borderRadius: '5px'
+            borderRadius: '5px',
+            pointerEvents: 'auto' // Make the dashboard clickable
           }}>
             <AgentDashboard
               agentStatus={agentStatus}

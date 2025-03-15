@@ -50,7 +50,7 @@ const MainScene = ({
   
   useEffect(() => {
     if (objectPositions && Array.isArray(objectPositions) && objectPositions.length > 0) {
-      fetch("https://340d-35-204-12-27.ngrok-free.app/update_objects", {  // Change to your Google Colab URL
+      fetch("https://8fe1-34-75-243-94.ngrok-free.app/update_objects", {  // Change to your Google Colab URL
         method: "POST",
         headers: {
           "Content-Type": "application/json",
