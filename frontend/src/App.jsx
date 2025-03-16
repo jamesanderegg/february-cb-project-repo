@@ -14,22 +14,17 @@ function App() {
   const detectObj = useRef(null);
   const collisionIndicator = useRef(0);
 
-  const COLAB_API_URL = "https://c257-34-105-62-141.ngrok-free.app"
+  const COLAB_API_URL = "https://33b9-34-74-210-58.ngrok-free.app"
 
   const [isRunning, setIsRunning] = useState(true);
   const [target, setTarget] = useState(null);
-  console.log("App re-rendering");
+  // console.log("App re-rendering");
 
   useEffect(() => {
     if (robotCameraRef.current) {
       robotCameraRef.current.startStreaming();
     }
   }, []);
-
-  useEffect(() => {
-    console.log("*****************************************");
-    console.log(target);
-  }, [target]);
 
   return (
     <>

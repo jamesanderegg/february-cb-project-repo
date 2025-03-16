@@ -147,7 +147,7 @@ const Main = ({
   };
 
   useEffect(() => {
-    console.log("Target updated:", target);
+    // console.log("Target updated:", target);
     targetRef.current = target;  
 
     const updateHUD = () => {
@@ -352,20 +352,20 @@ const Main = ({
           >
             {showDashboard ? 'Hide Dashboard' : 'Show Dashboard'}
           </button>
-            <div class="agentDashboard">
-          {showDashboard && (
-            <AgentDashboard
-              agentStatus={agentStatus}
-              isConnected={isConnected}
-              lastAction={lastAction}
-              metrics={metrics}
-              onConnect={connectToAgent}
-              onStartTraining={startTraining}
-              onStopTraining={stopTraining}
-              onStartInference={startInference}
-            />
-          )}
-          </div>
+            <div className="agentDashboard">
+              {showDashboard && (
+                <AgentDashboard
+                  agentStatus={agentStatus}
+                  isConnected={isConnected}
+                  lastAction={lastAction}
+                  metrics={metrics}
+                  onConnect={connectToAgent}
+                  onStartTraining={startTraining}
+                  onStopTraining={stopTraining}
+                  onStartInference={startInference}
+                />
+              )}
+            </div>
         </div>
 
       </div>
