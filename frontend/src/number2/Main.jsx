@@ -341,6 +341,7 @@ const Main = ({
               backgroundColor: '#4a5568',
               color: 'white',
               border: 'none',
+              height: '48px',
               borderRadius: '4px',
               cursor: 'pointer',
               position: 'absolute',
@@ -351,7 +352,7 @@ const Main = ({
           >
             {showDashboard ? 'Hide Dashboard' : 'Show Dashboard'}
           </button>
-
+            <div class="agentDashboard">
           {showDashboard && (
             <AgentDashboard
               agentStatus={agentStatus}
@@ -364,6 +365,7 @@ const Main = ({
               onStartInference={startInference}
             />
           )}
+          </div>
         </div>
 
       </div>
