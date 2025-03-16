@@ -44,6 +44,9 @@ const Main = ({
   const objectPositionsRef = useRef([]);
   const closestObjectDisplayRef = useRef(null);
 
+  const objectsInViewRef = useRef([]);
+  const objectsInViewDisplayRef = useRef(null);
+
   const targetRef = useRef(target);  
   const buggyRef = useRef();
   const {
@@ -79,6 +82,7 @@ const Main = ({
       }
     }, 1000);
   };
+
 
   const resetScene = () => {
     console.log("🔄 Resetting scene from Main component...");
@@ -234,6 +238,12 @@ const Main = ({
         } else {
           closestObjectDisplayRef.current.innerText = "Closest Object: None";
         }
+
+        if (objectsInViewDisplayRef.current && objectsInViewRef.current) {
+          objectsInViewDisplayRef.current.innerText = 
+            `Objects in View: ${objectsInViewRef.current.map(obj => obj.name).join(", ") || "None"}`;
+        }
+        
       }
       // Request the next frame
       requestAnimationFrame(updateHUD);
@@ -288,6 +298,7 @@ const Main = ({
           setTarget={setTarget}
           target={target}
           COLAB_API_URL={COLAB_API_URL}
+          objectsInViewRef={objectsInViewRef}
         />
         <Environment preset="apartment" intensity={20} />
       </Canvas>
@@ -307,6 +318,7 @@ const Main = ({
             <p ref={positionDisplayRef}>Position: Loading...</p>
             <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
             <p ref={detectionDisplayRef}>Detected Objects: Waiting...</p>
+            <p ref={objectsInViewDisplayRef}>Objects in View: Loading...</p> 
             <p ref={timerDisplayRef}>Time Remaining: 500s</p>
             {/* Display the target using targetRef */}
             <p id="target-display" ref={robotStateDisplayRef}></p>

@@ -17,7 +17,8 @@ const Buggy = forwardRef(({
   collisionIndicator,
   objectPositions,
   setObjectPositions,
-  COLAB_API_URL
+  COLAB_API_URL,
+  objectsInViewRef
 }, ref) => {
   const buggyRef = useRef();
   const keysPressed = useRef({});
@@ -130,6 +131,7 @@ const Buggy = forwardRef(({
         collisionIndicator={collisionIndicator}
         objectPositions={objectPositions}
         COLAB_API_URL={COLAB_API_URL}
+        objectsInViewRef={objectsInViewRef}
       />
     </RigidBody>
   );

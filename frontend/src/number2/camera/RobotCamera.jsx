@@ -11,7 +11,8 @@ const RobotCamera = forwardRef((
     robotRotationRef, 
     collisionIndicator, 
     objectPositions, 
-    COLAB_API_URL 
+    COLAB_API_URL,
+    objectsInViewRef 
   }, ref) => {
   const cameraRef = useRef();
   const offscreenCanvasRef = useRef(document.createElement("canvas"));
@@ -81,8 +82,8 @@ const RobotCamera = forwardRef((
         return isVisible;
       });
 
-      console.log("📸 Objects in View:", visibleObjects);
-
+      
+      objectsInViewRef.current = visibleObjects;
 
 
       // Render the scene to a render target

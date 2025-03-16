@@ -20,7 +20,8 @@ const MainScene = ({
   setObjectPositions,
   setTarget,
   target,
-  COLAB_API_URL
+  COLAB_API_URL,
+  objectsInViewRef
 }) => {
   // Add a ref for the ObjectRandomizer
   const randomizerRef = useRef(null);
@@ -103,6 +104,7 @@ const MainScene = ({
           objectPositions={objectPositions}
           setObjectPositions={setObjectPositions}
           COLAB_API_URL={COLAB_API_URL}
+          objectsInViewRef={objectsInViewRef}
         />
       </Physics>
 
