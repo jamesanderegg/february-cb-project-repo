@@ -2,8 +2,6 @@ import React, { useRef, useEffect, forwardRef, useImperativeHandle } from "react
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-
-
 const RobotCamera = forwardRef((
   { robotRef, 
     YOLOdetectObject, 
@@ -28,8 +26,6 @@ const RobotCamera = forwardRef((
     const camera = new THREE.PerspectiveCamera(45, 1, 1, 10);
     cameraRef.current = camera;
     scene.add(camera);
-
-
 
     return () => {
       scene.remove(camera);
@@ -124,20 +120,21 @@ const RobotCamera = forwardRef((
       console.warn("No image available for YOLO processing.");
       return;
     }
-
+  
     if (isProcessing.current) {
       return;
     }
-
+  
     isProcessing.current = true;
     imageCount.current += 1;
-
+  
     const reader = new FileReader();
     reader.readAsDataURL(imageBlob);
     reader.onloadend = async () => {
       const base64Image = reader.result;
-
+  
       try {
+        // Include objects_in_view data in the request
         const response = await fetch(`${COLAB_API_URL}/receive_image`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -147,16 +144,17 @@ const RobotCamera = forwardRef((
             rotation: robotRotationRef.current,
             collisionIndicator: collisionIndicator.current,
             imageCount: imageCount.current,
+            objects_in_view: objectsInViewRef.current  // Add this line to send objects in view data
           }),
         });
-
+  
         const data = await response.json();
         console.log("✅ YOLO Detection Results:", data);
         YOLOdetectObject.current = data.detections;
       } catch (error) {
         console.error("❌ Error sending image:", error);
       }
-
+  
       isProcessing.current = false;
     };
   }
