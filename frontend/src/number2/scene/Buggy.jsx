@@ -19,8 +19,9 @@ const Buggy = forwardRef(({
   setObjectPositions,
   COLAB_API_URL,
   objectsInViewRef,
-  target,  // Added target prop
-  timerRef   // Added timerRef prop
+  target,
+  timerRef,
+  resetScene  // Add resetScene prop to use the existing function
 }, ref) => {
   const buggyRef = useRef();
   const keysPressed = useRef({});
@@ -88,9 +89,9 @@ const Buggy = forwardRef(({
         robot_rotation: robotRotationRef.current,
         detections: YOLOdetectObject.current || [],
         objects_in_view: objectsInViewRef.current || [],
-        target_object: target, // Use the target prop
+        target_object: target,
         collision_indicator: collisionIndicator.current,
-        time_left: timerRef?.current || 0 // Use the timerRef prop
+        time_left: timerRef?.current || 0
       };
 
       console.log("📸 'v' key pressed - taking picture", currentState);
@@ -131,22 +132,37 @@ const Buggy = forwardRef(({
           setTimeout(() => {
             document.body.removeChild(rewardDisplay);
             
-            // Reset buggy position after showing reward
-            if (ref.current && ref.current.resetBuggy) {
-              ref.current.resetBuggy();
+            // Use the resetScene function from props instead of local reset
+            if (resetScene && typeof resetScene === 'function') {
+              resetScene();
+            } else {
+              // Fallback to local reset if resetScene prop is not provided
+              if (ref.current && ref.current.resetBuggy) {
+                ref.current.resetBuggy();
+              }
             }
           }, 2000);
         } else {
-          // Reset buggy immediately if no reward data
-          if (ref.current && ref.current.resetBuggy) {
-            ref.current.resetBuggy();
+          // Reset scene immediately if no reward data
+          if (resetScene && typeof resetScene === 'function') {
+            resetScene();
+          } else {
+            // Fallback to local reset if resetScene prop is not provided
+            if (ref.current && ref.current.resetBuggy) {
+              ref.current.resetBuggy();
+            }
           }
         }
       })
       .catch(error => {
         console.error("❌ Error processing action:", error);
-        if (ref.current && ref.current.resetBuggy) {
-          ref.current.resetBuggy();
+        if (resetScene && typeof resetScene === 'function') {
+          resetScene();
+        } else {
+          // Fallback to local reset if resetScene prop is not provided
+          if (ref.current && ref.current.resetBuggy) {
+            ref.current.resetBuggy();
+          }
         }
       });
     }

@@ -108,7 +108,8 @@ const MainScene = ({
           COLAB_API_URL={COLAB_API_URL}
           objectsInViewRef={objectsInViewRef}
           target={target}
-          timerRef={timerRef} // Pass the prop
+          timerRef={timerRef}
+          resetScene={resetScene}
         />
       </Physics>
 
@@ -118,71 +119,3 @@ const MainScene = ({
 };
 
 export default MainScene;
-
-
-
-
-// function RobotScene() {
-//   // Set up refs
-//   const buggyRef = useRef();
-//   const robotCameraRef = useRef();
-//   const robotPositionRef = useRef([0, 0, 0]);
-//   const robotRotationRef = useRef([0, 0, 0, 0]);
-//   const collisionIndicator = useRef(false);
-//   const [objectPositions, setObjectPositions] = useState([]);
-//   const [targetObject, setTargetObject] = useState(1); // YOLO class ID for target
-  
-//   // Initialize agent controller
-//   const agentController = useAgentController({
-//     robotRef: buggyRef,
-//     robotCameraRef,
-//     robotPositionRef,
-//     robotRotationRef,
-//     collisionIndicator,
-//     targetObject,
-//     setObjectPositions
-//   });
-  
-//   // YOLO detection callback
-//   const handleYOLODetection = useCallback((detections) => {
-//     // This will be called by your YOLO system when objects are detected
-//     console.log("YOLO detections:", detections);
-//   }, []);
-  
-//   return (
-//     <Canvas>
-//       <Physics>
-//         <Environment preset="apartment" />
-//         <Room />
-        
-//         {/* Your robot with agent integration */}
-//         <Buggy
-//           ref={buggyRef}
-//           robotCameraRef={robotCameraRef}
-//           robotPositionRef={robotPositionRef}
-//           robotRotationRef={robotRotationRef}
-//           collisionIndicator={collisionIndicator}
-//           YOLOdetectObject={handleYOLODetection}
-//           setObjectPositions={setObjectPositions}
-//           targetObject={targetObject}
-//         />
-        
-//         {/* Objects to detect */}
-//         {objectPositions.map((pos, index) => (
-//           <DetectableObject 
-//             key={index}
-//             position={pos} 
-//             classId={index % 3} // Assign different class IDs
-//           />
-//         ))}
-//       </Physics>
-      
-//       {/* Agent control panel (outside of Canvas) */}
-//       <div style={{ position: 'absolute', top: 20, right: 20 }}>
-//         <button onClick={() => agentController.connectToAgent('http://your-ngrok-url.io/api')}> 
-//           Connect Agent
-//         </button>
-//       </div>
-//     </Canvas>
-//   );
-// }

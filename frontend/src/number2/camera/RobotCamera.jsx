@@ -57,8 +57,6 @@ const RobotCamera = forwardRef((
       const lookTarget = new THREE.Vector3().copy(buggyPosition).add(lookDirection.multiplyScalar(5));
       cameraRef.current.lookAt(lookTarget);
 
-    
-
       // ✅ Compute the Camera's Frustum
       const frustum = new THREE.Frustum();
       const projScreenMatrix = new THREE.Matrix4();
