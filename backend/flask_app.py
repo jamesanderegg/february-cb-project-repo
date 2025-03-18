@@ -45,6 +45,52 @@ def reset_scene():
             'status': 'error',
             'message': f'Error resetting scene: {str(e)}'
         }), 500
+    
+@app.route('/process_action', methods=['POST'])
+def process_action():
+    try:
+        data = request.json
+        action = data.get('action')
+        state = data.get('state', {})
+        
+        print(f"Processing action: {action}")
+        
+        # Simple mock reward calculation
+        reward = 0
+        if action == 'v':  # Take picture action
+            # Extract data from state
+            target_object = state.get('target_object')
+            detections = state.get('detections', [])
+            objects_in_view = state.get('objects_in_view', [])
+            
+            # Check if target object is in view
+            target_in_view = any(obj.get('id') == target_object for obj in objects_in_view)
+            
+            # Check if target object is detected
+            target_detected = any(det.get('class_id') == target_object for det in detections)
+            
+            if target_in_view:
+                reward = 1000  # Maximum reward
+                print(f"Target object {target_object} is in view! Maximum reward.")
+            elif target_detected:
+                reward = 500   # Medium reward
+                print(f"Target object {target_object} is detected! Medium reward.")
+            else:
+                reward = 50    # Small reward for taking any picture
+                print("No target object detected or in view. Small reward.")
+        
+        return jsonify({
+            'status': 'success',
+            'action': action,
+            'reward': reward,
+            'done': action == 'v'  # Episode is done if we took a picture
+        })
+    except Exception as e:
+        print(f"❌ Error in process_action: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Error processing action: {str(e)}'
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=int(port), host='0.0.0.0')
