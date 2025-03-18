@@ -18,10 +18,13 @@ const MainScene = ({
   collisionIndicator,
   objectPositions,
   setObjectPositions,
+  isRunning,
   setTarget,
   target,
   COLAB_API_URL,
-  objectsInViewRef
+  objectsInViewRef,
+  timerRef = useRef(500), // Add this parameter
+  resetScene
 }) => {
   // Add a ref for the ObjectRandomizer
   const randomizerRef = useRef(null);
@@ -94,17 +97,18 @@ const MainScene = ({
         <Buggy
           ref={buggyRef}
           scale={0.025}
-          metallic={0.8}
-          roughness={0.3}
+          color="white"
           robotCameraRef={robotCameraRef}
+          YOLOdetectObject={YOLOdetectObject}
           robotPositionRef={robotPositionRef}
           robotRotationRef={robotRotationRef}
-          YOLOdetectObject={YOLOdetectObject}
           collisionIndicator={collisionIndicator}
           objectPositions={objectPositions}
           setObjectPositions={setObjectPositions}
           COLAB_API_URL={COLAB_API_URL}
           objectsInViewRef={objectsInViewRef}
+          target={target}
+          timerRef={timerRef} // Pass the prop
         />
       </Physics>
 

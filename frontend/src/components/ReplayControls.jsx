@@ -18,8 +18,6 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL }) => 
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [trainingStats, setTrainingStats] = useState(null);
 
-   
-
   useEffect(() => {
     // Fetch initial list of replays when the component mounts
     fetchReplays();
@@ -140,6 +138,41 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL }) => 
       console.error("❌ Error feeding to agent:", error);
     }
   };
+
+// Add this function to your ReplayControlsModal component:
+const takePicture = () => {
+  setStatus({ message: "Taking picture...", type: "info" });
+  
+  try {
+    // Create a keyboard event for 'v' key
+    const event = new KeyboardEvent('keydown', {
+      key: 'v',
+      code: 'KeyV',
+      which: 86,
+      keyCode: 86,
+      bubbles: true
+    });
+    
+    // Dispatch the event
+    window.dispatchEvent(event);
+    
+    setStatus({ message: "Picture taken! Processing...", type: "info" });
+  } catch (error) {
+    console.error("❌ Error taking picture:", error);
+    setStatus({ message: "Error taking picture", type: "error" });
+  }
+};
+
+// Then add this button to your component's JSX return:
+// (Add it right after the Reset Scene button)
+<div className="control-panel-item">
+  <button
+    className="action-button action-picture"
+    onClick={takePicture}
+  >
+    Take Picture (v)
+  </button>
+</div>
 
   const startTraining = async () => {
     setIsTraining(true);

@@ -67,6 +67,7 @@ const Main = ({
     targetObject: YOLOdetectObject,
     setObjectPositions
   });
+  
   const startTimer = () => {
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
@@ -83,11 +84,9 @@ const Main = ({
     }, 1000);
   };
 
-
   const resetScene = () => {
     console.log("🔄 Resetting scene from Main component...");
     setIsRunning(false);
-
 
     fetch(`${COLAB_API_URL}/reset_scene`, { 
       method: 'POST',
@@ -243,7 +242,6 @@ const Main = ({
           objectsInViewDisplayRef.current.innerText = 
             `Objects in View: ${objectsInViewRef.current.map(obj => obj.name).join(", ") || "None"}`;
         }
-        
       }
       // Request the next frame
       requestAnimationFrame(updateHUD);
@@ -269,6 +267,30 @@ const Main = ({
     objectPositionsRef.current = objectPositions;
   }, [objectPositions]);
   
+  // Add the keyboard event listener for 'v' key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // We'll handle 'v' key in the Buggy component
+      // This is just a backup in case we need to handle it at the Main level
+      if (e.key === 'v' || e.key === 'V') {
+        console.log("📸 'v' key pressed in Main component");
+        setObjects([]);
+        // The actual processing happens in Buggy.jsx
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('keydown', handleKeyDown);
+
+    if (window.resetEnvironment) {
+      window.resetEnvironment();
+    }
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <>
@@ -299,6 +321,8 @@ const Main = ({
           target={target}
           COLAB_API_URL={COLAB_API_URL}
           objectsInViewRef={objectsInViewRef}
+          timerRef={timerRef} // Make sure this line is present
+          resetScene={resetScene}
         />
         <Environment preset="apartment" intensity={20} />
       </Canvas>

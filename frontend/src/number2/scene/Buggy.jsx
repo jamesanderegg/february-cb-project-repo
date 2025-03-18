@@ -18,7 +18,9 @@ const Buggy = forwardRef(({
   objectPositions,
   setObjectPositions,
   COLAB_API_URL,
-  objectsInViewRef
+  objectsInViewRef,
+  target,  // Added target prop
+  timerRef   // Added timerRef prop
 }, ref) => {
   const buggyRef = useRef();
   const keysPressed = useRef({});
@@ -74,6 +76,80 @@ const Buggy = forwardRef(({
     if (keysPressed.current["s"]) moveDirection = -moveSpeed;
     if (keysPressed.current["a"]) turnDirection = rotationSpeed;
     if (keysPressed.current["d"]) turnDirection = -rotationSpeed;
+    
+    // Handle 'v' key press
+    if (keysPressed.current["v"]) {
+      // Reset the key press to prevent repeated actions
+      keysPressed.current["v"] = false;
+      
+      // Get the current state data
+      const currentState = {
+        robot_position: robotPositionRef.current,
+        robot_rotation: robotRotationRef.current,
+        detections: YOLOdetectObject.current || [],
+        objects_in_view: objectsInViewRef.current || [],
+        target_object: target, // Use the target prop
+        collision_indicator: collisionIndicator.current,
+        time_left: timerRef?.current || 0 // Use the timerRef prop
+      };
+
+      console.log("📸 'v' key pressed - taking picture", currentState);
+
+      // Send to backend to calculate reward and process
+      fetch(`${COLAB_API_URL}/process_action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'v',
+          state: currentState
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("✅ Action processed:", data);
+        
+        // Display reward if applicable
+        if (data.reward) {
+          const rewardDisplay = document.createElement('div');
+          rewardDisplay.className = 'reward-popup';
+          rewardDisplay.innerHTML = `Reward: ${data.reward.toFixed(2)}`;
+          rewardDisplay.style.position = 'absolute';
+          rewardDisplay.style.top = '50%';
+          rewardDisplay.style.left = '50%';
+          rewardDisplay.style.transform = 'translate(-50%, -50%)';
+          rewardDisplay.style.backgroundColor = 'rgba(0, 255, 0, 0.7)';
+          rewardDisplay.style.color = 'white';
+          rewardDisplay.style.padding = '10px 20px';
+          rewardDisplay.style.borderRadius = '5px';
+          rewardDisplay.style.fontSize = '24px';
+          rewardDisplay.style.zIndex = '1000';
+          document.body.appendChild(rewardDisplay);
+          
+          // Remove after 2 seconds
+          setTimeout(() => {
+            document.body.removeChild(rewardDisplay);
+            
+            // Reset buggy position after showing reward
+            if (ref.current && ref.current.resetBuggy) {
+              ref.current.resetBuggy();
+            }
+          }, 2000);
+        } else {
+          // Reset buggy immediately if no reward data
+          if (ref.current && ref.current.resetBuggy) {
+            ref.current.resetBuggy();
+          }
+        }
+      })
+      .catch(error => {
+        console.error("❌ Error processing action:", error);
+        if (ref.current && ref.current.resetBuggy) {
+          ref.current.resetBuggy();
+        }
+      });
+    }
   
     const currentRotation = new Quaternion().copy(body.rotation());
     if (turnDirection !== 0) {
@@ -101,6 +177,11 @@ const Buggy = forwardRef(({
         body.setRotation(resetQuaternion, true);
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        
+        // Optional: reset collision indicator
+        if (collisionIndicator) {
+          collisionIndicator.current = false;
+        }
       }
     }
   }));
