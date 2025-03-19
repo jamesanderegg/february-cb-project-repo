@@ -21,7 +21,8 @@ const Buggy = forwardRef(({
   objectsInViewRef,
   target,
   timerRef,
-  resetScene  // Add resetScene prop to use the existing function
+  resetScene,
+  currentActionRef
 }, ref) => {
   const buggyRef = useRef();
   const keysPressed = useRef({});
@@ -52,23 +53,39 @@ const Buggy = forwardRef(({
       }
     });
   }, [loadedScene, color, texture]);
-
+  
+  
   useEffect(() => {
-    const handleKey = (event, isPressed) => {
-      keysPressed.current[event.key] = isPressed;
+    const handleKeyDown = (event) => {
+      keysPressed.current[event.key] = true;
     };
-
-    window.addEventListener("keydown", (e) => handleKey(e, true));
-    window.addEventListener("keyup", (e) => handleKey(e, false));
-
+  
+    const handleKeyUp = (event) => {
+      keysPressed.current[event.key] = false;
+    };
+  
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+  
     return () => {
-      window.removeEventListener("keydown", (e) => handleKey(e, true));
-      window.removeEventListener("keyup", (e) => handleKey(e, false));
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
+  
 
   useFrame(() => {
     if (!buggyRef.current) return;
+    
+    // Get currently pressed keys
+    const activeKeys = Object.keys(keysPressed.current).filter((key) => keysPressed.current[key]);
+
+    // Update currentActionRef
+    if (currentActionRef) {
+      currentActionRef.current = activeKeys;
+    }
+
+
     const body = buggyRef.current;
     let moveDirection = 0;
     let turnDirection = 0;

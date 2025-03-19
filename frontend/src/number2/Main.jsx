@@ -39,6 +39,9 @@ const Main = ({
   const timerRef = useRef(500); 
   const timerIntervalRef = useRef(null);
 
+  const currentActionRef = useRef([]);
+  const currentActionDisplayRef = useRef(null);
+
   const [showDashboard, setShowDashboard] = useState(false);
   const [objectPositions, setObjectPositions] = useState([]);
   const objectPositionsRef = useRef([]);
@@ -83,6 +86,7 @@ const Main = ({
       }
     }, 1000);
   };
+
 
   const resetScene = () => {
     console.log("🔄 Resetting scene from Main component...");
@@ -242,6 +246,13 @@ const Main = ({
           objectsInViewDisplayRef.current.innerText = 
             `Objects in View: ${objectsInViewRef.current.map(obj => obj.name).join(", ") || "None"}`;
         }
+          // Update the current action display
+        if (currentActionDisplayRef.current) {
+          currentActionDisplayRef.current.innerText = 
+            `Current Actions: ${currentActionRef.current.length > 0 
+              ? currentActionRef.current.join(", ") 
+              : "None"}`;
+        }
       }
       // Request the next frame
       requestAnimationFrame(updateHUD);
@@ -323,6 +334,7 @@ const Main = ({
           objectsInViewRef={objectsInViewRef}
           timerRef={timerRef} // Make sure this line is present
           resetScene={resetScene}
+          currentActionRef={currentActionRef}
         />
         <Environment preset="apartment" intensity={20} />
       </Canvas>
@@ -348,6 +360,7 @@ const Main = ({
             <p id="target-display" ref={robotStateDisplayRef}></p>
             <p id="target-display" ref={targetDisplayRef}></p>
             <p id="closest-object-display" ref={closestObjectDisplayRef}>Closest Object: Loading...</p>
+            <p ref={currentActionDisplayRef}>Current Actions: None</p>
           </div>
         </div>
         <div className="replay-controls-container">

@@ -24,11 +24,13 @@ const MainScene = ({
   COLAB_API_URL,
   objectsInViewRef,
   timerRef = useRef(500), // Add this parameter
-  resetScene
+  resetScene,
+  currentActionRef
 }) => {
   // Add a ref for the ObjectRandomizer
   const randomizerRef = useRef(null);
   
+
   
   useEffect(() => {
     window.resetEnvironment = () => {
@@ -110,6 +112,7 @@ const MainScene = ({
           target={target}
           timerRef={timerRef}
           resetScene={resetScene}
+          currentActionRef={currentActionRef}
         />
       </Physics>
 
