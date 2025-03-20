@@ -16,6 +16,8 @@ import AmbientLight from "./lights/AmbientLight";
 import { useAgentController } from "./scene/AgentController";
 import AgentDashboard from "./scene/AgentDashboard";
 
+import { io } from "socket.io-client";
+
 const Main = ({ 
   robotCameraRef, 
   miniMapCameraRef, 
@@ -29,6 +31,9 @@ const Main = ({
   setTarget,
   COLAB_API_URL
 }) => {
+  const [socket, setSocket] = useState(null);
+  const [wsMessages, setWsMessages] = useState([]);
+
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
@@ -86,6 +91,58 @@ const Main = ({
       }
     }, 1000);
   };
+
+  useEffect(() => {
+    if (!objectPositions || objectPositions.length === 0) {
+      console.log("⏳ Waiting for objects to be set before starting WebSocket...");
+      return; // Do nothing until objectPositions is set
+    }
+  
+    const socket = io(`${COLAB_API_URL.replace("http", "ws")}`, {
+      transports: ["websocket"],
+    });
+  
+    socket.on("connect", () => {
+      console.log("✅ WebSocket connected");
+    });
+  
+    socket.on("action", (action) => {
+      console.log("📩 Received action:", action);
+      applyAction(action); // Apply action to robot
+    });
+  
+    socket.on("disconnect", () => {
+      console.log("❌ WebSocket disconnected");
+    });
+  
+    // Function to send the robot's state
+    const sendState = () => {
+      if (socket.connected) {
+        // const state = {
+        //   position: robotPositionRef.current || [0, 0, 0],
+        //   rotation: robotRotationRef.current || [0, 0, 0, 1],
+        //   detectedObjects: YOLOdetectObject?.current || [],
+        //   collision: collisionIndicator?.current || false,
+        // };
+        socket.emit("state", state);  // Send state to Colab
+      }
+    };
+  
+    // Send state as fast as DQN can process it
+    const interval = setInterval(sendState, 100); // Adjust as needed
+  
+    return () => {
+      clearInterval(interval);
+      socket.disconnect();
+    };
+  }, [COLAB_API_URL, objectPositions]); // 🔥 Dependency added for objectPositions
+  
+  // Function to apply action to robot
+  const applyAction = (action) => {
+    console.log("🔄 Applying action:", action);
+    // Logic to update the robot's movement/state
+  };
+  
 
 
   const resetScene = () => {
@@ -361,6 +418,7 @@ const Main = ({
             <p id="target-display" ref={targetDisplayRef}></p>
             <p id="closest-object-display" ref={closestObjectDisplayRef}>Closest Object: Loading...</p>
             <p ref={currentActionDisplayRef}>Current Actions: None</p>
+         
           </div>
         </div>
         <div className="replay-controls-container">
