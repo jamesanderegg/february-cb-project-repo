@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/ReplayControls.css';
 
-const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL }) => {
+const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRecordingRef }) => {
   const [activeTab, setActiveTab] = useState('record');
   const [isRecording, setIsRecording] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -21,7 +21,15 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL }) => 
   useEffect(() => {
     // Fetch initial list of replays when the component mounts
     fetchReplays();
-  }, []);
+    
+    // Expose recording state and stopRecording function to parent component
+    if (onRecordingRef && typeof onRecordingRef === 'function') {
+      onRecordingRef({
+        isRecording: () => isRecording,
+        stopRecording: stopRecording
+      });
+    }
+  }, [isRecording]); // Re-run when recording state changes
 
   const fetchReplays = async () => {
     try {
@@ -89,6 +97,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL }) => 
     try {
       await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
       setIsRecording(true);
+      console.log("🎥 Recording started - scene reset detection enabled");
     } catch (error) {
       console.error("❌ Error starting recording:", error);
     }
@@ -98,6 +107,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL }) => 
     try {
       await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
       setIsRecording(false);
+      console.log("⏹️ Recording stopped - scene reset detection disabled");
     } catch (error) {
       console.error("❌ Error stopping recording:", error);
     }
@@ -139,40 +149,28 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL }) => 
     }
   };
 
-// Add this function to your ReplayControlsModal component:
-const takePicture = () => {
-  setStatus({ message: "Taking picture...", type: "info" });
-  
-  try {
-    // Create a keyboard event for 'v' key
-    const event = new KeyboardEvent('keydown', {
-      key: 'v',
-      code: 'KeyV',
-      which: 86,
-      keyCode: 86,
-      bubbles: true
-    });
+  const takePicture = () => {
+    setStatus({ message: "Taking picture...", type: "info" });
     
-    // Dispatch the event
-    window.dispatchEvent(event);
-    
-    setStatus({ message: "Picture taken! Processing...", type: "info" });
-  } catch (error) {
-    console.error("❌ Error taking picture:", error);
-    setStatus({ message: "Error taking picture", type: "error" });
-  }
-};
-
-// Then add this button to your component's JSX return:
-// (Add it right after the Reset Scene button)
-<div className="control-panel-item">
-  <button
-    className="action-button action-picture"
-    onClick={takePicture}
-  >
-    Take Picture (v)
-  </button>
-</div>
+    try {
+      // Create a keyboard event for 'v' key
+      const event = new KeyboardEvent('keydown', {
+        key: 'v',
+        code: 'KeyV',
+        which: 86,
+        keyCode: 86,
+        bubbles: true
+      });
+      
+      // Dispatch the event
+      window.dispatchEvent(event);
+      
+      setStatus({ message: "Picture taken! Processing...", type: "info" });
+    } catch (error) {
+      console.error("❌ Error taking picture:", error);
+      setStatus({ message: "Error taking picture", type: "error" });
+    }
+  };
 
   const startTraining = async () => {
     setIsTraining(true);
@@ -204,6 +202,13 @@ const takePicture = () => {
   const resetScene = () => {
     console.log("🔄 Resetting scene from ReplayControls...");
     
+    // Check if recording is in progress, and stop it before resetting
+    if (isRecording) {
+      console.log("Recording in progress - stopping recording automatically");
+      stopRecording();
+      setStatus({ message: "Recording stopped due to scene reset. Please save your experience.", type: "warning" });
+    }
+    
     // Use the reset function passed from parent
     if (onReset && typeof onReset === 'function') {
       onReset();
@@ -226,8 +231,10 @@ const takePicture = () => {
       console.error("❌ Error calling reset_scene API:", error);
     }
 
-    // Set status message
-    setStatus({ message: "Scene reset!", type: "info" });
+    // Set status message if not already set by recording stop
+    if (!isRecording) {
+      setStatus({ message: "Scene reset!", type: "info" });
+    }
   };
 
   const getStatusMessage = (data) => {
@@ -339,6 +346,16 @@ const takePicture = () => {
           onClick={resetScene}
         >
           Reset Scene
+        </button>
+      </div>
+
+      {/* Take Picture Button Panel */}
+      <div className="control-panel-item">
+        <button
+          className="action-button action-picture"
+          onClick={takePicture}
+        >
+          Take Picture (v)
         </button>
       </div>
 

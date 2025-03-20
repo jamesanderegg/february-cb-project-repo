@@ -31,8 +31,8 @@ const Main = ({
   setTarget,
   COLAB_API_URL
 }) => {
-  const [socket, setSocket] = useState(null);
-  const [wsMessages, setWsMessages] = useState([]);
+  // const [socket, setSocket] = useState(null);
+  // const [wsMessages, setWsMessages] = useState([]);
 
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
@@ -57,6 +57,7 @@ const Main = ({
 
   const targetRef = useRef(target);  
   const buggyRef = useRef();
+  const recordingControlsRef = useRef(null);
   const {
     connectToAgent,
     startTraining,
@@ -118,12 +119,16 @@ const Main = ({
     // Function to send the robot's state
     const sendState = () => {
       if (socket.connected) {
-        // const state = {
-        //   position: robotPositionRef.current || [0, 0, 0],
-        //   rotation: robotRotationRef.current || [0, 0, 0, 1],
-        //   detectedObjects: YOLOdetectObject?.current || [],
-        //   collision: collisionIndicator?.current || false,
-        // };
+        const state = {
+          robot_pos: robotPositionRef.current || [0, 0, 0],
+          robot_rot: robotRotationRef.current || [0, 0, 0, 1],
+          detectedObjects: YOLOdetectObject?.current || [],
+          objectsInViewRef: objectsInViewRef.current || [],
+          collision: collisionIndicator?.current || false,
+          currentActionRef: currentActionRef.current || [],
+          time_left: timerRef.current || 500,
+          target_object: targetRef.current || null,
+        };
         socket.emit("state", state);  // Send state to Colab
       }
     };
@@ -143,10 +148,14 @@ const Main = ({
     // Logic to update the robot's movement/state
   };
   
-
-
   const resetScene = () => {
     console.log("🔄 Resetting scene from Main component...");
+    if (recordingControlsRef.current && 
+        recordingControlsRef.current.isRecording && 
+        recordingControlsRef.current.isRecording()) {
+      console.log("Recording in progress - stopping recording before reset");
+      recordingControlsRef.current.stopRecording();
+    }
     setIsRunning(false);
 
     fetch(`${COLAB_API_URL}/reset_scene`, { 
@@ -426,6 +435,7 @@ const Main = ({
             setObjectPositions={setObjectPositions} 
             onReset={resetScene} // Pass the resetScene function to the ReplayControls component
             COLAB_API_URL={COLAB_API_URL}
+            onRecordingRef={(controls) => recordingControlsRef.current = controls}
           />
         </div>
         <div className="agent-dashboard-container">
