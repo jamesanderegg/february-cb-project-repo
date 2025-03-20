@@ -349,16 +349,6 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
         </button>
       </div>
 
-      {/* Take Picture Button Panel */}
-      <div className="control-panel-item">
-        <button
-          className="action-button action-picture"
-          onClick={takePicture}
-        >
-          Take Picture (v)
-        </button>
-      </div>
-
       {/* Status Panel */}
       <div className="control-panel-item">
         <div className={`status status-${status.type}`}>
