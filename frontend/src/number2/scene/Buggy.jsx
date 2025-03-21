@@ -242,6 +242,7 @@ const Buggy = forwardRef(({
         YOLOdetectObject={YOLOdetectObject}
         COLAB_API_URL={COLAB_API_URL}
         objectsInViewRef={objectsInViewRef}
+        objectPositions={objectPositions}
       />
     </RigidBody>
   );

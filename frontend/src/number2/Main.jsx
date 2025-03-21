@@ -74,7 +74,8 @@ const Main = ({
     robotRotationRef,
     collisionIndicator,
     targetObject: YOLOdetectObject,
-    setObjectPositions
+    setObjectPositions,
+    COLAB_API_URL
   });
   
   const startTimer = () => {
@@ -468,6 +469,7 @@ const Main = ({
                   onStartTraining={startTraining}
                   onStopTraining={stopTraining}
                   onStartInference={startInference}
+                  COLAB_API_URL={COLAB_API_URL}
                 />
               )}
             </div>

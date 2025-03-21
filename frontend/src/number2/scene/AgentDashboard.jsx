@@ -10,10 +10,10 @@ const AgentDashboard = ({
   onConnect,
   onStartTraining,
   onStopTraining,
-  onStartInference 
+  onStartInference,
+  COLAB_API_URL
 }) => {
-  const [serverUrl, setServerUrl] = useState('http://localhost:5001/api');
-  
+  const [serverUrl, setServerUrl] = useState(COLAB_API_URL || 'http://localhost:5001/api');  
   return (
     <div className="agent-dashboard">
       <h2 className="dashboard-title">Robot Agent Dashboard</h2>

@@ -3,14 +3,11 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 const RobotCamera = forwardRef((
-  { robotRef, 
-    YOLOdetectObject, 
-    robotPositionRef, 
-    robotRotationRef, 
-    collisionIndicator, 
-    objectPositions, 
+  { robotRef,
+    YOLOdetectObject,
+    objectPositions,
     COLAB_API_URL,
-    objectsInViewRef 
+    objectsInViewRef
   }, ref) => {
   const cameraRef = useRef();
   const offscreenCanvasRef = useRef(document.createElement("canvas"));
@@ -29,7 +26,7 @@ const RobotCamera = forwardRef((
 
     return () => {
       scene.remove(camera);
-      
+
     };
   }, [scene]);
 
@@ -57,6 +54,8 @@ const RobotCamera = forwardRef((
       const lookTarget = new THREE.Vector3().copy(buggyPosition).add(lookDirection.multiplyScalar(5));
       cameraRef.current.lookAt(lookTarget);
 
+
+
       // ✅ Compute the Camera's Frustum
       const frustum = new THREE.Frustum();
       const projScreenMatrix = new THREE.Matrix4();
@@ -65,18 +64,18 @@ const RobotCamera = forwardRef((
         cameraRef.current.matrixWorldInverse
       );
       frustum.setFromProjectionMatrix(projScreenMatrix);
-
+     
       const visibleObjects = objectPositions.filter(({ position }) => {
         const objectVector = new THREE.Vector3(position[0], position[1], position[2]);
         const cameraToObject = objectVector.clone().sub(cameraRef.current.position);
         const dotProduct = cameraToObject.dot(lookDirection);
         const isInFront = dotProduct > 0;
-        const isVisible = isInFront && frustum.containsPoint(objectVector);        
+        const isVisible = isInFront && frustum.containsPoint(objectVector);
 
         return isVisible;
       });
 
-      
+
       objectsInViewRef.current = visibleObjects;
 
 
@@ -118,44 +117,40 @@ const RobotCamera = forwardRef((
       console.warn("No image available for YOLO processing.");
       return;
     }
-  
+
     if (isProcessing.current) {
       return;
     }
-  
+
     isProcessing.current = true;
     imageCount.current += 1;
-  
+
     const reader = new FileReader();
     reader.readAsDataURL(imageBlob);
     reader.onloadend = async () => {
       const base64Image = reader.result;
-  
+
       try {
-        // Include objects_in_view data in the request
+        // Send only the image to the endpoint
         const response = await fetch(`${COLAB_API_URL}/receive_image`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            image: base64Image,
-            position: robotPositionRef.current,
-            rotation: robotRotationRef.current,
-            collisionIndicator: collisionIndicator.current,
-            imageCount: imageCount.current,
-            objects_in_view: objectsInViewRef.current  // Add this line to send objects in view data
+            image: base64Image
           }),
         });
-  
+
         const data = await response.json();
         console.log("✅ YOLO Detection Results:", data);
-        YOLOdetectObject.current = data.detections;
+        YOLOdetectObject.current = data.detections; // Update with latest detections
       } catch (error) {
         console.error("❌ Error sending image:", error);
       }
-  
+
       isProcessing.current = false;
     };
   }
+
 
   return null;
 });
