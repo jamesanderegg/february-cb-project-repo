@@ -30,7 +30,7 @@ export const useAgentController = ({
   const websocket = useRef(null);
   
   // Connect to agent API
-  const connectToAgent = (baseUrl = 'http://localhost:5001/api', wsUrl = 'ws://localhost:5001') => {
+  const connectToAgent = (baseUrl = 'http://localhost:5001/api', wsUrl = 'ws://localhost:8765') => {
     apiBaseUrl.current = baseUrl;
     
     // Check server status first using REST API
