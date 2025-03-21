@@ -240,10 +240,6 @@ const Buggy = forwardRef(({
         robotRef={buggyRef}
         ref={robotCameraRef}
         YOLOdetectObject={YOLOdetectObject}
-        robotPositionRef={robotPositionRef}
-        robotRotationRef={robotRotationRef}
-        collisionIndicator={collisionIndicator}
-        objectPositions={objectPositions}
         COLAB_API_URL={COLAB_API_URL}
         objectsInViewRef={objectsInViewRef}
       />
