@@ -27,24 +27,113 @@ export const useAgentController = ({
   const metricsInterval = useRef(null);
   const currentState = useRef(null);
   const isProcessingAction = useRef(false);
+  const websocket = useRef(null);
   
   // Connect to agent API
-  const connectToAgent = (baseUrl = 'http://localhost:8000/api') => {
+  const connectToAgent = (baseUrl = 'http://localhost:5001/api', wsUrl = 'ws://localhost:5001') => {
     apiBaseUrl.current = baseUrl;
     
-    // Check server status first
+    // Check server status first using REST API
     axios.get(`${baseUrl}/status`)
       .then(response => {
         console.log("Server status:", response.data);
-        setIsConnected(true);
+        
+        // Now connect to WebSocket
+        connectWebSocket(wsUrl);
         
         // Start metrics polling
         startMetricsPolling();
       })
       .catch(error => {
-        console.error('Failed to connect to agent:', error);
-        setIsConnected(false);
+        console.error('Failed to connect to agent via REST:', error);
+        
+        // Try WebSocket connection anyway
+        connectWebSocket(wsUrl);
       });
+  };
+  
+  // Connect to WebSocket
+  const connectWebSocket = (wsUrl) => {
+    if (websocket.current && websocket.current.readyState === WebSocket.OPEN) {
+      console.log("WebSocket already connected");
+      return;
+    }
+    
+    console.log(`Connecting to WebSocket at ${wsUrl}`);
+    websocket.current = new WebSocket(wsUrl);
+    
+    // WebSocket event handlers
+    websocket.current.onopen = () => {
+      console.log("WebSocket connected!");
+      setIsConnected(true);
+    };
+    
+    websocket.current.onclose = () => {
+      console.log("WebSocket disconnected");
+      setIsConnected(false);
+      
+      // Try to reconnect after a delay
+      setTimeout(() => {
+        if (!isConnected) {
+          connectWebSocket(wsUrl);
+        }
+      }, 5000);
+    };
+    
+    websocket.current.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+    
+    websocket.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      processWebSocketMessage(data);
+    };
+  };
+  
+  // Process incoming WebSocket messages
+  const processWebSocketMessage = (data) => {
+    const messageType = data.type;
+    
+    switch (messageType) {
+      case 'action':
+        // Process action from agent
+        const action = data.action;
+        setLastAction(action);
+        
+        // Execute the action
+        executeAction(action);
+        
+        // Update epsilon metric
+        if (data.epsilon !== undefined) {
+          setMetrics(prev => ({ ...prev, epsilon: data.epsilon }));
+        }
+        
+        // Update agent status
+        if (data.is_training !== undefined) {
+          setAgentStatus(data.is_training ? 'training' : 'inference');
+        }
+        break;
+        
+      case 'outcome_processed':
+        // Result of processing an action outcome
+        isProcessingAction.current = false;
+        
+        // Update metrics
+        if (data.epsilon !== undefined) {
+          setMetrics(prev => ({ ...prev, epsilon: data.epsilon }));
+        }
+        break;
+        
+      case 'command_result':
+        // Result of a command
+        console.log(`Command ${data.command} result:`, data.success);
+        break;
+        
+      case 'error':
+        // Error message
+        console.error("WebSocket error:", data.error);
+        break;
+    }
   };
 
   // Start polling for metrics
@@ -92,7 +181,7 @@ export const useAgentController = ({
 
   // Send current state to the agent and get next action
   const sendStateToAgent = () => {
-    if (!isConnected || isProcessingAction.current) return;
+    if (!isConnected || isProcessingAction.current || !websocket.current || websocket.current.readyState !== WebSocket.OPEN) return;
     
     // Set flag to prevent multiple simultaneous requests
     isProcessingAction.current = true;
@@ -102,11 +191,12 @@ export const useAgentController = ({
     
     // Build state data
     const stateData = {
-      robot_position: robotPositionRef.current || [0, 0, 0],
-      robot_rotation: robotRotationRef.current || [0, 0, 0, 0], // Quaternion
-      collision_indicator: collisionIndicator.current || false,
+      type: 'state',
+      robot_pos: robotPositionRef.current || [0, 0, 0],
+      robot_rot: robotRotationRef.current || [0, 0, 0, 0], // Quaternion
+      collision: collisionIndicator.current || false,
       time_left: 300, // Some default value for remaining time
-      detections: detections.map(detection => ({
+      detectedObjects: detections.map(detection => ({
         class_id: detection.classId,
         bbox: detection.bbox,
         confidence: detection.confidence
@@ -118,20 +208,13 @@ export const useAgentController = ({
     // Save current state for later reward calculation
     currentState.current = stateData;
     
-    // Send state and get action
-    axios.post(`${apiBaseUrl.current}/state`, stateData)
-      .then(response => {
-        // Process action response
-        const action = response.data.action;
-        setLastAction(action);
-        
-        // Execute the action
-        executeAction(action);
-      })
-      .catch(error => {
-        console.error('Error sending state:', error);
-        isProcessingAction.current = false;
-      });
+    // Send state via WebSocket
+    try {
+      websocket.current.send(JSON.stringify(stateData));
+    } catch (error) {
+      console.error('Error sending state via WebSocket:', error);
+      isProcessingAction.current = false;
+    }
   };
   
   // Execute a specific action on the robot
@@ -181,7 +264,7 @@ export const useAgentController = ({
   
   // Report outcome of an action back to agent
   const reportActionOutcome = (action, isTerminal = false) => {
-    if (!isConnected) {
+    if (!isConnected || !websocket.current || websocket.current.readyState !== WebSocket.OPEN) {
       isProcessingAction.current = false;
       return;
     }
@@ -192,11 +275,11 @@ export const useAgentController = ({
     // Get current state again for comparison
     const detections = robotCameraRef.current?.getDetections() || [];
     const newState = {
-      robot_position: robotPositionRef.current || [0, 0, 0],
-      robot_rotation: robotRotationRef.current || [0, 0, 0, 0],
-      collision_indicator: collisionIndicator.current || false,
+      robot_pos: robotPositionRef.current || [0, 0, 0],
+      robot_rot: robotRotationRef.current || [0, 0, 0, 0],
+      collision: collisionIndicator.current || false,
       time_left: 300, // Some default value
-      detections: detections.map(detection => ({
+      detectedObjects: detections.map(detection => ({
         class_id: detection.classId,
         bbox: detection.bbox,
         confidence: detection.confidence
@@ -205,29 +288,27 @@ export const useAgentController = ({
       is_training: agentStatus === 'training'
     };
     
-    // Send outcome to backend
-    axios.post(`${apiBaseUrl.current}/outcome`, {
-      action,
-      reward,
-      old_state: currentState.current,
-      new_state: newState,
-      done: isTerminal || collisionIndicator.current,
-      is_training: agentStatus === 'training'
-    })
-    .then(response => {
-      // Reset processing flag
-      isProcessingAction.current = false;
+    // Send outcome via WebSocket
+    try {
+      websocket.current.send(JSON.stringify({
+        type: 'outcome',
+        action,
+        reward,
+        old_state: currentState.current,
+        new_state: newState,
+        done: isTerminal || collisionIndicator.current,
+        is_training: agentStatus === 'training'
+      }));
       
       // If episode is done, reset environment
       if (isTerminal || collisionIndicator.current) {
         robotRef.current?.resetBuggy();
         collisionIndicator.current = false;
       }
-    })
-    .catch(error => {
-      console.error('Error reporting outcome:', error);
+    } catch (error) {
+      console.error('Error sending outcome via WebSocket:', error);
       isProcessingAction.current = false;
-    });
+    }
   };
   
   // Calculate reward based on action and state change
@@ -274,37 +355,45 @@ export const useAgentController = ({
   
   // Start agent training
   const startTraining = () => {
-    if (!isConnected) return;
+    if (!isConnected || !websocket.current || websocket.current.readyState !== WebSocket.OPEN) return;
     
-    axios.post(`${apiBaseUrl.current}/train`, { start: true })
-      .then(response => {
-        setAgentStatus('training');
-        
-        // Start action polling if not already
-        if (!pollingInterval.current) {
-          pollingInterval.current = setInterval(() => {
-            if (!isProcessingAction.current) {
-              sendStateToAgent();
-            }
-          }, 300); // Poll every 300ms
-        }
-      })
-      .catch(error => {
-        console.error('Error starting training:', error);
-      });
+    // Send command via WebSocket
+    try {
+      websocket.current.send(JSON.stringify({
+        type: 'command',
+        command: 'start_training'
+      }));
+      
+      setAgentStatus('training');
+      
+      // Start action polling if not already
+      if (!pollingInterval.current) {
+        pollingInterval.current = setInterval(() => {
+          if (!isProcessingAction.current) {
+            sendStateToAgent();
+          }
+        }, 300); // Poll every 300ms
+      }
+    } catch (error) {
+      console.error('Error starting training:', error);
+    }
   };
   
   // Stop agent training
   const stopTraining = () => {
-    if (!isConnected) return;
+    if (!isConnected || !websocket.current || websocket.current.readyState !== WebSocket.OPEN) return;
     
-    axios.post(`${apiBaseUrl.current}/train`, { start: false })
-      .then(response => {
-        setAgentStatus('inference');
-      })
-      .catch(error => {
-        console.error('Error stopping training:', error);
-      });
+    // Send command via WebSocket
+    try {
+      websocket.current.send(JSON.stringify({
+        type: 'command',
+        command: 'stop_training'
+      }));
+      
+      setAgentStatus('inference');
+    } catch (error) {
+      console.error('Error stopping training:', error);
+    }
   };
   
   // Use inference mode (no training)
@@ -328,6 +417,11 @@ export const useAgentController = ({
   useEffect(() => {
     return () => {
       stopPolling();
+      
+      // Close WebSocket connection
+      if (websocket.current) {
+        websocket.current.close();
+      }
     };
   }, []);
   
