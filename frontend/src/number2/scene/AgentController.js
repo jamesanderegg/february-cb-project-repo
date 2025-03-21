@@ -27,7 +27,7 @@ export const useAgentController = ({
   const metricsInterval = useRef(null);
   const currentState = useRef(null);
   const isProcessingAction = useRef(false);
-  const websocket = useRef(null);
+  const [websocket, setWebsocket] = useState(null);
   
   // Connect to agent API
   const connectToAgent = (baseUrl = 'http://localhost:5001/api', wsUrl = 'ws://localhost:8765') => {
@@ -77,7 +77,7 @@ export const useAgentController = ({
         if (!isConnected) {
           connectWebSocket(wsUrl);
         }
-      }, 5000);
+      }, 5001);
     };
     
     websocket.current.onerror = (error) => {
