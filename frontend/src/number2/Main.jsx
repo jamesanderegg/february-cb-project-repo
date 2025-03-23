@@ -127,7 +127,7 @@ const Main = ({
           objectsInViewRef: objectsInViewRef.current || [],
           collision: collisionIndicator?.current || false,
           currentActionRef: currentActionRef.current || [],
-          time_left: timerRef.current || 500,
+          time_left: timerRef.current || 350,
           target_object: targetRef.current || null,
         };
         socket.emit("state", state);  // Send state to Colab
