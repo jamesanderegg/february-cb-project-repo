@@ -41,7 +41,7 @@ const Main = ({
   const targetDisplayRef = useRef(null);
   const robotMemoryRef = useRef([]);
   const timerDisplayRef = useRef(null);
-  const timerRef = useRef(500); 
+  const timerRef = useRef(350); 
   const timerIntervalRef = useRef(null);
 
   const currentActionRef = useRef([]);
@@ -197,7 +197,7 @@ const Main = ({
         window.resetEnvironment();
       }
 
-      timerRef.current = 500;
+      timerRef.current = 350;
       startTimer();
 
       if (detectionDisplayRef.current) {
@@ -422,7 +422,7 @@ const Main = ({
             <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
             <p ref={detectionDisplayRef}>Detected Objects: Waiting...</p>
             <p ref={objectsInViewDisplayRef}>Objects in View: Loading...</p> 
-            <p ref={timerDisplayRef}>Time Remaining: 500s</p>
+            <p ref={timerDisplayRef}>Time Remaining: 350s</p>
             {/* Display the target using targetRef */}
             <p id="target-display" ref={robotStateDisplayRef}></p>
             <p id="target-display" ref={targetDisplayRef}></p>

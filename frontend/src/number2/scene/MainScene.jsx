@@ -23,7 +23,7 @@ const MainScene = ({
   target,
   COLAB_API_URL,
   objectsInViewRef,
-  timerRef = useRef(500), // Add this parameter
+  timerRef = useRef(350), // Add this parameter
   resetScene,
   currentActionRef
 }) => {
