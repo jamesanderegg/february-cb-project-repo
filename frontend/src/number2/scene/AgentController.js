@@ -14,7 +14,8 @@ export const useAgentController = ({ COLAB_API_URL }) => {
       const response = await fetch(`${url}/status`, {
         method: "GET",
         headers: {
-          "Accept": "application/json"
+          "Accept": "application/json",
+          "ngrok-skip-browser-warning": "true"
         }
       });
   
