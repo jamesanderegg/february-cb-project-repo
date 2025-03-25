@@ -212,7 +212,7 @@ const Main = ({
       setTimeout(() => {
         setIsRunning(true);
         console.log("▶️ Scene restarted.");
-      }, 500);
+      }, 350);
     }, 2000);
   };
 
