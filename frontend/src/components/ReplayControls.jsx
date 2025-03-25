@@ -181,10 +181,32 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
   };
 
   const startTraining = async () => {
+<<<<<<< HEAD
     if (!selectedReplay) {
       setErrorMessage("Please select a replay first");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
+=======
+    setIsTraining(true);
+    setTrainingProgress(0);
+    setTrainingStats(null);
+  
+    try {
+      await fetch(`${COLAB_API_URL}/start_training`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({
+          episodes: trainingEpisodes,
+          batch_size: batchSize
+        })
+      });
+    } catch (error) {
+      console.error("❌ Error starting training:", error);
+      setStatus({ message: "Failed to start training", type: "error" });
+>>>>>>> refs/remotes/origin/main
     }
     
     setIsLoading(true);
@@ -289,6 +311,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     // Store the interval ID for cleanup
     progressIntervalRef.current = progressInterval;
   };
+  
 
   const stopTraining = async () => {
     try {
