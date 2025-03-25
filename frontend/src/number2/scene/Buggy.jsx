@@ -28,6 +28,7 @@ const Buggy = forwardRef(({
   const keysPressed = useRef({});
   const moveSpeed = 90;
   const rotationSpeed = 4;
+  const lastVActionTime = useRef(0); // To prevent v actions too close together
 
   // Load GLTF Model & Texture
   const { scene: loadedScene } = useGLTF("/models/robot.glb");
@@ -78,13 +79,13 @@ const Buggy = forwardRef(({
     if (!buggyRef.current) return;
     
     // Get currently pressed keys
-    const activeKeys = Object.keys(keysPressed.current).filter((key) => keysPressed.current[key]);
-
-    // Update currentActionRef
+    const activeKeys = Object.keys(keysPressed.current)
+      .filter((key) => keysPressed.current[key] && ["w", "a", "s", "d", "v"].includes(key));
+    
+    // Update currentActionRef on EVERY frame to record continuous key holds
     if (currentActionRef) {
-      currentActionRef.current = activeKeys;
+      currentActionRef.current = [...activeKeys]; // Create a new array to ensure state changes are detected
     }
-
 
     const body = buggyRef.current;
     let moveDirection = 0;
@@ -95,10 +96,10 @@ const Buggy = forwardRef(({
     if (keysPressed.current["a"]) turnDirection = rotationSpeed;
     if (keysPressed.current["d"]) turnDirection = -rotationSpeed;
     
-    // Handle 'v' key press
-    if (keysPressed.current["v"]) {
-      // Reset the key press to prevent repeated actions
-      keysPressed.current["v"] = false;
+    // Handle 'v' key press with throttling
+    const now = Date.now();
+    if (keysPressed.current["v"] && now - lastVActionTime.current > 500) { // 500ms cooldown
+      lastVActionTime.current = now;
       
       // Get the current state data
       const currentState = {
