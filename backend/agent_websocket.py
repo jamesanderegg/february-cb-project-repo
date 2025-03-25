@@ -91,7 +91,7 @@ class AgentWebSocketHandler:
             'robot_rotation': data.get('robot_rot', [0, 0, 0, 1]),
             'collision_indicator': data.get('collision', False),
             'detections': data.get('detectedObjects', []),
-            'time_left': data.get('time_left', 500),
+            'time_left': data.get('time_left', 350),
             'target_object': data.get('target_object', None),
             'objects_in_view': data.get('objectsInViewRef', [])
         }

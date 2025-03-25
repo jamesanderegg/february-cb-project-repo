@@ -33,9 +33,14 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
 
   const fetchReplays = async () => {
     try {
-      const response = await fetch(`${COLAB_API_URL}/list_replays`);
+      const response = await fetch(`${COLAB_API_URL}/list_replays`, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "ngrok-skip-browser-warning": "true"
+        }
+      });
   
-      // Ensure response is JSON
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         throw new Error("Server returned non-JSON response");
@@ -48,6 +53,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
       setStatus({ message: "Failed to fetch replays", type: "error" });
     }
   };
+  
 
   const handleReplayStatus = (data) => {
     console.log('Replay status update:', data);
@@ -144,6 +150,8 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
   const feedToAgent = async () => {
     try {
       await fetch(`${COLAB_API_URL}/feed_to_agent`, { method: 'POST' });
+
+
     } catch (error) {
       console.error("❌ Error feeding to agent:", error);
     }
