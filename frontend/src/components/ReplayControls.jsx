@@ -196,40 +196,26 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
       // Load the latest replay
       const loadResult = await fetch(`${COLAB_API_URL}/load_replay`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: latestReplay })
       });
       
       const loadData = await loadResult.json();
       
-      if (!loadData.status || loadData.status !== "ok") {
-        throw new Error(loadData.message || "Failed to load replay for training");
-      }
-      
       // Start training
       const trainResult = await fetch(`${COLAB_API_URL}/start_training`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ episodes: trainingEpisodes })
       });
       
       const trainData = await trainResult.json();
       
-      if (!trainData.status || trainData.status !== "ok") {
-        throw new Error(trainData.message || "Training failed to start");
-      }
-      
       setIsTraining(true);
       setSuccessMessage(`Training started with ${trainingEpisodes} episodes`);
       
       // Monitor training progress
-      if (progressIntervalRef.current) {
-        clearInterval(progressIntervalRef.current);
-      }
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       
       progressIntervalRef.current = setInterval(async () => {
         try {
@@ -242,7 +228,6 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
           
           if (data.status !== "training") {
             clearInterval(progressIntervalRef.current);
-            progressIntervalRef.current = null;
             setIsTraining(false);
             setTrainingProgress(100);
             setSuccessMessage("Training completed!");
