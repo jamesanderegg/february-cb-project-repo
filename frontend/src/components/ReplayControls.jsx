@@ -181,9 +181,8 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
   };
 
   const startTraining = async () => {
-    if (savedReplays.length === 0) {
-      setErrorMessage("No replay files available for training");
-      setTimeout(() => setErrorMessage(""), 3000);
+    if (replays.length === 0) {
+      setStatus({ message: "No replay files available for training", type: "error" });
       return;
     }
     
@@ -191,7 +190,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     
     try {
       // Use the latest saved replay file
-      const latestReplay = savedReplays[0];
+      const latestReplay = replays[0];
       
       // Load the latest replay
       const loadResult = await fetch(`${COLAB_API_URL}/load_replay`, {
@@ -212,12 +211,10 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
       const trainData = await trainResult.json();
       
       setIsTraining(true);
-      setSuccessMessage(`Training started with ${trainingEpisodes} episodes`);
+      setStatus({ message: `Training started with ${trainingEpisodes} episodes`, type: "info" });
       
       // Monitor training progress
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      
-      progressIntervalRef.current = setInterval(async () => {
+      const progressInterval = setInterval(async () => {
         try {
           const response = await fetch(`${COLAB_API_URL}/agent_status`);
           const data = await response.json();
@@ -227,11 +224,10 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
           }
           
           if (data.status !== "training") {
-            clearInterval(progressIntervalRef.current);
+            clearInterval(progressInterval);
             setIsTraining(false);
             setTrainingProgress(100);
-            setSuccessMessage("Training completed!");
-            setTimeout(() => setSuccessMessage(""), 3000);
+            setStatus({ message: "Training completed!", type: "saved" });
           }
         } catch (error) {
           console.error("Failed to fetch training progress:", error);
@@ -240,8 +236,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
       
     } catch (error) {
       console.error("Training error:", error);
-      setErrorMessage(error.message || "Failed to start training");
-      setTimeout(() => setErrorMessage(""), 3000);
+      setStatus({ message: error.message || "Failed to start training", type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -419,7 +414,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
         <button 
           className="action-button action-train"
           onClick={startTraining}
-          disabled={isTraining || savedReplays.length === 0}
+          disabled={isTraining || replays.length === 0}
         >
           {isTraining ? 'Training...' : 'Train Agent'}
         </button>
