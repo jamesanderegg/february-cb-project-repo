@@ -181,38 +181,25 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
   };
 
   const startTraining = async () => {
-    setIsTraining(true);
-    setTrainingProgress(0);
-    setTrainingStats(null);
-  
-    try {
-      await fetch(`${COLAB_API_URL}/start_training`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify({
-          episodes: trainingEpisodes,
-          batch_size: batchSize
-        })
-      });
-    } catch (error) {
-      console.error("❌ Error starting training:", error);
-      setStatus({ message: "Failed to start training", type: "error" });
+    if (savedReplays.length === 0) {
+      setErrorMessage("No replay files available for training");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
     }
     
     setIsLoading(true);
     
     try {
-      // First, load the selected replay into the agent's memory
-      console.log(`Loading replay: ${selectedReplay}`);
+      // Use the latest saved replay file
+      const latestReplay = savedReplays[0];
+      
+      // Load the latest replay
       const loadResult = await fetch(`${COLAB_API_URL}/load_replay`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ filename: selectedReplay })
+        body: JSON.stringify({ filename: latestReplay })
       });
       
       const loadData = await loadResult.json();
@@ -221,11 +208,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
         throw new Error(loadData.message || "Failed to load replay for training");
       }
       
-      console.log(`Replay loaded successfully: ${JSON.stringify(loadData)}`);
-      setSuccessMessage(`Loaded replay with ${loadData.episodes} episodes, ${loadData.steps} steps`);
-      
-      // Start training with the specified number of episodes
-      console.log(`Starting training with ${trainingEpisodes} episodes`);
+      // Start training
       const trainResult = await fetch(`${COLAB_API_URL}/start_training`, {
         method: 'POST',
         headers: {
@@ -243,20 +226,23 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
       setIsTraining(true);
       setSuccessMessage(`Training started with ${trainingEpisodes} episodes`);
       
-      // Start polling for training progress
-      const progressInterval = setInterval(async () => {
+      // Monitor training progress
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      
+      progressIntervalRef.current = setInterval(async () => {
         try {
           const response = await fetch(`${COLAB_API_URL}/agent_status`);
           const data = await response.json();
           
-          // Update progress if available
           if (data.training_progress !== undefined) {
             setTrainingProgress(data.training_progress);
           }
           
-          // Check if training is still active
           if (data.status !== "training") {
-            clearInterval(progressInterval);
+            clearInterval(progressIntervalRef.current);
+            progressIntervalRef.current = null;
             setIsTraining(false);
             setTrainingProgress(100);
             setSuccessMessage("Training completed!");
@@ -448,7 +434,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
         <button 
           className="action-button action-train"
           onClick={startTraining}
-          disabled={isTraining || !selectedReplay}
+          disabled={isTraining || savedReplays.length === 0}
         >
           {isTraining ? 'Training...' : 'Train Agent'}
         </button>
