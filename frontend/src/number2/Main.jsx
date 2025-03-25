@@ -24,7 +24,7 @@ const Main = ({
   robotPositionRef, 
   robotRotationRef, 
   YOLOdetectObject, 
-  collisionIndicator, 
+  collisionIndicator = useRef(false), // Provide a default ref if not passed
   isRunning, 
   setIsRunning,
   target,
@@ -58,6 +58,7 @@ const Main = ({
   const targetRef = useRef(target);  
   const buggyRef = useRef();
   const recordingControlsRef = useRef(null);
+  
   const {
     connectToAgent,
     startTraining,
@@ -77,6 +78,32 @@ const Main = ({
     setObjectPositions,
     COLAB_API_URL
   });
+  
+  // Add the updateObjects functionality from MainScene.jsx
+  useEffect(() => {
+    if (objectPositions && Array.isArray(objectPositions) && objectPositions.length > 0) {
+      fetch(`${COLAB_API_URL}/update_objects`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ objectPositions }),
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log("✅ Object positions sent:", data);
+
+          // Update the target with the value from the response data
+          if (data.target) {
+            console.log(data.target);
+            setTarget(data.target);  // Update the target state
+          }
+        })
+        .catch(error => console.error("❌ Error sending object positions:", error));
+    } else {
+      console.warn("⚠️ objectPositions is not an array or is empty:", objectPositions);
+    }
+  }, [objectPositions, COLAB_API_URL, setTarget]);
   
   const startTimer = () => {
     if (timerIntervalRef.current) {
@@ -141,7 +168,7 @@ const Main = ({
       clearInterval(interval);
       socket.disconnect();
     };
-  }, [COLAB_API_URL, objectPositions]); // 🔥 Dependency added for objectPositions
+  }, [COLAB_API_URL, objectPositions]); // Dependency added for objectPositions
   
   // Function to apply action to robot
   const applyAction = (action) => {
@@ -313,7 +340,7 @@ const Main = ({
           objectsInViewDisplayRef.current.innerText = 
             `Objects in View: ${objectsInViewRef.current.map(obj => obj.name).join(", ") || "None"}`;
         }
-          // Update the current action display
+        // Update the current action display
         if (currentActionDisplayRef.current) {
           currentActionDisplayRef.current.innerText = 
             `Current Actions: ${currentActionRef.current.length > 0 
@@ -326,7 +353,7 @@ const Main = ({
     };
     
     requestAnimationFrame(updateHUD);
-  }, [target]);  // Re-run effect when target changes
+  }, [target]); // Re-run effect when target changes
 
   useEffect(() => {
     startTimer(); 
@@ -352,7 +379,7 @@ const Main = ({
       // This is just a backup in case we need to handle it at the Main level
       if (e.key === 'v' || e.key === 'V') {
         console.log("📸 'v' key pressed in Main component");
-        setObjects([]);
+        setObjectPositions([]);
         // The actual processing happens in Buggy.jsx
       }
     };
@@ -399,7 +426,7 @@ const Main = ({
           target={target}
           COLAB_API_URL={COLAB_API_URL}
           objectsInViewRef={objectsInViewRef}
-          timerRef={timerRef} // Make sure this line is present
+          timerRef={timerRef} 
           resetScene={resetScene}
           currentActionRef={currentActionRef}
         />
@@ -474,7 +501,6 @@ const Main = ({
               )}
             </div>
         </div>
-
       </div>
     </>
   );

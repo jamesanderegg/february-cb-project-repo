@@ -30,15 +30,18 @@ const MainScene = ({
   // Add a ref for the ObjectRandomizer
   const randomizerRef = useRef(null);
   
-
-  
   useEffect(() => {
     window.resetEnvironment = () => {
       console.log("🔄 Resetting environment...");
 
       // Clear object positions
       setObjectPositions([]);
-      collisionIndicator.current = 0
+      
+      // Safely reset collision indicator
+      if (collisionIndicator && typeof collisionIndicator.current !== 'undefined') {
+        collisionIndicator.current = false; // Changed from 0 to false for consistency
+      }
+      
       // Reset buggy position & rotation
       if (buggyRef.current) {
         console.log("🔄 Resetting buggy...");
@@ -54,33 +57,10 @@ const MainScene = ({
     return () => {
       delete window.resetEnvironment;
     };
-  }, [setObjectPositions]);
+  }, [setObjectPositions, collisionIndicator]);
   
-  useEffect(() => {
-    if (objectPositions && Array.isArray(objectPositions) && objectPositions.length > 0) {
-      fetch(`${COLAB_API_URL}/update_objects`, {  // Change to your Google Colab URL
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ objectPositions }),
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log("✅ Object positions sent:", data);
-
-          // Update the target with the value from the response data
-          
-          if (data.target) {
-            console.log(data.target)
-            setTarget(data.target);  // Update the target state
-          }
-        })
-        .catch(error => console.error("❌ Error sending object positions:", error));
-    } else {
-      console.warn("⚠️ objectPositions is not an array or is empty:", objectPositions);
-    }
-  }, [objectPositions]);
+  // The updateObjects useEffect was removed from here
+  // and moved to Main.jsx
 
   return (
     <>
@@ -115,8 +95,6 @@ const MainScene = ({
           currentActionRef={currentActionRef}
         />
       </Physics>
-
-      {/* {socket && <ReplayControls socket={socket} />} */}
     </>
   );
 };
