@@ -181,22 +181,113 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
   };
 
   const startTraining = async () => {
-    setIsTraining(true);
-    setTrainingProgress(0);
-    setTrainingStats(null);
-
-    try {
-      await fetch(`${COLAB_API_URL}/start_training`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          episodes: trainingEpisodes,
-          batch_size: batchSize
-        })
-      });
-    } catch (error) {
-      console.error("❌ Error starting training:", error);
+    if (!selectedReplay) {
+      setErrorMessage("Please select a replay first");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
     }
+    
+    setIsLoading(true);
+    
+    try {
+      // First, load the selected replay into the agent's memory
+      console.log(`Loading replay: ${selectedReplay}`);
+      const loadResult = await fetch(`${COLAB_API_URL}/load_replay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filename: selectedReplay })
+      });
+      
+      const loadData = await loadResult.json();
+      
+      if (!loadData.status || loadData.status !== "ok") {
+        throw new Error(loadData.message || "Failed to load replay for training");
+      }
+      
+      console.log(`Replay loaded successfully: ${JSON.stringify(loadData)}`);
+      setSuccessMessage(`Loaded replay with ${loadData.episodes} episodes, ${loadData.steps} steps`);
+      
+      // Start training with the specified number of episodes
+      console.log(`Starting training with ${trainingEpisodes} episodes`);
+      const trainResult = await fetch(`${COLAB_API_URL}/start_training`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ episodes: trainingEpisodes })
+      });
+      
+      const trainData = await trainResult.json();
+      
+      if (!trainData.status || trainData.status !== "ok") {
+        throw new Error(trainData.message || "Training failed to start");
+      }
+      
+      setIsTraining(true);
+      setSuccessMessage(`Training started with ${trainingEpisodes} episodes`);
+      
+      // Start polling for training progress
+      const progressInterval = setInterval(async () => {
+        try {
+          const response = await fetch(`${COLAB_API_URL}/agent_status`);
+          const data = await response.json();
+          
+          // Update progress if available
+          if (data.training_progress !== undefined) {
+            setTrainingProgress(data.training_progress);
+          }
+          
+          // Check if training is still active
+          if (data.status !== "training") {
+            clearInterval(progressInterval);
+            setIsTraining(false);
+            setTrainingProgress(100);
+            setSuccessMessage("Training completed!");
+            setTimeout(() => setSuccessMessage(""), 3000);
+          }
+        } catch (error) {
+          console.error("Failed to fetch training progress:", error);
+        }
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Training error:", error);
+      setErrorMessage(error.message || "Failed to start training");
+      setTimeout(() => setErrorMessage(""), 3000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startMonitoringProgress = () => {
+    // Poll for training progress
+    const progressInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`${COLAB_API_URL}/agent_status`);
+        const data = await response.json();
+        
+        // Update training progress
+        if (data.training_progress !== undefined) {
+          setTrainingProgress(data.training_progress);
+        }
+        
+        // Check if training is still active
+        if (data.status !== "training") {
+          clearInterval(progressInterval);
+          setIsTraining(false);
+          setTrainingProgress(100); // Set to 100% when complete
+          setSuccessMessage("Training completed!");
+          setTimeout(() => setSuccessMessage(""), 3000);
+        }
+      } catch (error) {
+        console.error("Failed to fetch training progress:", error);
+      }
+    }, 1000);
+    
+    // Store the interval ID for cleanup
+    progressIntervalRef.current = progressInterval;
   };
 
   const stopTraining = async () => {
@@ -338,13 +429,25 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
 
       {/* Train Button Panel */}
       <div className="control-panel-item">
-        <button
+        <button 
           className="action-button action-train"
           onClick={startTraining}
-          disabled={isTraining}
+          disabled={isTraining || !selectedReplay}
         >
-          Train Agent
+          {isTraining ? 'Training...' : 'Train Agent'}
         </button>
+
+        {isTraining && (
+          <div className="progress-container">
+            <div className="progress-bar">
+              <div 
+                className="progress-fill" 
+                style={{ width: `${trainingProgress}%` }}
+              ></div>
+            </div>
+            <div className="progress-text">{trainingProgress.toFixed(1)}%</div>
+          </div>
+        )}
       </div>
 
       {/* Reset Button Panel */}
