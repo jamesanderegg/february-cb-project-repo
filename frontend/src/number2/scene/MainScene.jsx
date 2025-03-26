@@ -25,7 +25,8 @@ const MainScene = ({
   objectsInViewRef,
   timerRef = useRef(350), // Add this parameter
   resetScene,
-  currentActionRef
+  currentActionRef,
+  onCaptureImage
 }) => {
   // Add a ref for the ObjectRandomizer
   const randomizerRef = useRef(null);
@@ -93,6 +94,7 @@ const MainScene = ({
           timerRef={timerRef}
           resetScene={resetScene}
           currentActionRef={currentActionRef}
+          onCaptureImage={onCaptureImage}
         />
       </Physics>
     </>
