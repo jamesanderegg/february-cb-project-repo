@@ -4,10 +4,9 @@ import * as THREE from "three";
 
 const RobotCamera = forwardRef((
   { robotRef,
-    YOLOdetectObject,
     objectPositions,
-    COLAB_API_URL,
-    objectsInViewRef
+    objectsInViewRef,
+    onCaptureImage // New prop to send image data to parent
   }, ref) => {
   const cameraRef = useRef();
   const offscreenCanvasRef = useRef(document.createElement("canvas"));
@@ -16,8 +15,6 @@ const RobotCamera = forwardRef((
 
   const { gl, scene } = useThree();
   const renderTarget = useRef(new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }));
-  const isProcessing = useRef(false);
-  const imageCount = useRef(0);  // Track number of images sent
 
   useEffect(() => {
     const camera = new THREE.PerspectiveCamera(45, 1, 1, 10);
@@ -26,16 +23,10 @@ const RobotCamera = forwardRef((
 
     return () => {
       scene.remove(camera);
-
     };
   }, [scene]);
 
   useImperativeHandle(ref, () => ({
-    startStreaming: () => {
-      if (!isProcessing.current) {
-        captureAndSendImage();
-      }
-    },
     getHudImage: () => offscreenCanvasRef.current.toDataURL("image/png"),
   }));
 
@@ -53,8 +44,6 @@ const RobotCamera = forwardRef((
       cameraRef.current.position.copy(buggyPosition);
       const lookTarget = new THREE.Vector3().copy(buggyPosition).add(lookDirection.multiplyScalar(5));
       cameraRef.current.lookAt(lookTarget);
-
-
 
       // ✅ Compute the Camera's Frustum
       const frustum = new THREE.Frustum();
@@ -75,9 +64,7 @@ const RobotCamera = forwardRef((
         return isVisible;
       });
 
-
       objectsInViewRef.current = visibleObjects;
-
 
       // Render the scene to a render target
       gl.setRenderTarget(renderTarget.current);
@@ -102,55 +89,14 @@ const RobotCamera = forwardRef((
       }
       ctx.putImageData(imageData, 0, 0);
 
-      if (!isProcessing.current) {
-        canvas.toBlob((blob) => {
-          if (blob) {
-            captureAndSendImage(blob);
-          }
-        }, "image/png");
-      }
+      // Send the image to parent for processing
+      canvas.toBlob((blob) => {
+        if (blob && onCaptureImage) {
+          onCaptureImage(blob);
+        }
+      }, "image/png");
     }
   });
-
-  async function captureAndSendImage(imageBlob) {
-    if (!imageBlob) {
-      console.warn("No image available for YOLO processing.");
-      return;
-    }
-
-    if (isProcessing.current) {
-      return;
-    }
-
-    isProcessing.current = true;
-    imageCount.current += 1;
-
-    const reader = new FileReader();
-    reader.readAsDataURL(imageBlob);
-    reader.onloadend = async () => {
-      const base64Image = reader.result;
-
-      try {
-        // Send only the image to the endpoint
-        const response = await fetch(`${COLAB_API_URL}/receive_image`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: base64Image
-          }),
-        });
-
-        const data = await response.json();
-        console.log("✅ YOLO Detection Results:", data);
-        YOLOdetectObject.current = data.detections; // Update with latest detections
-      } catch (error) {
-        console.error("❌ Error sending image:", error);
-      }
-
-      isProcessing.current = false;
-    };
-  }
-
 
   return null;
 });

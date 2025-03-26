@@ -31,9 +31,6 @@ const Main = ({
   setTarget,
   COLAB_API_URL
 }) => {
-  // const [socket, setSocket] = useState(null);
-  // const [wsMessages, setWsMessages] = useState([]);
-
   const positionDisplayRef = useRef(null);
   const rotationDisplayRef = useRef(null);
   const detectionDisplayRef = useRef(null);
@@ -55,6 +52,10 @@ const Main = ({
   const objectsInViewRef = useRef([]);
   const objectsInViewDisplayRef = useRef(null);
 
+  // YOLO processing refs
+  const isProcessingRef = useRef(false);
+  const imageCountRef = useRef(0);
+
   const targetRef = useRef(target);  
   const buggyRef = useRef();
   const recordingControlsRef = useRef(null);
@@ -69,7 +70,7 @@ const Main = ({
     lastAction,
     metrics
   } = useAgentController({
-    robotRef: buggyRef,  // Pass buggy reference
+    robotRef: buggyRef,
     robotCameraRef,
     robotPositionRef,
     robotRotationRef,
@@ -78,6 +79,46 @@ const Main = ({
     setObjectPositions,
     COLAB_API_URL
   });
+  
+  // YOLO image processing function (moved from RobotCamera.jsx)
+  async function captureAndSendImage(imageBlob) {
+    if (!imageBlob) {
+      console.warn("No image available for YOLO processing.");
+      return;
+    }
+
+    if (isProcessingRef.current) {
+      return;
+    }
+
+    isProcessingRef.current = true;
+    imageCountRef.current += 1;
+
+    const reader = new FileReader();
+    reader.readAsDataURL(imageBlob);
+    reader.onloadend = async () => {
+      const base64Image = reader.result;
+
+      try {
+        // Send only the image to the endpoint
+        const response = await fetch(`${COLAB_API_URL}/receive_image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: base64Image
+          }),
+        });
+
+        const data = await response.json();
+        console.log("✅ YOLO Detection Results:", data);
+        YOLOdetectObject.current = data.detections; // Update with latest detections
+      } catch (error) {
+        console.error("❌ Error sending image:", error);
+      }
+
+      isProcessingRef.current = false;
+    };
+  }
   
   // Add the updateObjects functionality from MainScene.jsx
   useEffect(() => {
@@ -244,8 +285,8 @@ const Main = ({
   };
 
   useEffect(() => {
-    // console.log("Target updated:", target);
-    targetRef.current = target;  
+    // Update target ref when target prop changes
+    targetRef.current = target;
 
     const updateHUD = () => {
       // Update robot's position
@@ -268,7 +309,7 @@ const Main = ({
           .join(", ")}`;
       }
     
-      // Update collision and target displays (existing code)
+      // Update collision and target displays
       if (robotStateDisplayRef.current) {
         robotStateDisplayRef.current.innerText = `Collision: ${collisionIndicator?.current ? "True" : "False"}`;
       }
@@ -303,7 +344,7 @@ const Main = ({
         timerDisplayRef.current.innerText = `Time Remaining: ${timerRef.current}s`;
       }
     
-      // *** New Code: Calculate and display closest object ***
+      // Calculate and display closest object
       if (closestObjectDisplayRef.current && robotPositionRef.current) {
         const robotPos = robotPositionRef.current;
         let closestObject = null;
@@ -353,7 +394,7 @@ const Main = ({
     };
     
     requestAnimationFrame(updateHUD);
-  }, [target]); // Re-run effect when target changes
+  }, [target]);
 
   useEffect(() => {
     startTimer(); 
@@ -375,12 +416,9 @@ const Main = ({
   // Add the keyboard event listener for 'v' key
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // We'll handle 'v' key in the Buggy component
-      // This is just a backup in case we need to handle it at the Main level
       if (e.key === 'v' || e.key === 'V') {
         console.log("📸 'v' key pressed in Main component");
         setObjectPositions([]);
-        // The actual processing happens in Buggy.jsx
       }
     };
 
@@ -429,6 +467,7 @@ const Main = ({
           timerRef={timerRef} 
           resetScene={resetScene}
           currentActionRef={currentActionRef}
+          onCaptureImage={captureAndSendImage} // Pass the YOLO processing function to MainScene
         />
         <Environment preset="apartment" intensity={20} />
       </Canvas>

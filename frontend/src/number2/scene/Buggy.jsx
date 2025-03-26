@@ -22,7 +22,8 @@ const Buggy = forwardRef(({
   target,
   timerRef,
   resetScene,
-  currentActionRef
+  currentActionRef,
+  onCaptureImage,
 }, ref) => {
   const buggyRef = useRef();
   const keysPressed = useRef({});
@@ -244,6 +245,7 @@ const Buggy = forwardRef(({
         COLAB_API_URL={COLAB_API_URL}
         objectsInViewRef={objectsInViewRef}
         objectPositions={objectPositions}
+        onCaptureImage={onCaptureImage}
       />
     </RigidBody>
   );
