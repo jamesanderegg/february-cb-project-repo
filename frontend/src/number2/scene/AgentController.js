@@ -37,8 +37,6 @@ export const useAgentController = ({ COLAB_API_URL }) => {
       setIsConnected(false);
     }
   };
-  
-  
 
   return {
     connectToAgent,

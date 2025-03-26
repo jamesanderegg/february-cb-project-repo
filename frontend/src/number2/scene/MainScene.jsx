@@ -26,7 +26,9 @@ const MainScene = ({
   timerRef = useRef(350), // Add this parameter
   resetScene,
   currentActionRef,
-  onCaptureImage
+  onCaptureImage,
+  keysPressed,      // Receive keysPressed from Main
+  lastVActionTime   // Receive lastVActionTime from Main
 }) => {
   // Add a ref for the ObjectRandomizer
   const randomizerRef = useRef(null);
@@ -59,9 +61,6 @@ const MainScene = ({
       delete window.resetEnvironment;
     };
   }, [setObjectPositions, collisionIndicator]);
-  
-  // The updateObjects useEffect was removed from here
-  // and moved to Main.jsx
 
   return (
     <>
@@ -95,6 +94,8 @@ const MainScene = ({
           resetScene={resetScene}
           currentActionRef={currentActionRef}
           onCaptureImage={onCaptureImage}
+          keysPressed={keysPressed}      // Pass keysPressed to Buggy
+          lastVActionTime={lastVActionTime}  // Pass lastVActionTime to Buggy
         />
       </Physics>
     </>

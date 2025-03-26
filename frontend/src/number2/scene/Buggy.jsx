@@ -24,12 +24,12 @@ const Buggy = forwardRef(({
   resetScene,
   currentActionRef,
   onCaptureImage,
+  keysPressed,         // Receive keysPressed from props instead of creating our own
+  lastVActionTime     // Receive lastVActionTime from props instead of creating our own
 }, ref) => {
   const buggyRef = useRef();
-  const keysPressed = useRef({});
   const moveSpeed = 90;
   const rotationSpeed = 4;
-  const lastVActionTime = useRef(0); // To prevent v actions too close together
 
   // Load GLTF Model & Texture
   const { scene: loadedScene } = useGLTF("/models/robot.glb");
@@ -56,26 +56,8 @@ const Buggy = forwardRef(({
     });
   }, [loadedScene, color, texture]);
   
+  // Remove the keyboard event listeners since we're now receiving keysPressed from props
   
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      keysPressed.current[event.key] = true;
-    };
-  
-    const handleKeyUp = (event) => {
-      keysPressed.current[event.key] = false;
-    };
-  
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-  
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
-  }, []);
-  
-
   useFrame(() => {
     if (!buggyRef.current) return;
     

@@ -12,6 +12,7 @@ import MiniMapHUD from "./camera/MiniMapHUD";
 import TopDownCamera from "./camera/TopDownCamera";
 import ReplayControlsModal from '../components/ReplayControls';
 import AmbientLight from "./lights/AmbientLight";
+import GameLoop from "./scene/GameLoop"; // Import our new GameLoop component
 
 import { useAgentController } from "./scene/AgentController";
 import AgentDashboard from "./scene/AgentDashboard";
@@ -55,10 +56,15 @@ const Main = ({
   // YOLO processing refs
   const isProcessingRef = useRef(false);
   const imageCountRef = useRef(0);
+  const keysPressed = useRef({});  // Store keysPressed at Main level
+  const lastVActionTime = useRef(0); // Store lastVActionTime at Main level
 
   const targetRef = useRef(target);  
   const buggyRef = useRef();
   const recordingControlsRef = useRef(null);
+  
+  // Socket.io connection
+  const socketRef = useRef(null);
   
   const {
     connectToAgent,
@@ -162,6 +168,7 @@ const Main = ({
     }, 1000);
   };
 
+  // Initialize socket connection
   useEffect(() => {
     if (!objectPositions || objectPositions.length === 0) {
       console.log("⏳ Waiting for objects to be set before starting WebSocket...");
@@ -171,6 +178,8 @@ const Main = ({
     const socket = io(`${COLAB_API_URL.replace("http", "ws")}`, {
       transports: ["websocket"],
     });
+    
+    socketRef.current = socket;
   
     socket.on("connect", () => {
       console.log("✅ WebSocket connected");
@@ -185,29 +194,11 @@ const Main = ({
       console.log("❌ WebSocket disconnected");
     });
   
-    // Function to send the robot's state
-    const sendState = () => {
-      if (socket.connected) {
-        const state = {
-          robot_pos: robotPositionRef.current || [0, 0, 0],
-          robot_rot: robotRotationRef.current || [0, 0, 0, 1],
-          detectedObjects: YOLOdetectObject?.current || [],
-          objectsInViewRef: objectsInViewRef.current || [],
-          collision: collisionIndicator?.current || false,
-          currentActionRef: currentActionRef.current || [],
-          time_left: timerRef.current || 350,
-          target_object: targetRef.current || null,
-        };
-        socket.emit("state", state);  // Send state to Colab
-      }
-    };
-  
-    // Send state as fast as DQN can process it
-    const interval = setInterval(sendState, 100); // Adjust as needed
-  
     return () => {
-      clearInterval(interval);
-      socket.disconnect();
+      if (socket) {
+        socket.disconnect();
+        socketRef.current = null;
+      }
     };
   }, [COLAB_API_URL, objectPositions]); // Dependency added for objectPositions
   
@@ -413,18 +404,25 @@ const Main = ({
     objectPositionsRef.current = objectPositions;
   }, [objectPositions]);
   
-  // Add the keyboard event listener for 'v' key
+  // Add the keyboard event listener for 'v' key and others
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'v' || e.key === 'V') {
+    const handleKeyDown = (event) => {
+      keysPressed.current[event.key] = true;
+      
+      if (event.key === 'v' || event.key === 'V') {
         console.log("📸 'v' key pressed in Main component");
         setObjectPositions([]);
       }
     };
+    
+    const handleKeyUp = (event) => {
+      keysPressed.current[event.key] = false;
+    };
 
-    // Add event listener
+    // Add event listeners
     window.addEventListener('keydown', handleKeyDown);
-
+    window.addEventListener('keyup', handleKeyUp);
+    
     if (window.resetEnvironment) {
       window.resetEnvironment();
     }
@@ -432,6 +430,7 @@ const Main = ({
     // Clean up
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 
@@ -467,8 +466,44 @@ const Main = ({
           timerRef={timerRef} 
           resetScene={resetScene}
           currentActionRef={currentActionRef}
-          onCaptureImage={captureAndSendImage} // Pass the YOLO processing function to MainScene
+          onCaptureImage={captureAndSendImage}
+          keysPressed={keysPressed} // Pass keysPressed down to Buggy
+          lastVActionTime={lastVActionTime} // Pass lastVActionTime down to Buggy
         />
+        
+        {/* Add our GameLoop component */}
+        <GameLoop
+          // Timer-related props
+          timerRef={timerRef}
+          timerIntervalRef={timerIntervalRef}
+          resetScene={resetScene}
+          
+          // Robot-related refs
+          robotRef={buggyRef}
+          robotPositionRef={robotPositionRef}
+          robotRotationRef={robotRotationRef}
+          collisionIndicator={collisionIndicator}
+          currentActionRef={currentActionRef}
+          
+          // Camera-related refs
+          robotCameraRef={robotCameraRef}
+          
+          // YOLO processing props
+          YOLOdetectObject={YOLOdetectObject}
+          onCaptureImage={captureAndSendImage}
+          
+          // WebSocket props
+          socket={socketRef.current}
+          objectsInViewRef={objectsInViewRef}
+          targetRef={targetRef}
+          
+          // Other refs
+          isProcessingRef={isProcessingRef}
+          lastVActionTime={lastVActionTime}
+          keysPressed={keysPressed}
+          COLAB_API_URL={COLAB_API_URL}
+        />
+        
         <Environment preset="apartment" intensity={20} />
       </Canvas>
 
