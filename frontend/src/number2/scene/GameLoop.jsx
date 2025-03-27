@@ -38,17 +38,28 @@ const GameLoop = ({
   const websocketUpdateInterval = 10; // Send websocket updates every 10 frames
   const yoloProcessingInterval = 30; // Process YOLO every 30 frames
   
+  // Keep track of collision state for logging changes
+  const lastCollisionState = useRef(false);
+  
   // Use the useFrame hook to create our game loop
   useFrame((state, delta) => {
     frameCounter.current += 1;
     
-    // 1. Update timer (already managed by timerIntervalRef in Main.jsx)
+    // Check if collision state changed
+    const currentCollision = Boolean(collisionIndicator?.current);
+    if (currentCollision !== lastCollisionState.current) {
+      console.log(`🔄 Collision state changed: ${lastCollisionState.current} -> ${currentCollision}`);
+      
+      // If collision just occurred, we should log it prominently
+      if (currentCollision) {
+        console.log("🚨 COLLISION DETECTED! Will be sent via WebSocket");
+      }
+      
+      // Update last state
+      lastCollisionState.current = currentCollision;
+    }
     
-    // 2. Update movement (happens in Buggy.jsx via useFrame)
-    
-    // 3. Update camera (happens in RobotCamera.jsx via useFrame)
-    
-    // 4. Handle YOLO processing (throttled)
+    // Handle YOLO processing (throttled)
     if (frameCounter.current % yoloProcessingInterval === 0 && 
         robotCameraRef.current && 
         !isProcessingRef.current) {
@@ -66,20 +77,40 @@ const GameLoop = ({
       }
     }
     
-    // 5. Send WebSocket state (throttled)
+    // Send WebSocket state (throttled)
     if (frameCounter.current % websocketUpdateInterval === 0 && socket && socket.connected) {
-      const state = {
+      // Create state object to send via WebSocket with explicit boolean collision
+      const stateToSend = {
         robot_pos: robotPositionRef.current || [0, 0, 0],
         robot_rot: robotRotationRef.current || [0, 0, 0, 1],
         detectedObjects: YOLOdetectObject?.current || [],
-        objectsInViewRef: objectsInViewRef.current || [],
-        collision: collisionIndicator?.current || false,
-        currentActionRef: currentActionRef.current || [],
+        objectsInView: objectsInViewRef.current || [],
+        collision: Boolean(collisionIndicator?.current), // Ensure collision is boolean
+        currentActions: currentActionRef.current || [],
         time_left: timerRef.current || 350,
         target_object: targetRef.current || null,
+        frame_number: frameCounter.current, // Include frame number for tracking
       };
       
-      socket.emit("state", state);
+      // Log the state if collision is true
+      if (stateToSend.collision) {
+        console.log("💥 Sending collision=true via WebSocket state:", stateToSend);
+      }
+      
+      // Send the state via WebSocket
+      socket.emit("state", stateToSend);
+      
+      // If collision just occurred, also send a dedicated collision event
+      if (stateToSend.collision && !lastCollisionState.current) {
+        const collisionEvent = {
+          ...stateToSend,
+          timestamp: Date.now(),
+          event_type: 'collision',
+        };
+        
+        console.log("🔴 Sending dedicated collision event via WebSocket");
+        socket.emit("collision_event", collisionEvent);
+      }
     }
     
     // Reset frame counter to prevent potential numeric overflow in long sessions
@@ -87,6 +118,13 @@ const GameLoop = ({
       frameCounter.current = 0;
     }
   });
+  
+  // Initialize lastCollisionState on mount
+  useEffect(() => {
+    if (collisionIndicator) {
+      lastCollisionState.current = Boolean(collisionIndicator.current);
+    }
+  }, []);
   
   // This component doesn't render anything
   return null;

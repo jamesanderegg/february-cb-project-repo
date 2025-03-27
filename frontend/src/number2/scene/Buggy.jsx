@@ -24,8 +24,8 @@ const Buggy = forwardRef(({
   resetScene,
   currentActionRef,
   onCaptureImage,
-  keysPressed,         // Receive keysPressed from props instead of creating our own
-  lastVActionTime     // Receive lastVActionTime from props instead of creating our own
+  keysPressed,
+  lastVActionTime
 }, ref) => {
   const buggyRef = useRef();
   const moveSpeed = 90;
@@ -39,7 +39,14 @@ const Buggy = forwardRef(({
     const collidedObject = event.other.colliderObject;
     if (!collidedObject) return;
     if (["RoomFloor", "HallFloor", "Plane"].includes(collidedObject.name)) return;
+    
+    // Set collision indicator to true - will be sent via WebSocket in GameLoop
     collisionIndicator.current = true;
+    
+    // Log collision for debugging
+    console.log("🚨 Collision detected with:", collidedObject.name);
+    
+    // Clear object positions on collision
     setObjectPositions([]);
   };
 
@@ -55,8 +62,6 @@ const Buggy = forwardRef(({
       }
     });
   }, [loadedScene, color, texture]);
-  
-  // Remove the keyboard event listeners since we're now receiving keysPressed from props
   
   useFrame(() => {
     if (!buggyRef.current) return;
@@ -91,7 +96,7 @@ const Buggy = forwardRef(({
         detections: YOLOdetectObject.current || [],
         objects_in_view: objectsInViewRef.current || [],
         target_object: target,
-        collision_indicator: collisionIndicator.current,
+        collision: collisionIndicator.current, // Use consistent collision field name
         time_left: timerRef?.current || 0
       };
 
@@ -195,7 +200,7 @@ const Buggy = forwardRef(({
         body.setLinvel({ x: 0, y: 0, z: 0 }, true);
         body.setAngvel({ x: 0, y: 0, z: 0 }, true);
         
-        // Optional: reset collision indicator
+        // Reset collision indicator
         if (collisionIndicator) {
           collisionIndicator.current = false;
         }

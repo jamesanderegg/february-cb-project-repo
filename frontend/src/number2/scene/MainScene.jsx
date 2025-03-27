@@ -42,7 +42,7 @@ const MainScene = ({
       
       // Safely reset collision indicator
       if (collisionIndicator && typeof collisionIndicator.current !== 'undefined') {
-        collisionIndicator.current = false; // Changed from 0 to false for consistency
+        collisionIndicator.current = false; 
       }
       
       // Reset buggy position & rotation
