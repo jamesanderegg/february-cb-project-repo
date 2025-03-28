@@ -13,7 +13,7 @@ import TopDownCamera from "./camera/TopDownCamera";
 import ReplayControlsModal from '../components/ReplayControls';
 import AmbientLight from "./lights/AmbientLight";
 import GameLoop from "./scene/GameLoop"; // Import our new GameLoop component
-
+import RecordingStatusMonitor from '../components/RecordingStatusMonitor';
 import { useAgentController } from "./scene/AgentController";
 import AgentDashboard from "./scene/AgentDashboard";
 
@@ -41,6 +41,9 @@ const Main = ({
   const timerDisplayRef = useRef(null);
   const timerRef = useRef(350); 
   const timerIntervalRef = useRef(null);
+
+  // State to track if we're waiting for replay save
+  const [autoStoppedReplay, setAutoStoppedReplay] = useState(false);
 
   const currentActionRef = useRef([]);
   const currentActionDisplayRef = useRef(null);
@@ -85,6 +88,140 @@ const Main = ({
     setObjectPositions,
     COLAB_API_URL
   });
+
+  // Handler for recording state changes
+  const handleRecordingStateChange = (isRecording) => {
+    // Broadcast recording state change
+    window.isRecordingActive = isRecording;
+    window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+      detail: { isRecording }
+    }));
+    
+    console.log(`🎬 Recording state changed to: ${isRecording}`);
+    
+    // Reset auto-stopped flag when starting a new recording
+    if (isRecording) {
+      setAutoStoppedReplay(false);
+    }
+  };
+
+  // Handler for recording reference
+  const handleRecordingRef = (controls) => {
+    recordingControlsRef.current = controls;
+    
+    // Create a watch function to monitor recording status changes
+    if (controls && typeof controls.isRecording === 'function') {
+      let lastRecordingState = false;
+      
+      // Check periodically
+      const checkInterval = setInterval(() => {
+        const currentRecordingState = controls.isRecording();
+        if (currentRecordingState !== lastRecordingState) {
+          // Recording state changed
+          handleRecordingStateChange(currentRecordingState);
+          lastRecordingState = currentRecordingState;
+        }
+      }, 500); // Check every 500ms
+      
+      // Store the interval ID
+      recordingStatusIntervalRef.current = checkInterval;
+    }
+    
+    return controls;
+  };
+
+  // Handler for socket events
+  const setupSocketListeners = (socket) => {
+    // Listen for replay status updates
+    socket.on('replay_status', (statusUpdate) => {
+      console.log('📊 Replay status update:', statusUpdate);
+      
+      // Handle auto-stop from backend
+      if (statusUpdate.status === 'stopped' && statusUpdate.auto_stopped === true) {
+        console.log(`🛑 Recording auto-stopped due to: ${statusUpdate.stop_reason}`);
+        
+        // Update global recording state
+        window.isRecordingActive = false;
+        window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+          detail: { isRecording: false }
+        }));
+        
+        // Set flag that we have an unsaved auto-stopped replay
+        setAutoStoppedReplay(true);
+      }
+    });
+    
+    return socket;
+  };
+
+
+  const setupSocketConnection = () => {
+    const socket = io(`${COLAB_API_URL.replace("http", "ws")}`, {
+      transports: ["websocket"],
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 10000
+    });
+    
+    socketRef.current = socket;
+    
+    socket.on("connect", () => {
+      console.log("✅ WebSocket connected");
+      
+      // Send current recording state to ensure backend is in sync
+      if (window.isRecordingActive) {
+        fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' })
+          .then(response => response.json())
+          .then(data => {
+            console.log("🔄 Recording state resynced after reconnection");
+          })
+          .catch(error => {
+            console.error("❌ Error syncing recording state:", error);
+          });
+      }
+    });
+    
+    socket.on("disconnect", () => {
+      console.log("❌ WebSocket disconnected");
+    });
+    
+    socket.on("connect_error", (error) => {
+      console.error("❌ WebSocket connection error:", error);
+    });
+    
+    socket.on("reconnect_attempt", (attemptNumber) => {
+      console.log(`🔄 Attempting to reconnect (${attemptNumber})`);
+    });
+    
+    socket.on("reconnect", (attemptNumber) => {
+      console.log(`✅ Reconnected after ${attemptNumber} attempts`);
+    });
+    
+    socket.on("reconnect_failed", () => {
+      console.error("❌ Failed to reconnect after multiple attempts");
+    });
+    
+    // Handle action responses from the agent
+    socket.on("action", (action) => {
+      console.log("📩 Received action:", action);
+      // Process agent action here if needed
+    });
+    
+    return socket;
+  };
+  
+  // Call this in a useEffect
+  useEffect(() => {
+    const socket = setupSocketConnection();
+    
+    return () => {
+      if (socket) {
+        socket.disconnect();
+        console.log("🔌 WebSocket disconnected on component unmount");
+      }
+    };
+  }, [COLAB_API_URL]);
   
   // YOLO image processing function (moved from RobotCamera.jsx)
   async function captureAndSendImage(imageBlob) {
@@ -575,6 +712,7 @@ const Main = ({
               )}
             </div>
         </div>
+        <RecordingStatusMonitor COLAB_API_URL={COLAB_API_URL} />
       </div>
     </>
   );

@@ -29,7 +29,20 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
         stopRecording: stopRecording
       });
     }
-  }, [isRecording]); // Re-run when recording state changes
+  }, []); // Only run once on mount
+  
+  // Update recording state in window and dispatch event when it changes
+  useEffect(() => {
+    // Set global recording status for other components
+    window.isRecordingActive = isRecording;
+    
+    // Notify other components of recording status change
+    window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+      detail: { isRecording }
+    }));
+    
+    console.log(`🎬 ReplayControls: Recording state set to ${isRecording}`);
+  }, [isRecording]);
 
   const fetchReplays = async () => {
     try {
@@ -54,6 +67,115 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     }
   };
   
+  // const startRecording = async () => {
+  //   try {
+  //     const response = await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
+  //     const data = await response.json();
+      
+  //     // Update local state FIRST (this will trigger the useEffect)
+  //     setIsRecording(true);
+      
+  //     // Then update other UI components
+  //     setStatus({ 
+  //       message: data.message || 'Recording started', 
+  //       type: 'recording' 
+  //     });
+      
+  //     console.log("🎥 Recording started - scene reset detection enabled");
+  //   } catch (error) {
+  //     console.error("❌ Error starting recording:", error);
+  //     setStatus({ message: "Failed to start recording", type: "error" });
+  //   }
+  // };
+
+  const startRecording = async () => {
+    try {
+      // First, reset the scene
+      console.log("🔄 Resetting scene before starting recording...");
+      if (onReset && typeof onReset === 'function') {
+        onReset();
+      } else if (window.resetEnvironment) {
+        window.resetEnvironment();
+      }
+      
+      // Wait a short time for the scene to fully reset
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Now start recording
+      const response = await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
+      const data = await response.json();
+      
+      // Update local state FIRST (this will trigger the useEffect)
+      setIsRecording(true);
+      
+      // Then update other UI components
+      setStatus({ 
+        message: data.message || 'Recording started after scene reset', 
+        type: 'recording' 
+      });
+      
+      console.log("🎥 Recording started - scene reset completed");
+    } catch (error) {
+      console.error("❌ Error starting recording:", error);
+      setStatus({ message: "Failed to start recording", type: "error" });
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      const response = await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
+      const data = await response.json();
+      
+      // Update local state FIRST (this will trigger the useEffect)
+      setIsRecording(false);
+      
+      // Then update other UI components
+      setStatus({ 
+        message: data.message || 'Recording stopped', 
+        type: 'warning' 
+      });
+      
+      console.log("⏹️ Recording stopped - scene reset detection disabled");
+    } catch (error) {
+      console.error("❌ Error stopping recording:", error);
+      setStatus({ message: "Failed to stop recording", type: "error" });
+      // Still update the recording state even on error
+      setIsRecording(false);
+    }
+  };
+
+  const saveReplay = async () => {
+    const replayName = filename || `replay_${Date.now()}.json`;
+    try {
+      // Show saving status
+      setStatus({ message: "Saving replay...", type: "info" });
+      
+      const response = await fetch(`${COLAB_API_URL}/save_replay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: replayName })
+      });
+      
+      const data = await response.json();
+      
+      // Update status based on response
+      setStatus({ 
+        message: data.message || `Saved replay as ${replayName}`, 
+        type: data.status === 'error' ? 'error' : 'saved' 
+      });
+      
+      console.log(`💾 Replay saved as ${replayName}`);
+      
+      // Refresh replay list after saving
+      fetchReplays();
+    } catch (error) {
+      console.error("❌ Error saving replay:", error);
+      setStatus({ message: "Failed to save replay", type: "error" });
+    }
+  };
+
+
+
 
   const handleReplayStatus = (data) => {
     console.log('Replay status update:', data);
@@ -99,38 +221,41 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     setTrainingStats(data);
   };
 
-  const startRecording = async () => {
-    try {
-      await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
-      setIsRecording(true);
-      console.log("🎥 Recording started - scene reset detection enabled");
-    } catch (error) {
-      console.error("❌ Error starting recording:", error);
-    }
-  };
 
-  const stopRecording = async () => {
-    try {
-      await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
-      setIsRecording(false);
-      console.log("⏹️ Recording stopped - scene reset detection disabled");
-    } catch (error) {
-      console.error("❌ Error stopping recording:", error);
-    }
-  };
 
-  const saveReplay = async () => {
-    const replayName = filename || `replay_${Date.now()}.json`;
-    try {
-      await fetch(`${COLAB_API_URL}/save_replay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: replayName })
-      });
-    } catch (error) {
-      console.error("❌ Error saving replay:", error);
-    }
-  };
+
+  // const startRecording = async () => {
+  //   try {
+  //     await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
+  //     setIsRecording(true);
+  //     console.log("🎥 Recording started - scene reset detection enabled");
+  //   } catch (error) {
+  //     console.error("❌ Error starting recording:", error);
+  //   }
+  // };
+
+  // const stopRecording = async () => {
+  //   try {
+  //     await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
+  //     setIsRecording(false);
+  //     console.log("⏹️ Recording stopped - scene reset detection disabled");
+  //   } catch (error) {
+  //     console.error("❌ Error stopping recording:", error);
+  //   }
+  // };
+
+  // const saveReplay = async () => {
+  //   const replayName = filename || `replay_${Date.now()}.json`;
+  //   try {
+  //     await fetch(`${COLAB_API_URL}/save_replay`, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ filename: replayName })
+  //     });
+  //   } catch (error) {
+  //     console.error("❌ Error saving replay:", error);
+  //   }
+  // };
 
   const loadReplay = async (replayName) => {
     if (!replayName) return;
@@ -241,6 +366,84 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
       setIsLoading(false);
     }
   };
+
+  // Function to show a more prominent notification for auto-stop
+  // const showAutoStopNotification = (reason) => {
+  //   // Create notification element
+  //   const notification = document.createElement('div');
+  //   notification.style.position = 'fixed';
+  //   notification.style.top = '50%';
+  //   notification.style.left = '50%';
+  //   notification.style.transform = 'translate(-50%, -50%)';
+  //   notification.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  //   notification.style.color = 'white';
+  //   notification.style.padding = '20px';
+  //   notification.style.borderRadius = '10px';
+  //   notification.style.zIndex = '10000';
+  //   notification.style.fontSize = '18px';
+  //   notification.style.textAlign = 'center';
+  //   notification.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+    
+  //   // Set notification content
+  //   notification.innerHTML = `
+  //     <div style="margin-bottom: 10px; font-weight: bold;">
+  //       ⚠️ Recording Automatically Stopped
+  //     </div>
+  //     <div style="margin-bottom: 15px;">
+  //       Episode ended due to ${reason}
+  //     </div>
+  //     <div style="font-size: 14px;">
+  //       You can now save this replay
+  //     </div>
+  //   `;
+    
+  //   // Add to document
+  //   document.body.appendChild(notification);
+    
+  //   // Remove after 3 seconds
+  //   setTimeout(() => {
+  //     document.body.removeChild(notification);
+  //   }, 3000);
+  // };
+
+  // Set up socket connection to receive auto-stop notifications
+  // useEffect(() => {
+  //   // Create socket connection
+  //   const socket = io(COLAB_API_URL.replace("http", "ws"), {
+  //     transports: ["websocket"]
+  //   });
+    
+  //   // Listen for replay status updates
+  //   socket.on('replay_status', (statusUpdate) => {
+  //     console.log('📊 Replay status update:', statusUpdate);
+      
+  //     // Handle auto-stop from backend
+  //     if (statusUpdate.status === 'stopped' && statusUpdate.auto_stopped === true) {
+  //       console.log(`🛑 Recording auto-stopped due to: ${statusUpdate.stop_reason}`);
+        
+  //       // Update local recording state
+  //       setIsRecording(false);
+        
+  //       // Update status with special message
+  //       const reason = statusUpdate.stop_reason === 'collision' ? 'collision detected' : 'picture taken';
+  //       setStatus({
+  //         message: `Recording automatically stopped (${reason}). Ready to save.`,
+  //         type: 'warning'
+  //       });
+        
+  //       // Show a more prominent notification
+  //       showAutoStopNotification(reason);
+  //     } else {
+  //       // Handle other status updates
+  //       updateStatusFromResponse(statusUpdate);
+  //     }
+  //   });
+    
+  //   // Clean up socket on unmount
+  //   return () => {
+  //     socket.disconnect();
+  //   };
+  // }, [COLAB_API_URL]);
 
   const startMonitoringProgress = () => {
     // Poll for training progress

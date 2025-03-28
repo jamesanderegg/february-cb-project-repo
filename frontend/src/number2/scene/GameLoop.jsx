@@ -41,6 +41,9 @@ const GameLoop = ({
   // Keep track of collision state for logging changes
   const lastCollisionState = useRef(false);
   
+  // Keep track of recording status (for debugging)
+  const isRecordingRef = useRef(false);
+  
   // Use the useFrame hook to create our game loop
   useFrame((state, delta) => {
     frameCounter.current += 1;
@@ -50,7 +53,7 @@ const GameLoop = ({
     if (currentCollision !== lastCollisionState.current) {
       console.log(`🔄 Collision state changed: ${lastCollisionState.current} -> ${currentCollision}`);
       
-      // If collision just occurred, we should log it prominently
+      // If collision just occurred, log it prominently
       if (currentCollision) {
         console.log("🚨 COLLISION DETECTED! Will be sent via WebSocket");
       }
@@ -79,6 +82,14 @@ const GameLoop = ({
     
     // Send WebSocket state (throttled)
     if (frameCounter.current % websocketUpdateInterval === 0 && socket && socket.connected) {
+      // Get currently pressed keys (for recording)
+      const pressedKeys = {};
+      for (const [key, value] of Object.entries(keysPressed.current || {})) {
+        if (value) {
+          pressedKeys[key] = true;
+        }
+      }
+      
       // Create state object to send via WebSocket with explicit boolean collision
       const stateToSend = {
         robot_pos: robotPositionRef.current || [0, 0, 0],
@@ -90,7 +101,21 @@ const GameLoop = ({
         time_left: timerRef.current || 350,
         target_object: targetRef.current || null,
         frame_number: frameCounter.current, // Include frame number for tracking
+        key_state: pressedKeys // Include pressed keys for replay recording
       };
+      
+      // Check if we're recording (for debug messages)
+      const isRecording = window.isRecordingActive === true;
+      if (isRecording !== isRecordingRef.current) {
+        isRecordingRef.current = isRecording;
+        console.log(`🎬 Recording state changed to: ${isRecording ? 'active' : 'inactive'}`);
+      }
+      
+      // Add debug info for recording
+      if (isRecording && frameCounter.current % 100 === 0) { // Every 100 frames
+        console.log(`📊 Recording frame ${frameCounter.current} with keys:`, 
+          Object.keys(pressedKeys).length > 0 ? Object.keys(pressedKeys) : "none");
+      }
       
       // Log the state if collision is true
       if (stateToSend.collision) {
@@ -124,6 +149,21 @@ const GameLoop = ({
     if (collisionIndicator) {
       lastCollisionState.current = Boolean(collisionIndicator.current);
     }
+    
+    // Listen for recording status changes
+    const handleRecordingStatusChange = (event) => {
+      if (event && event.detail && typeof event.detail.isRecording === 'boolean') {
+        window.isRecordingActive = event.detail.isRecording;
+        console.log(`🎬 Recording status changed to: ${window.isRecordingActive ? 'active' : 'inactive'}`);
+      }
+    };
+    
+    // Listen for recording status change events
+    window.addEventListener('recordingStatusChanged', handleRecordingStatusChange);
+    
+    return () => {
+      window.removeEventListener('recordingStatusChanged', handleRecordingStatusChange);
+    };
   }, []);
   
   // This component doesn't render anything
