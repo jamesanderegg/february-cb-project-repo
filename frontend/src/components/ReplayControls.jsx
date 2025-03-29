@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/ReplayControls.css';
 
 const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRecordingRef }) => {
@@ -17,6 +17,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
   const [batchSize, setBatchSize] = useState(32);
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [trainingStats, setTrainingStats] = useState(null);
+  const [autoStopReason, setAutoStopReason] = useState(null);
 
   useEffect(() => {
     // Fetch initial list of replays when the component mounts
@@ -43,6 +44,65 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     
     console.log(`🎬 ReplayControls: Recording state set to ${isRecording}`);
   }, [isRecording]);
+
+  useEffect(() => {
+    // Listen for auto-stopped recordings
+    const handleRecordingStatusChange = (event) => {
+      if (event && event.detail) {
+        // Check if this was an auto-stop event
+        if (event.detail.autoStopped && event.detail.reason) {
+          console.log(`🔴 Recording was auto-stopped due to: ${event.detail.reason}`);
+          setIsRecording(false);  // Update recording state
+          
+          // Format a user-friendly reason
+          let reasonMessage = '';
+          switch(event.detail.reason) {
+            case 'collision':
+              reasonMessage = 'collision detected';
+              break;
+            case 'picture_taken':
+              reasonMessage = 'picture taken';
+              break;
+            case 'time_expired':
+              reasonMessage = 'time limit reached';
+              break;
+            default:
+              reasonMessage = event.detail.reason;
+          }
+          
+          // Update status with the reason
+          setStatus({
+            message: `Recording automatically stopped (${reasonMessage}). Ready to save.`,
+            type: 'warning'
+          });
+          
+          // Store reason for potential display
+          setAutoStopReason(reasonMessage);
+          
+          // Show a notification (optional)
+          if (typeof showAutoStopNotification === 'function') {
+            showAutoStopNotification(reasonMessage);
+          }
+        } else if (typeof event.detail.isRecording === 'boolean') {
+          // Standard recording state change
+          setIsRecording(event.detail.isRecording);
+          
+          // Clear auto-stop reason if starting a new recording
+          if (event.detail.isRecording) {
+            setAutoStopReason(null);
+          }
+        }
+      }
+    };
+    
+    // Add event listener
+    window.addEventListener('recordingStatusChanged', handleRecordingStatusChange);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('recordingStatusChanged', handleRecordingStatusChange);
+    };
+  }, []);
 
   const fetchReplays = async () => {
     try {
