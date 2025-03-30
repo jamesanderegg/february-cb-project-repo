@@ -4,7 +4,7 @@ import { Environment } from "@react-three/drei";
 
 // Scene Components
 import PrimaryCamera from "./camera/PrimaryCamera";
-import OrbitControls from "./contols/OrbitControls";
+import OrbitControls from "./controls/OrbitControls";
 import SpotLights from "./lights/Spotlights";
 import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
@@ -16,6 +16,7 @@ import GameLoop from "./scene/GameLoop"; // Import our new GameLoop component
 import RecordingStatusMonitor from '../components/RecordingStatusMonitor';
 import { useAgentController } from "./scene/AgentController";
 import AgentDashboard from "./scene/AgentDashboard";
+import { useActionHandler } from './ActionHandler';
 
 import { io } from "socket.io-client";
 
@@ -59,8 +60,22 @@ const Main = ({
   // YOLO processing refs
   const isProcessingRef = useRef(false);
   const imageCountRef = useRef(0);
-  const keysPressed = useRef({});  // Store keysPressed at Main level
-  const lastVActionTime = useRef(0); // Store lastVActionTime at Main level
+  // const keysPressed = useRef({});  // Store keysPressed at Main level
+  // const lastVActionTime = useRef(0); // Store lastVActionTime at Main level
+
+  const {
+    keysPressed,
+    keyDurations,
+    lastVActionTime,
+    currentActions: actionHandlerRef
+  } = useActionHandler({
+    currentActionRef: currentActionRef,
+    isRunning,
+    onActionChange: (actions) => {
+      // Optional callback when actions change
+      console.log("Actions changed:", actions);
+    }
+  });
 
   const targetRef = useRef(target);  
   const buggyRef = useRef();
@@ -153,7 +168,6 @@ const Main = ({
     
     return socket;
   };
-
 
   const setupSocketConnection = () => {
     const socket = io(`${COLAB_API_URL.replace("http", "ws")}`, {
@@ -603,6 +617,7 @@ const Main = ({
           timerRef={timerRef} 
           resetScene={resetScene}
           currentActionRef={currentActionRef}
+          keyDurations={keyDurations}
           onCaptureImage={captureAndSendImage}
           keysPressed={keysPressed} // Pass keysPressed down to Buggy
           lastVActionTime={lastVActionTime} // Pass lastVActionTime down to Buggy
@@ -633,11 +648,14 @@ const Main = ({
           socket={socketRef.current}
           objectsInViewRef={objectsInViewRef}
           targetRef={targetRef}
+
+          // Action handling props
+          keysPressed={keysPressed}
+          keyDurations={keyDurations}
+          lastVActionTime={lastVActionTime}
           
           // Other refs
           isProcessingRef={isProcessingRef}
-          lastVActionTime={lastVActionTime}
-          keysPressed={keysPressed}
           COLAB_API_URL={COLAB_API_URL}
         />
         

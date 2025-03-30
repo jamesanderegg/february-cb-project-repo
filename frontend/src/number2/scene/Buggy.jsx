@@ -4,6 +4,7 @@ import { Quaternion, Vector3 } from "three";
 import { useFrame } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
 import RobotCamera from "../camera/RobotCamera";
+import { takePicture } from "../ActionHandler";
 
 const Buggy = forwardRef(({ 
   scale = 1,
@@ -25,6 +26,7 @@ const Buggy = forwardRef(({
   currentActionRef,
   onCaptureImage,
   keysPressed,
+  keyDurations,
   lastVActionTime
 }, ref) => {
   const buggyRef = useRef();
@@ -50,6 +52,45 @@ const Buggy = forwardRef(({
     setObjectPositions([]);
   };
 
+  // Process reward display and scene reset
+  const handlePictureResult = (data) => {
+    if (data.reward) {
+      const rewardDisplay = document.createElement('div');
+      rewardDisplay.className = 'reward-popup';
+      rewardDisplay.innerHTML = `Reward: ${data.reward.toFixed(2)}`;
+      rewardDisplay.style.position = 'absolute';
+      rewardDisplay.style.top = '50%';
+      rewardDisplay.style.left = '50%';
+      rewardDisplay.style.transform = 'translate(-50%, -50%)';
+      rewardDisplay.style.backgroundColor = 'rgba(0, 255, 0, 0.7)';
+      rewardDisplay.style.color = 'white';
+      rewardDisplay.style.padding = '10px 20px';
+      rewardDisplay.style.borderRadius = '5px';
+      rewardDisplay.style.fontSize = '24px';
+      rewardDisplay.style.zIndex = '1000';
+      document.body.appendChild(rewardDisplay);
+      
+      // Remove after 2 seconds
+      setTimeout(() => {
+        document.body.removeChild(rewardDisplay);
+        
+        // Reset the scene
+        if (resetScene && typeof resetScene === 'function') {
+          resetScene();
+        } else if (ref.current && ref.current.resetBuggy) {
+          ref.current.resetBuggy();
+        }
+      }, 2000);
+    } else {
+      // Reset scene immediately if no reward data
+      if (resetScene && typeof resetScene === 'function') {
+        resetScene();
+      } else if (ref.current && ref.current.resetBuggy) {
+        ref.current.resetBuggy();
+      }
+    }
+  };
+
   useEffect(() => {
     if (!loadedScene) return;
     loadedScene.traverse((child) => {
@@ -66,19 +107,11 @@ const Buggy = forwardRef(({
   useFrame(() => {
     if (!buggyRef.current) return;
     
-    // Get currently pressed keys
-    const activeKeys = Object.keys(keysPressed.current)
-      .filter((key) => keysPressed.current[key] && ["w", "a", "s", "d", "v"].includes(key));
-    
-    // Update currentActionRef on EVERY frame to record continuous key holds
-    if (currentActionRef) {
-      currentActionRef.current = [...activeKeys]; // Create a new array to ensure state changes are detected
-    }
-
     const body = buggyRef.current;
     let moveDirection = 0;
     let turnDirection = 0;
   
+    // Apply movement based on keys pressed
     if (keysPressed.current["w"]) moveDirection = moveSpeed;
     if (keysPressed.current["s"]) moveDirection = -moveSpeed;
     if (keysPressed.current["a"]) turnDirection = rotationSpeed;
@@ -96,83 +129,25 @@ const Buggy = forwardRef(({
         detections: YOLOdetectObject.current || [],
         objects_in_view: objectsInViewRef.current || [],
         target_object: target,
-        collision: collisionIndicator.current, // Use consistent collision field name
+        collision: collisionIndicator.current,
         time_left: timerRef?.current || 0
       };
 
       console.log("📸 'v' key pressed - taking picture", currentState);
 
-      // Send to backend to calculate reward and process
-      fetch(`${COLAB_API_URL}/process_action`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: 'v',
-          state: currentState
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log("✅ Action processed:", data);
-        
-        // Display reward if applicable
-        if (data.reward) {
-          const rewardDisplay = document.createElement('div');
-          rewardDisplay.className = 'reward-popup';
-          rewardDisplay.innerHTML = `Reward: ${data.reward.toFixed(2)}`;
-          rewardDisplay.style.position = 'absolute';
-          rewardDisplay.style.top = '50%';
-          rewardDisplay.style.left = '50%';
-          rewardDisplay.style.transform = 'translate(-50%, -50%)';
-          rewardDisplay.style.backgroundColor = 'rgba(0, 255, 0, 0.7)';
-          rewardDisplay.style.color = 'white';
-          rewardDisplay.style.padding = '10px 20px';
-          rewardDisplay.style.borderRadius = '5px';
-          rewardDisplay.style.fontSize = '24px';
-          rewardDisplay.style.zIndex = '1000';
-          document.body.appendChild(rewardDisplay);
-          
-          // Remove after 2 seconds
-          setTimeout(() => {
-            document.body.removeChild(rewardDisplay);
-            
-            // Use the resetScene function from props instead of local reset
-            if (resetScene && typeof resetScene === 'function') {
-              resetScene();
-            } else {
-              // Fallback to local reset if resetScene prop is not provided
-              if (ref.current && ref.current.resetBuggy) {
-                ref.current.resetBuggy();
-              }
-            }
-          }, 2000);
-        } else {
-          // Reset scene immediately if no reward data
-          if (resetScene && typeof resetScene === 'function') {
-            resetScene();
-          } else {
-            // Fallback to local reset if resetScene prop is not provided
-            if (ref.current && ref.current.resetBuggy) {
-              ref.current.resetBuggy();
-            }
-          }
-        }
-      })
-      .catch(error => {
-        console.error("❌ Error processing action:", error);
-        if (resetScene && typeof resetScene === 'function') {
-          resetScene();
-        } else {
-          // Fallback to local reset if resetScene prop is not provided
-          if (ref.current && ref.current.resetBuggy) {
-            ref.current.resetBuggy();
-          }
-        }
+      // Process the picture action
+      takePicture({
+        currentState,
+        COLAB_API_URL,
+        onProcessed: handlePictureResult,
+        resetScene
+      }).catch(error => {
+        console.error("Failed to process picture:", error);
+        if (resetScene) resetScene();
       });
     }
   
+    // Apply rotation
     const currentRotation = new Quaternion().copy(body.rotation());
     if (turnDirection !== 0) {
       const turnQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), turnDirection * 0.05);
@@ -180,10 +155,12 @@ const Buggy = forwardRef(({
       body.setRotation(currentRotation, true);
     }
   
+    // Apply forward/backward movement
     let forward = new Vector3(0, 0, -moveDirection);
     forward.applyQuaternion(currentRotation);
     body.setLinvel({ x: forward.x, y: body.linvel().y, z: forward.z }, true);
   
+    // Update position and rotation references
     const { x, y, z } = body.translation();
     const rotationQuat = body.rotation();
     robotPositionRef.current = [x, y, z];
