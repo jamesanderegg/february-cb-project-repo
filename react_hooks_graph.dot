@@ -1,0 +1,26 @@
+digraph ReactHooks {
+  rankdir=LR;
+  node [shape=box, style=filled, fillcolor="#f0f8ff"];
+  "src\App_jsx" [label="src\App.jsx\n🧠 useState:\n- isRunning\n- target\n📦 useRef:\n- robotCameraRef\n- miniMapCameraRef\n- robotPositionRef\n- robotRotationRef\n- detectObj\n- collisionIndicator\n"];
+  "src\components\Modal_jsx" [label="src\components\Modal.jsx\n🧠 useState:\n- isVisible\n- isLeaving\n"];
+  "src\components\RecordingStatusMonitor_jsx" [label="src\components\RecordingStatusMonitor.jsx\n🧠 useState:\n- isRecording\n- frameCount\n- episodeLength\n- error\n- isRecording\n"];
+  "src\components\ReplayControls_jsx" [label="src\components\ReplayControls.jsx\n🧠 useState:\n- activeTab\n- isRecording\n- isMinimized\n- currentScreenData\n- loadedScreens\n- status\n- replays\n- loadingProgress\n- isLoading\n- isTraining\n- filename\n- trainingEpisodes\n- batchSize\n- trainingProgress\n- trainingStats\n- autoStopReason\n"];
+  "src\components\VoiceToText_jsx" [label="src\components\VoiceToText.jsx\n🧠 useState:\n- isRecording\n- transcribedText\n- isProcessing\n📦 useRef:\n- mediaRecorderRef\n- chunksRef\n"];
+  "src\number2\ActionHandler_js" [label="src\number2\ActionHandler.js\n📦 useRef:\n- localActionRef\n- keysPressed\n- keyDurations\n- lastVActionTime\n"];
+  "src\number2\Main_jsx" [label="src\number2\Main.jsx\n🧠 useState:\n- autoStoppedReplay\n- showDashboard\n- objectPositions\n📦 useRef:\n- positionDisplayRef\n- rotationDisplayRef\n- detectionDisplayRef\n- robotStateDisplayRef\n- targetDisplayRef\n- robotMemoryRef\n- timerDisplayRef\n- timerRef\n- timerIntervalRef\n- currentActionRef\n- currentActionDisplayRef\n- objectPositionsRef\n- closestObjectDisplayRef\n- objectsInViewRef\n- objectsInViewDisplayRef\n- isProcessingRef\n- imageCountRef\n- keysPressed\n- lastVActionTime\n- targetRef\n- buggyRef\n- recordingControlsRef\n- socketRef\n"];
+  "src\number2\camera\HUDView_jsx" [label="src\number2\camera\HUDView.jsx\n🧠 useState:\n- hudImage\n"];
+  "src\number2\camera\MiniMapHUD_jsx" [label="src\number2\camera\MiniMapHUD.jsx\n🧠 useState:\n- miniMapImage\n"];
+  "src\number2\camera\RobotCamera_jsx" [label="src\number2\camera\RobotCamera.jsx\n📦 useRef:\n- cameraRef\n- offscreenCanvasRef\n- renderTarget\n"];
+  "src\number2\camera\TopDownCamera_jsx" [label="src\number2\camera\TopDownCamera.jsx\n📦 useRef:\n- cameraRef\n- renderTarget\n- hudImageData\n"];
+  "src\number2\helper\RobotModel_jsx" [label="src\number2\helper\RobotModel.jsx\n📦 useRef:\n- localRef\n"];
+  "src\number2\lights\DirectionalLight_jsx" [label="src\number2\lights\DirectionalLight.jsx\n📦 useRef:\n- lightRef\n- targetRef\n- lineRef\n"];
+  "src\number2\lights\Spotlight_jsx" [label="src\number2\lights\Spotlight.jsx\n📦 useRef:\n- spotLightRef\n- targetRef\n"];
+  "src\number2\lights\Spotlights_jsx" [label="src\number2\lights\Spotlights.jsx\n📦 useRef:\n- lightRef\n- targetRef\n- lineRef\n"];
+  "src\number2\scene\AgentController_js" [label="src\number2\scene\AgentController.js\n🧠 useState:\n- isConnected\n- agentStatus\n- lastAction\n- metrics\n"];
+  "src\number2\scene\AgentDashboard_jsx" [label="src\number2\scene\AgentDashboard.jsx\n🧠 useState:\n- serverUrl\n"];
+  "src\number2\scene\Buggy_jsx" [label="src\number2\scene\Buggy.jsx\n📦 useRef:\n- buggyRef\n"];
+  "src\number2\scene\GameLoop_jsx" [label="src\number2\scene\GameLoop.jsx\n📦 useRef:\n- frameCounter\n- lastCollisionState\n- isRecordingRef\n- lastVKeyState\n- lastTimerValue\n- lastStateRef\n"];
+  "src\number2\scene\MainScene_jsx" [label="src\number2\scene\MainScene.jsx\n📦 useRef:\n- randomizerRef\n"];
+  "src\number2\scene\ModelFunctions\ObjectRandomizer_jsx" [label="src\number2\scene\ModelFunctions\ObjectRandomizer.jsx\n🧠 useState:\n- resetCounter\n📦 useRef:\n- objectRefs\n"];
+  "src\number2\scene\StaticSceneElements\ScaledEnv\Plane_jsx" [label="src\number2\scene\StaticSceneElements\ScaledEnv\Plane.jsx\n📦 useRef:\n- ref\n"];
+}

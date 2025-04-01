@@ -138,7 +138,8 @@ const GameLoop = ({
       
       // ===== AUTO-STOP CONDITION 2: V KEY PRESS (PICTURE TAKEN) =====
       const vKeyPressed = Boolean(keysPressed.current['v']);
-      if (vKeyPressed && !lastVKeyState.current) {
+      const now = Date.now();
+if (vKeyPressed && now - lastVActionTime.current > 500) {
         console.log("📸 Picture taken! Auto-stopping recording...");
         autoStopRecording('picture_taken');
       }
@@ -173,7 +174,7 @@ const GameLoop = ({
     
     // Create state object to send via WebSocket with explicit boolean collision
     const currentActions = currentActionRef?.current || [];
-    
+   
     const currentState = prepareActionPayload({
       currentActions: currentActions,
       keyDurations: keyDurations?.current || {},
@@ -198,13 +199,14 @@ const GameLoop = ({
     // Send the state via WebSocket if it's time or if important state changed
     if (shouldSendNormalUpdate || (isRecordingRef.current && (hasCollisionChanged || hasActionChanged || hasPositionChanged))) {
       if (socket && socket.connected) {
+        console.log(currentState)
         socket.emit("state", currentState);
         
         // Log significant state changes
         if (hasCollisionChanged) {
           console.log(`🚨 Sending state update with collision change: ${currentState.collision}`);
         }
-        
+        // ***************************************************************************This is weird
         if (hasActionChanged && isRecordingRef.current) {
           const actionStr = currentActions.length > 0 ? currentActions.join(', ') : 'none';
           console.log(`🎮 Action changed during recording: ${actionStr}`);
@@ -219,6 +221,7 @@ const GameLoop = ({
             console.log(`⌨️ Key durations: ${activeDurations}`);
           }
         }
+        console.log(currentActions)
         
         // Update our last known state
         lastStateRef.current = {

@@ -1,0 +1,26 @@
+digraph ReactHooks {
+  rankdir=LR;
+  node [shape=box, style=filled, fillcolor="#f0f8ff"];
+  App [label="App\nsrc/App.jsx\nuseState:\nisRunning\ntarget\nuseRef:\nrobotCameraRef\nminiMapCameraRef\nrobotPositionRef\nrobotRotationRef\ndetectObj\ncollisionIndicator"];
+  Modal [label="Modal\nsrc/components/Modal.jsx\nuseState:\nisVisible\nisLeaving"];
+  RecordingStatusMonitor [label="RecordingStatusMonitor\nsrc/components/RecordingStatusMonitor.jsx\nuseState:\nisRecording\nframeCount\nepisodeLength\nerror\nisRecording"];
+  ReplayControls [label="ReplayControls\nsrc/components/ReplayControls.jsx\nuseState:\nactiveTab\nisRecording\nisMinimized\ncurrentScreenData\nloadedScreens\nstatus\nreplays\nloadingProgress\nisLoading\nisTraining\nfilename\ntrainingEpisodes\nbatchSize\ntrainingProgress\ntrainingStats\nautoStopReason"];
+  VoiceToText [label="VoiceToText\nsrc/components/VoiceToText.jsx\nuseState:\nisRecording\ntranscribedText\nisProcessing\nuseRef:\nmediaRecorderRef\nchunksRef"];
+  ActionHandler [label="ActionHandler\nsrc/number2/ActionHandler.js\nuseRef:\nlocalActionRef\nkeysPressed\nkeyDurations\nlastVActionTime"];
+  Main [label="Main\nsrc/number2/Main.jsx\nuseState:\nautoStoppedReplay\nshowDashboard\nobjectPositions\nuseRef:\npositionDisplayRef\nrotationDisplayRef\ndetectionDisplayRef\nrobotStateDisplayRef\ntargetDisplayRef\nrobotMemoryRef\ntimerDisplayRef\ntimerRef\ntimerIntervalRef\ncurrentActionRef\ncurrentActionDisplayRef\nobjectPositionsRef\nclosestObjectDisplayRef\nobjectsInViewRef\nobjectsInViewDisplayRef\nisProcessingRef\nimageCountRef\nkeysPressed\nlastVActionTime\ntargetRef\nbuggyRef\nrecordingControlsRef\nsocketRef"];
+  HUDView [label="HUDView\nsrc/number2/camera/HUDView.jsx\nuseState:\nhudImage"];
+  MiniMapHUD [label="MiniMapHUD\nsrc/number2/camera/MiniMapHUD.jsx\nuseState:\nminiMapImage"];
+  RobotCamera [label="RobotCamera\nsrc/number2/camera/RobotCamera.jsx\nuseRef:\ncameraRef\noffscreenCanvasRef\nrenderTarget"];
+  TopDownCamera [label="TopDownCamera\nsrc/number2/camera/TopDownCamera.jsx\nuseRef:\ncameraRef\nrenderTarget\nhudImageData"];
+  RobotModel [label="RobotModel\nsrc/number2/helper/RobotModel.jsx\nuseRef:\nlocalRef"];
+  DirectionalLight [label="DirectionalLight\nsrc/number2/lights/DirectionalLight.jsx\nuseRef:\nlightRef\ntargetRef\nlineRef"];
+  Spotlight [label="Spotlight\nsrc/number2/lights/Spotlight.jsx\nuseRef:\nspotLightRef\ntargetRef"];
+  Spotlights [label="Spotlights\nsrc/number2/lights/Spotlights.jsx\nuseRef:\nlightRef\ntargetRef\nlineRef"];
+  AgentController [label="AgentController\nsrc/number2/scene/AgentController.js\nuseState:\nisConnected\nagentStatus\nlastAction\nmetrics"];
+  AgentDashboard [label="AgentDashboard\nsrc/number2/scene/AgentDashboard.jsx\nuseState:\nserverUrl"];
+  Buggy [label="Buggy\nsrc/number2/scene/Buggy.jsx\nuseRef:\nbuggyRef"];
+  GameLoop [label="GameLoop\nsrc/number2/scene/GameLoop.jsx\nuseRef:\nframeCounter\nlastCollisionState\nisRecordingRef\nlastVKeyState\nlastTimerValue\nlastStateRef"];
+  MainScene [label="MainScene\nsrc/number2/scene/MainScene.jsx\nuseRef:\nrandomizerRef"];
+  ObjectRandomizer [label="ObjectRandomizer\nsrc/number2/scene/ModelFunctions/ObjectRandomizer.jsx\nuseState:\nresetCounter\nuseRef:\nobjectRefs"];
+  Plane [label="Plane\nsrc/number2/scene/StaticSceneElements/ScaledEnv/Plane.jsx\nuseRef:\nref"];
+}

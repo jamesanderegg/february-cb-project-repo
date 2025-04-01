@@ -77,6 +77,8 @@ const Main = ({
     }
   });
 
+
+
   const targetRef = useRef(target);  
   const buggyRef = useRef();
   const recordingControlsRef = useRef(null);
@@ -525,6 +527,7 @@ const Main = ({
         }
         // Update the current action display
         if (currentActionDisplayRef.current) {
+          
           currentActionDisplayRef.current.innerText = 
             `Current Actions: ${currentActionRef.current.length > 0 
               ? currentActionRef.current.join(", ") 

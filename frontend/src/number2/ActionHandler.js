@@ -19,8 +19,14 @@ export const useActionHandler = ({
   isRunning = true
 }) => {
   // If currentActionRef wasn't provided, create a local one
-  const localActionRef = useRef([]);
-  const actionRef = currentActionRef || localActionRef;
+  const actionRef = useRef([]);
+
+useEffect(() => {
+  if (currentActionRef) {
+    currentActionRef.current = actionRef.current;
+  }
+}, [currentActionRef]);
+
   
   // Store the pressed keys state
   const keysPressed = useRef({});
@@ -39,58 +45,36 @@ export const useActionHandler = ({
 
   // Function to update current actions based on pressed keys
   const updateCurrentActions = () => {
-    // Get all currently pressed valid keys
     const pressedKeys = validKeys.filter(k => keysPressed.current[k]);
-    
-    // Update the action reference
+  
     actionRef.current = pressedKeys;
-    
-    // Call the change handler if provided
+  
+    if (currentActionRef) {
+      currentActionRef.current = pressedKeys;
+    }
+  
     if (onActionChange) {
       onActionChange(pressedKeys);
     }
   };
   
-  // Handle key down events
+  
   const handleKeyDown = (event) => {
     if (!isRunning) return;
-    
+  
     const key = event.key.toLowerCase();
     if (validKeys.includes(key) && !keysPressed.current[key]) {
       keysPressed.current[key] = true;
-      
-      // Get all currently pressed valid keys
-      const pressedValidKeys = validKeys.filter(k => keysPressed.current[k]);
-      
-      // Update the action reference
-      actionRef.current = pressedValidKeys;
-      
-      // Call the change handler if provided
-      if (onActionChange) {
-        onActionChange(pressedValidKeys);
-      }
+      updateCurrentActions();
     }
   };
   
-  // Handle key up events
   const handleKeyUp = (event) => {
     const key = event.key.toLowerCase();
     if (validKeys.includes(key) && keysPressed.current[key]) {
       keysPressed.current[key] = false;
-      
-      // Reset the duration counter for this key
       keyDurations.current[key] = 0;
-      
-      // Get all currently pressed valid keys
-      const pressedValidKeys = validKeys.filter(k => keysPressed.current[k]);
-      
-      // Update the action reference
-      actionRef.current = pressedValidKeys;
-      
-      // Call the change handler if provided
-      if (onActionChange) {
-        onActionChange(pressedValidKeys);
-      }
+      updateCurrentActions();
     }
   };
   
@@ -123,7 +107,7 @@ export const useActionHandler = ({
       window.removeEventListener('keyup', handleKeyUp);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isRunning, validKeys, onActionChange]);
+  }, []);
   
   // Return all the necessary refs and state
   return {
