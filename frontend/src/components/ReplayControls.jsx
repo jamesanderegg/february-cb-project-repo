@@ -45,6 +45,65 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     console.log(`🎬 ReplayControls: Recording state set to ${isRecording}`);
   }, [isRecording]);
 
+  // useEffect(() => {
+  //   // Listen for auto-stopped recordings
+  //   const handleRecordingStatusChange = (event) => {
+  //     if (event && event.detail) {
+  //       // Check if this was an auto-stop event
+  //       if (event.detail.autoStopped && event.detail.reason) {
+  //         console.log(`🔴 Recording was auto-stopped due to: ${event.detail.reason}`);
+  //         setIsRecording(false);  // Update recording state
+          
+  //         // Format a user-friendly reason
+  //         let reasonMessage = '';
+  //         switch(event.detail.reason) {
+  //           case 'collision':
+  //             reasonMessage = 'collision detected';
+  //             break;
+  //           case 'picture_taken':
+  //             reasonMessage = 'picture taken';
+  //             break;
+  //           case 'time_expired':
+  //             reasonMessage = 'time limit reached';
+  //             break;
+  //           default:
+  //             reasonMessage = event.detail.reason;
+  //         }
+          
+  //         // Update status with the reason
+  //         setStatus({
+  //           message: `Recording automatically stopped (${reasonMessage}). Ready to save.`,
+  //           type: 'warning'
+  //         });
+          
+  //         // Store reason for potential display
+  //         setAutoStopReason(reasonMessage);
+          
+  //         // Show a notification (optional)
+  //         if (typeof showAutoStopNotification === 'function') {
+  //           showAutoStopNotification(reasonMessage);
+  //         }
+  //       } else if (typeof event.detail.isRecording === 'boolean') {
+  //         // Standard recording state change
+  //         setIsRecording(event.detail.isRecording);
+          
+  //         // Clear auto-stop reason if starting a new recording
+  //         if (event.detail.isRecording) {
+  //           setAutoStopReason(null);
+  //         }
+  //       }
+  //     }
+  //   };
+    
+  //   // Add event listener
+  //   window.addEventListener('recordingStatusChanged', handleRecordingStatusChange);
+    
+  //   // Clean up
+  //   return () => {
+  //     window.removeEventListener('recordingStatusChanged', handleRecordingStatusChange);
+  //   };
+  // }, []);
+
   useEffect(() => {
     // Listen for auto-stopped recordings
     const handleRecordingStatusChange = (event) => {
@@ -52,7 +111,14 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
         // Check if this was an auto-stop event
         if (event.detail.autoStopped && event.detail.reason) {
           console.log(`🔴 Recording was auto-stopped due to: ${event.detail.reason}`);
-          setIsRecording(false);  // Update recording state
+          
+          // Only call stopRecording if we were actually recording
+          if (isRecording) {
+            stopRecording();
+          }
+          
+          // Update recording state
+          setIsRecording(false);
           
           // Format a user-friendly reason
           let reasonMessage = '';
@@ -78,11 +144,6 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
           
           // Store reason for potential display
           setAutoStopReason(reasonMessage);
-          
-          // Show a notification (optional)
-          if (typeof showAutoStopNotification === 'function') {
-            showAutoStopNotification(reasonMessage);
-          }
         } else if (typeof event.detail.isRecording === 'boolean') {
           // Standard recording state change
           setIsRecording(event.detail.isRecording);
@@ -102,7 +163,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     return () => {
       window.removeEventListener('recordingStatusChanged', handleRecordingStatusChange);
     };
-  }, []);
+  }, [isRecording]);
 
   const fetchReplays = async () => {
     try {
@@ -126,27 +187,6 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
       setStatus({ message: "Failed to fetch replays", type: "error" });
     }
   };
-  
-  // const startRecording = async () => {
-  //   try {
-  //     const response = await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
-  //     const data = await response.json();
-      
-  //     // Update local state FIRST (this will trigger the useEffect)
-  //     setIsRecording(true);
-      
-  //     // Then update other UI components
-  //     setStatus({ 
-  //       message: data.message || 'Recording started', 
-  //       type: 'recording' 
-  //     });
-      
-  //     console.log("🎥 Recording started - scene reset detection enabled");
-  //   } catch (error) {
-  //     console.error("❌ Error starting recording:", error);
-  //     setStatus({ message: "Failed to start recording", type: "error" });
-  //   }
-  // };
 
   const startRecording = async () => {
     try {
@@ -234,9 +274,6 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     }
   };
 
-
-
-
   const handleReplayStatus = (data) => {
     console.log('Replay status update:', data);
     setStatus({ message: getStatusMessage(data), type: data.status });
@@ -281,19 +318,6 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     setTrainingStats(data);
   };
 
-
-
-
-  // const startRecording = async () => {
-  //   try {
-  //     await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
-  //     setIsRecording(true);
-  //     console.log("🎥 Recording started - scene reset detection enabled");
-  //   } catch (error) {
-  //     console.error("❌ Error starting recording:", error);
-  //   }
-  // };
-
   // const stopRecording = async () => {
   //   try {
   //     await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
@@ -301,19 +325,6 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
   //     console.log("⏹️ Recording stopped - scene reset detection disabled");
   //   } catch (error) {
   //     console.error("❌ Error stopping recording:", error);
-  //   }
-  // };
-
-  // const saveReplay = async () => {
-  //   const replayName = filename || `replay_${Date.now()}.json`;
-  //   try {
-  //     await fetch(`${COLAB_API_URL}/save_replay`, {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ filename: replayName })
-  //     });
-  //   } catch (error) {
-  //     console.error("❌ Error saving replay:", error);
   //   }
   // };
 

@@ -134,6 +134,18 @@ const Buggy = forwardRef(({
       };
 
       console.log("📸 'v' key pressed - taking picture", currentState);
+      
+      // Auto-stop recording when V key is pressed
+      if (window.isRecordingActive) {
+        console.log("🛑 Picture taken during recording - triggering auto-stop");
+        window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+          detail: { 
+            isRecording: false,
+            autoStopped: true,
+            reason: 'picture_taken'
+          }
+        }));
+      }
 
       // Process the picture action
       takePicture({
