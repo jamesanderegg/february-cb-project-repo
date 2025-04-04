@@ -558,35 +558,35 @@ const Main = ({
     objectPositionsRef.current = objectPositions;
   }, [objectPositions]);
   
-  // Add the keyboard event listener for 'v' key and others
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      keysPressed.current[event.key] = true;
+  // // Add the keyboard event listener for 'v' key and others
+  // useEffect(() => {
+  //   const handleKeyDown = (event) => {
+  //     keysPressed.current[event.key] = true;
       
-      if (event.key === 'v' || event.key === 'V') {
-        console.log("📸 'v' key pressed in Main component");
-        setObjectPositions([]);
-      }
-    };
+  //     if (event.key === 'v' || event.key === 'V') {
+  //       console.log("📸 'v' key pressed in Main component");
+  //       setObjectPositions([]);
+  //     }
+  //   };
     
-    const handleKeyUp = (event) => {
-      keysPressed.current[event.key] = false;
-    };
+  //   const handleKeyUp = (event) => {
+  //     keysPressed.current[event.key] = false;
+  //   };
 
-    // Add event listeners
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+  //   // Add event listeners
+  //   window.addEventListener('keydown', handleKeyDown);
+  //   window.addEventListener('keyup', handleKeyUp);
     
-    if (window.resetEnvironment) {
-      window.resetEnvironment();
-    }
+  //   if (window.resetEnvironment) {
+  //     window.resetEnvironment();
+  //   }
     
-    // Clean up
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
+  //   // Clean up
+  //   return () => {
+  //     window.removeEventListener('keydown', handleKeyDown);
+  //     window.removeEventListener('keyup', handleKeyUp);
+  //   };
+  // }, []);
 
   return (
     <>

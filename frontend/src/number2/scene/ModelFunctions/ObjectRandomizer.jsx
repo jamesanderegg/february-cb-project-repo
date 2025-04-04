@@ -51,7 +51,7 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
 
       positions.push({
         ...selectedModel,
-        id: `${selectedModel.name}-${i}-${resetCounter}`,
+        id: `${selectedModel.name}`,
         position,
         rotation
       });

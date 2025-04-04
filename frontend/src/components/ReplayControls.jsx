@@ -163,7 +163,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     return () => {
       window.removeEventListener('recordingStatusChanged', handleRecordingStatusChange);
     };
-  }, [isRecording]);
+  }, []);
 
   const fetchReplays = async () => {
     try {
