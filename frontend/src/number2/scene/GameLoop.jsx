@@ -62,6 +62,8 @@ const GameLoop = ({
     collision: false,
     actions: []
   });
+
+
   
   // Auto-stop recording function
   const autoStopRecording = useCallback((reason) => {
@@ -73,6 +75,8 @@ const GameLoop = ({
     console.log(`🛑 Auto-stopping recording due to: ${reason}`);
     
     // Update recording state
+      // 🚨 Send final state first
+    sendImmediateStateUpdate();
     window.isRecordingActive = false;
     
     // Notify other components
@@ -104,6 +108,24 @@ const GameLoop = ({
     });
   }, [COLAB_API_URL]);
 
+
+  useEffect(() => {
+    const handleSceneReset = () => {
+      if (window.isRecordingActive) {
+        console.log("🛑 Scene reset detected inside GameLoop - auto-stopping recording");
+        sendImmediateStateUpdate();
+        autoStopRecording("scene_reset");
+      }
+    };
+  
+    window.addEventListener("sceneReset", handleSceneReset);
+  
+    return () => {
+      window.removeEventListener("sceneReset", handleSceneReset);
+    };
+  }, [autoStopRecording]);
+
+
   // Helper function to check if two arrays are equal
   const arraysEqual = (a, b) => {
     if (a.length !== b.length) return false;
@@ -112,6 +134,36 @@ const GameLoop = ({
     }
     return true;
   };
+
+  const sendImmediateStateUpdate = () => {
+    if (!socket || !socket.connected) return;
+  
+    const currentActions = currentActionRef?.current || [];
+  
+    const currentState = prepareActionPayload({
+      currentActions: currentActions,
+      keyDurations: keyDurations?.current || {},
+      robotPosition: robotPositionRef?.current || [0, 0, 0],
+      robotRotation: robotRotationRef?.current || [0, 0, 0, 1],
+      collision: Boolean(collisionIndicator?.current),
+      detectedObjects: YOLOdetectObject?.current || [],
+      timeLeft: timerRef?.current || 350,
+      targetObject: targetRef?.current || null,
+      objectsInView: objectsInViewRef?.current || [],
+      frameNumber: frameCounter.current
+    });
+  
+    socket.emit("state", currentState);
+    console.log("📤 Immediate state update sent before auto-stop!");
+  
+    lastStateRef.current = {
+      position: [...currentState.robot_pos],
+      rotation: [...currentState.robot_rot],
+      collision: currentState.collision,
+      actions: [...currentActions]
+    };
+  };
+  
   
   // Use the useFrame hook to create our game loop
   useFrame((state, delta) => {
@@ -132,6 +184,7 @@ const GameLoop = ({
       const currentCollision = Boolean(collisionIndicator?.current);
       if (currentCollision && !lastCollisionState.current) {
         console.log("🚨 COLLISION DETECTED! Auto-stopping recording...");
+        sendImmediateStateUpdate(); // send state BEFORE stopping
         autoStopRecording('collision');
       }
       lastCollisionState.current = currentCollision;
@@ -139,8 +192,9 @@ const GameLoop = ({
       // ===== AUTO-STOP CONDITION 2: V KEY PRESS (PICTURE TAKEN) =====
       const vKeyPressed = Boolean(keysPressed.current['v']);
       const now = Date.now();
-    if (vKeyPressed && now - lastVActionTime.current > 500) {
+      if (vKeyPressed && now - lastVActionTime.current > 500) {
         console.log("📸 Picture taken! Auto-stopping recording...");
+        sendImmediateStateUpdate(); // send state BEFORE stopping
         autoStopRecording('picture_taken');
       }
       lastVKeyState.current = vKeyPressed;
@@ -149,8 +203,10 @@ const GameLoop = ({
       const currentTimer = timerRef?.current || 0;
       if (lastTimerValue.current > 0 && currentTimer <= 0) {
         console.log("⏱️ Timer reached zero! Auto-stopping recording...");
+        sendImmediateStateUpdate(); // send state BEFORE stopping
         autoStopRecording('time_expired');
       }
+      
       lastTimerValue.current = currentTimer;
     }
     
@@ -201,7 +257,7 @@ const GameLoop = ({
       if (socket && socket.connected) {
         
         socket.emit("state", currentState);
-        
+        console.log(currentState)
         // Log significant state changes
         if (hasCollisionChanged) {
           console.log(`🚨 Sending state update with collision change: ${currentState.collision}`);

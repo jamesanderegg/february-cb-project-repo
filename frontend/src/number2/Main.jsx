@@ -363,6 +363,8 @@ const Main = ({
   
   const resetScene = () => {
     console.log("🔄 Resetting scene from Main component...");
+    window.dispatchEvent(new Event("sceneReset"));
+    
     if (recordingControlsRef.current && 
         recordingControlsRef.current.isRecording && 
         recordingControlsRef.current.isRecording()) {
