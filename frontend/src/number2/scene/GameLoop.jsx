@@ -139,7 +139,7 @@ const GameLoop = ({
       // ===== AUTO-STOP CONDITION 2: V KEY PRESS (PICTURE TAKEN) =====
       const vKeyPressed = Boolean(keysPressed.current['v']);
       const now = Date.now();
-if (vKeyPressed && now - lastVActionTime.current > 500) {
+    if (vKeyPressed && now - lastVActionTime.current > 500) {
         console.log("📸 Picture taken! Auto-stopping recording...");
         autoStopRecording('picture_taken');
       }
@@ -196,10 +196,10 @@ if (vKeyPressed && now - lastVActionTime.current > 500) {
     // Always send updates on the normal websocket interval
     const shouldSendNormalUpdate = frameCounter.current % websocketUpdateInterval === 0;
     
-    // Send the state via WebSocket if it's time or if important state changed
+    // Send the state via WebSocket if it's time or if important state changed`
     if (shouldSendNormalUpdate || (isRecordingRef.current && (hasCollisionChanged || hasActionChanged || hasPositionChanged))) {
       if (socket && socket.connected) {
-        console.log(currentState)
+        
         socket.emit("state", currentState);
         
         // Log significant state changes
@@ -221,7 +221,7 @@ if (vKeyPressed && now - lastVActionTime.current > 500) {
             console.log(`⌨️ Key durations: ${activeDurations}`);
           }
         }
-        console.log(currentActions)
+        
         
         // Update our last known state
         lastStateRef.current = {

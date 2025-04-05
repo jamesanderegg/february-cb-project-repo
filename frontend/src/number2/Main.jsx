@@ -73,7 +73,7 @@ const Main = ({
     isRunning,
     onActionChange: (actions) => {
       // Optional callback when actions change
-      console.log("Actions changed:", actions);
+      // console.log("Actions changed:", actions);
     }
   });
 
@@ -190,7 +190,7 @@ const Main = ({
         fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' })
           .then(response => response.json())
           .then(data => {
-            console.log("🔄 Recording state resynced after reconnection");
+            console.log("🔄 Recording state resynced after reconnection**************************************************************");
           })
           .catch(error => {
             console.error("❌ Error syncing recording state:", error);
