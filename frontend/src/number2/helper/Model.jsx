@@ -16,7 +16,8 @@ const Model = forwardRef(({
   visible = true,
   castShadow = true,
   receiveShadow = true,
-  physicsProps = { mass: 1, linearDamping: 0.5, angularDamping: 0.5 }
+  physicsProps = { mass: 1, linearDamping: 0.5, angularDamping: 0.5 },
+  collider 
 }, ref) => {
   const { scene } = useThree();
 
@@ -55,7 +56,7 @@ const Model = forwardRef(({
     <RigidBody
       ref={ref} // Now Model supports refs correctly
       type={physicsProps.mass === 0 ? "fixed" : "dynamic"}
-      colliders="cuboid"
+      colliders={collider}
       mass={physicsProps.mass}
       linearDamping={physicsProps.linearDamping}
       angularDamping={physicsProps.angularDamping}

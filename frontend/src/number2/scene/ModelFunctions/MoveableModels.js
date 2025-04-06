@@ -2,11 +2,10 @@ import AmbientLight from "../../lights/AmbientLight";
 
 export const movableModels = [
   {
-    name: 'bike',
-    filePath: '/models/bike.glb',
-    scale: 4,
-    rotation: [-Math.PI/2, 0, 0],
-    
+    name: 'book',
+    filePath: '/models/book.glb',
+    scale: .9,
+    rotation: [0, 0, 0],
     height: 0.5,
     metallic: 0.3,
     roughness: 0.6,
@@ -15,7 +14,8 @@ export const movableModels = [
     angularDamping: 0.3,
     castShadow: true,
     receiveShadow: true,
-    AmbientLight: 1
+    AmbientLight: 1,
+    collider: 'cuboid'
   },
   {
     name: 'bannana',
@@ -196,6 +196,7 @@ export const movableModels = [
     angularDamping: 0.4,
     castShadow: true,
     receiveShadow: true,
+    collider: 'ball'
   },
   // {
   //   name: 'book',
@@ -214,7 +215,7 @@ export const movableModels = [
   {
     name: 'keys',
     filePath: '/models/keys1.glb',
-    scale: 0.02,
+    scale: 0.009,
     rotation: [0, -Math.PI / 6, 0],
     color: 'gold',
     height: 0.2,

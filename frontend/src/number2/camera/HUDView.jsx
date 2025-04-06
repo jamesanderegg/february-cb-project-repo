@@ -11,6 +11,7 @@ const HUDView = ({ hudImage }) => {
       left: "240px",
       width: "200px",
       height: "200px",
+      backgroundColor: "black",
       border: "2px solid white",
       display: "flex",
       alignItems: "center",

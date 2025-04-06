@@ -28,7 +28,8 @@ const MainScene = ({
   currentActionRef,
   onCaptureImage,
   keysPressed,      // Receive keysPressed from Main
-  lastVActionTime   // Receive lastVActionTime from Main
+  lastVActionTime,   // Receive lastVActionTime from Main
+  physicsKey
 }) => {
   // Add a ref for the ObjectRandomizer
   const randomizerRef = useRef(null);
@@ -64,7 +65,7 @@ const MainScene = ({
 
   return (
     <>
-      <Physics gravity={[0, -9.81, 0]} >
+      <Physics key={physicsKey} gravity={[0, -9.81, 0]} debug >
         <AmbientLight/>
         <ScaledEnvUniform scale={2} />
         <Tables tableConfigs={tableConfigs} />

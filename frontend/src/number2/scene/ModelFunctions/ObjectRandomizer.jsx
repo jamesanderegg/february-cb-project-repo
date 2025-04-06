@@ -50,7 +50,7 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
       // Add enough height (0.2) to ensure it's definitely above the table
       const position = [
         selectedTable.position[0] + offsetX,
-        tableTopY + 0.2, // Slightly higher to ensure no initial collision
+        tableTopY + 2, // Slightly higher to ensure no initial collision
         selectedTable.position[2] + offsetZ
       ];
 
@@ -111,6 +111,7 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
               friction: obj.physicsProps?.friction || 0.7,
               restitution: obj.physicsProps?.restitution || 0.2,
             }}
+            collider={obj.collider || 'cuboid'}
           />
         );
       })}

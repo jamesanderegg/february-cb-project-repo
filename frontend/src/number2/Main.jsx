@@ -48,6 +48,7 @@ const Main = ({
 
   // State to track if we're waiting for replay save
   const [autoStoppedReplay, setAutoStoppedReplay] = useState(false);
+  const [physicsResetKey, setPhysicsResetKey] = useState(0);
 
   const currentActionRef = useRef([]);
   const currentActionDisplayRef = useRef(null);
@@ -416,7 +417,7 @@ const Main = ({
 
       // Reset object positions
       setObjectPositions([]);
-
+      setPhysicsResetKey(prev => prev + 1);
       setTimeout(() => {
         setIsRunning(true);
         console.log("▶️ Scene restarted.");
@@ -592,7 +593,7 @@ const Main = ({
                 position: "absolute",
                 zIndex: 1}}
       >
-        <PrimaryCamera position={[30, 25, 35]} lookAt={[0, 0, 0]} />
+        {/* <PrimaryCamera position={[30, 25, 35]} lookAt={[0, 0, 0]} /> */}
         <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
         <OrbitControls />
         <AmbientLight />
@@ -618,6 +619,7 @@ const Main = ({
           onCaptureImage={captureAndSendImage}
           keysPressed={keysPressed} // Pass keysPressed down to Buggy
           lastVActionTime={lastVActionTime} // Pass lastVActionTime down to Buggy
+          physicsKey={physicsResetKey}
         />
         
         {/* Add our GameLoop component */}
