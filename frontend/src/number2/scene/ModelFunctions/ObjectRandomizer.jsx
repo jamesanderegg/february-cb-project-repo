@@ -33,17 +33,24 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
       const modelIndex = Math.floor(Math.random() * availableModels.length);
       const selectedModel = availableModels.splice(modelIndex, 1)[0];
 
-      const modelHeight = selectedModel.height || 0.5;
+      // Get table dimensions
+      const tableHeight = selectedTable.size?.[1] || 1; // Get table height or default to 1
       const tableWidth = selectedTable.size?.[0] || 2;
       const tableDepth = selectedTable.size?.[2] || 2;
-
+      
+      // Calculate the top surface of the table
+      // If table position is at center, we add half height to get to top
+      const tableTopY = selectedTable.position[1] + (tableHeight / 2);
+      
       // Randomized position within table bounds
       const offsetX = (Math.random() - 0.5) * (tableWidth * 0.7);
       const offsetZ = (Math.random() - 0.5) * (tableDepth * 0.7);
       
+      // Place object slightly above table surface for physics to work properly
+      // Add enough height (0.2) to ensure it's definitely above the table
       const position = [
         selectedTable.position[0] + offsetX,
-        selectedTable.position[1] + 1.2 + modelHeight,
+        tableTopY + 0.2, // Slightly higher to ensure no initial collision
         selectedTable.position[2] + offsetZ
       ];
 
@@ -51,9 +58,18 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
 
       positions.push({
         ...selectedModel,
-        id: `${selectedModel.name}`,
+        id: `${selectedModel.name}`, // Add ID
         position,
-        rotation
+        rotation,
+        // Ensure proper physics props for falling
+        physicsProps: {
+          mass: selectedModel.mass || 1, // Ensure mass is set
+          type: 'dynamic', // Explicitly set as dynamic
+          linearDamping: selectedModel.linearDamping || 0.5,
+          angularDamping: selectedModel.angularDamping || 0.5,
+          friction: selectedModel.friction || 0.7, // Add friction for better physics
+          restitution: selectedModel.restitution || 0.2, // Add bounciness
+        }
       });
     }
     return positions;
@@ -63,14 +79,14 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
   useEffect(() => {
     setObjectPositions((prevPositions) => {
       if (JSON.stringify(prevPositions) === JSON.stringify(objectPositions)) return prevPositions;
-      console.log(objectPositions)
+      console.log("📦 Updated object positions:", objectPositions);
       return objectPositions;
     });
   }, [objectPositions, setObjectPositions]);
 
   return (
     <>
-      {objectPositions.map((obj, index) => {
+      {objectPositions.map((obj) => {
         if (!objectRefs.current.has(obj.id)) {
           objectRefs.current.set(obj.id, React.createRef());
         }
@@ -88,9 +104,12 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
             castShadow={obj.castShadow ?? true}
             receiveShadow={obj.receiveShadow ?? true}
             physicsProps={{
-              mass: obj.mass || 1,
-              linearDamping: obj.linearDamping || 0.5,
-              angularDamping: obj.angularDamping || 0.5,
+              mass: obj.physicsProps?.mass || 1,
+              type: 'dynamic', // Explicitly set as dynamic
+              linearDamping: obj.physicsProps?.linearDamping || 0.5,
+              angularDamping: obj.physicsProps?.angularDamping || 0.5,
+              friction: obj.physicsProps?.friction || 0.7,
+              restitution: obj.physicsProps?.restitution || 0.2,
             }}
           />
         );
