@@ -43,7 +43,7 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
       
       const position = [
         selectedTable.position[0] + offsetX,
-        selectedTable.position[1] + 1.5 + modelHeight,
+        selectedTable.position[1] + 1.2 + modelHeight,
         selectedTable.position[2] + offsetZ
       ];
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, forwardRef } from "react";
+import React, { useEffect, useRef, useMemo, forwardRef, useState } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { Color } from "three";
@@ -22,7 +22,7 @@ const Model = forwardRef(({
 
   // Load GLTF Model
   const { scene: loadedScene } = useGLTF(filePath);
-
+  const [isReady, setIsReady] = useState(false);
   // Memoize Cloned Scene to Prevent Re-Cloning on Every Render
   const clonedScene = useMemo(() => loadedScene.clone(), [loadedScene]);
 
@@ -47,9 +47,11 @@ const Model = forwardRef(({
         child.material.roughness = roughness;
       }
     });
+
+    setIsReady(true);
   }, [clonedScene, color, metallic, roughness, scene, texture]);
 
-  return (
+  return isReady ? (
     <RigidBody
       ref={ref} // Now Model supports refs correctly
       type={physicsProps.mass === 0 ? "fixed" : "dynamic"}
@@ -66,7 +68,7 @@ const Model = forwardRef(({
         visible={visible}
       />
     </RigidBody>
-  );
+  ) : null;
 });
 
 export default Model;

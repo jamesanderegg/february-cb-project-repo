@@ -18,6 +18,9 @@ import { useAgentController } from "./scene/AgentController";
 import AgentDashboard from "./scene/AgentDashboard";
 import { useActionHandler } from './ActionHandler';
 
+import HudCaptureUpdater from "../components/HudCaptureUpdater";
+import TimerHUDUpdater from "../components/TimerHUDUpdater";
+
 import { io } from "socket.io-client";
 
 const Main = ({ 
@@ -77,7 +80,8 @@ const Main = ({
     }
   });
 
-
+  const [hudImage, setHudImage] = useState(null);
+  const [miniMapImage, setMiniMapImage] = useState(null);
 
   const targetRef = useRef(target);  
   const buggyRef = useRef();
@@ -105,6 +109,11 @@ const Main = ({
     setObjectPositions,
     COLAB_API_URL
   });
+
+  const handleHudUpdate = ({ hudImage, miniMapImage }) => {
+    if (hudImage) setHudImage(hudImage);
+    if (miniMapImage) setMiniMapImage(miniMapImage);
+  };
 
   // Handler for recording state changes
   const handleRecordingStateChange = (isRecording) => {
@@ -147,97 +156,97 @@ const Main = ({
     return controls;
   };
 
-  // Handler for socket events
-  const setupSocketListeners = (socket) => {
-    // Listen for replay status updates
-    socket.on('replay_status', (statusUpdate) => {
-      console.log('📊 Replay status update:', statusUpdate);
+  // // Handler for socket events
+  // const setupSocketListeners = (socket) => {
+  //   // Listen for replay status updates
+  //   socket.on('replay_status', (statusUpdate) => {
+  //     console.log('📊 Replay status update:', statusUpdate);
       
-      // Handle auto-stop from backend
-      if (statusUpdate.status === 'stopped' && statusUpdate.auto_stopped === true) {
-        console.log(`🛑 Recording auto-stopped due to: ${statusUpdate.stop_reason}`);
+  //     // Handle auto-stop from backend
+  //     if (statusUpdate.status === 'stopped' && statusUpdate.auto_stopped === true) {
+  //       console.log(`🛑 Recording auto-stopped due to: ${statusUpdate.stop_reason}`);
         
-        // Update global recording state
-        window.isRecordingActive = false;
-        window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
-          detail: { isRecording: false }
-        }));
+  //       // Update global recording state
+  //       window.isRecordingActive = false;
+  //       window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+  //         detail: { isRecording: false }
+  //       }));
         
-        // Set flag that we have an unsaved auto-stopped replay
-        setAutoStoppedReplay(true);
-      }
-    });
+  //       // Set flag that we have an unsaved auto-stopped replay
+  //       setAutoStoppedReplay(true);
+  //     }
+  //   });
     
-    return socket;
-  };
+  //   return socket;
+  // };
 
-  const setupSocketConnection = () => {
-    const socket = io(`${COLAB_API_URL.replace("http", "ws")}`, {
-      transports: ["websocket"],
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      timeout: 10000
-    });
+  // const setupSocketConnection = () => {
+  //   const socket = io(`${COLAB_API_URL.replace("http", "ws")}`, {
+  //     transports: ["websocket"],
+  //     reconnectionAttempts: 10,
+  //     reconnectionDelay: 1000,
+  //     reconnectionDelayMax: 5000,
+  //     timeout: 10000
+  //   });
     
-    socketRef.current = socket;
+  //   socketRef.current = socket;
     
-    socket.on("connect", () => {
-      console.log("✅ WebSocket connected");
+  //   socket.on("connect", () => {
+  //     console.log("✅ WebSocket connected");
       
-      // Send current recording state to ensure backend is in sync
-      if (window.isRecordingActive) {
-        fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' })
-          .then(response => response.json())
-          .then(data => {
-            console.log("🔄 Recording state resynced after reconnection**************************************************************");
-          })
-          .catch(error => {
-            console.error("❌ Error syncing recording state:", error);
-          });
-      }
-    });
+  //     // Send current recording state to ensure backend is in sync
+  //     if (window.isRecordingActive) {
+  //       fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' })
+  //         .then(response => response.json())
+  //         .then(data => {
+  //           console.log("🔄 Recording state resynced after reconnection**************************************************************");
+  //         })
+  //         .catch(error => {
+  //           console.error("❌ Error syncing recording state:", error);
+  //         });
+  //     }
+  //   });
     
-    socket.on("disconnect", () => {
-      console.log("❌ WebSocket disconnected");
-    });
+  //   socket.on("disconnect", () => {
+  //     console.log("❌ WebSocket disconnected");
+  //   });
     
-    socket.on("connect_error", (error) => {
-      console.error("❌ WebSocket connection error:", error);
-    });
+  //   socket.on("connect_error", (error) => {
+  //     console.error("❌ WebSocket connection error:", error);
+  //   });
     
-    socket.on("reconnect_attempt", (attemptNumber) => {
-      console.log(`🔄 Attempting to reconnect (${attemptNumber})`);
-    });
+  //   socket.on("reconnect_attempt", (attemptNumber) => {
+  //     console.log(`🔄 Attempting to reconnect (${attemptNumber})`);
+  //   });
     
-    socket.on("reconnect", (attemptNumber) => {
-      console.log(`✅ Reconnected after ${attemptNumber} attempts`);
-    });
+  //   socket.on("reconnect", (attemptNumber) => {
+  //     console.log(`✅ Reconnected after ${attemptNumber} attempts`);
+  //   });
     
-    socket.on("reconnect_failed", () => {
-      console.error("❌ Failed to reconnect after multiple attempts");
-    });
+  //   socket.on("reconnect_failed", () => {
+  //     console.error("❌ Failed to reconnect after multiple attempts");
+  //   });
     
-    // Handle action responses from the agent
-    socket.on("action", (action) => {
-      console.log("📩 Received action:", action);
-      // Process agent action here if needed
-    });
+  //   // Handle action responses from the agent
+  //   socket.on("action", (action) => {
+  //     console.log("📩 Received action:", action);
+  //     // Process agent action here if needed
+  //   });
     
-    return socket;
-  };
+  //   return socket;
+  // };
   
-  // Call this in a useEffect
-  useEffect(() => {
-    const socket = setupSocketConnection();
+  // // Call this in a useEffect
+  // useEffect(() => {
+  //   const socket = setupSocketConnection();
     
-    return () => {
-      if (socket) {
-        socket.disconnect();
-        console.log("🔌 WebSocket disconnected on component unmount");
-      }
-    };
-  }, [COLAB_API_URL]);
+  //   return () => {
+  //     if (socket) {
+  //       socket.disconnect();
+  //       console.log("🔌 WebSocket disconnected on component unmount");
+  //     }
+  //   };
+  // }, [COLAB_API_URL]);
   
   // YOLO image processing function (moved from RobotCamera.jsx)
   async function captureAndSendImage(imageBlob) {
@@ -304,22 +313,7 @@ const Main = ({
       console.warn("⚠️ objectPositions is not an array or is empty:", objectPositions);
     }
   }, [objectPositions, COLAB_API_URL, setTarget]);
-  
-  const startTimer = () => {
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-    }
-
-    timerIntervalRef.current = setInterval(() => {
-      if (timerRef.current > 0) {
-        timerRef.current -= 1;
-      } else {
-        clearInterval(timerIntervalRef.current);
-        console.log("⏳ Timer reached 0. Resetting scene...");
-        resetScene();
-      }
-    }, 1000);
-  };
+ 
 
   // Initialize socket connection
   useEffect(() => {
@@ -412,7 +406,7 @@ const Main = ({
       }
 
       timerRef.current = 350;
-      startTimer();
+      
 
       if (detectionDisplayRef.current) {
         detectionDisplayRef.current.innerText = "Detected Objects: Waiting...";
@@ -541,13 +535,11 @@ const Main = ({
     };
     
     requestAnimationFrame(updateHUD);
-  }, [target]);
+  }, []);
 
   useEffect(() => {
-    startTimer(); 
-
-    return () => clearInterval(timerIntervalRef.current);
-  }, []);
+    targetRef.current = target;
+  }, [target]);
 
   useEffect(() => {
     if (collisionIndicator?.current) {
@@ -594,13 +586,13 @@ const Main = ({
     <>
       <Canvas
         shadows
-        camera={{ position: [7, 1, 30], fov: 50 }}
+        camera={{ position: [30, 25, 35], fov: 50 }}
         style={{ width: "100vw", 
                 height: "100vh",
                 position: "absolute",
                 zIndex: 1}}
       >
-        <PrimaryCamera position={[7, 1, 30]} />
+        <PrimaryCamera position={[30, 25, 35]} lookAt={[0, 0, 0]} />
         <TopDownCamera ref={miniMapCameraRef} robotPositionRef={robotPositionRef} />
         <OrbitControls />
         <AmbientLight />
@@ -665,29 +657,39 @@ const Main = ({
         />
         
         <Environment preset="apartment" intensity={20} />
+
+        <HudCaptureUpdater 
+          robotCameraRef={robotCameraRef}
+          miniMapCameraRef={miniMapCameraRef}
+          onUpdate={handleHudUpdate}
+        />
+        <TimerHUDUpdater 
+          timerRef={timerRef} 
+          timerDisplayRef={timerDisplayRef} 
+          resetScene={resetScene}
+        />
       </Canvas>
 
       <div className="hud-container" style={{ position: "relative", zIndex: 2 }}>
         <div className="mini-map-container">
-          <MiniMapHUD miniMapCameraRef={miniMapCameraRef} />
+          <MiniMapHUD miniMapImage={miniMapImage} />
         </div>
 
         <div className="robot-camera-container">
-          <HUDView robotCameraRef={robotCameraRef} />
+          <HUDView hudImage={hudImage} />
         </div>
 
         <div className="robot-state-container">
           <div className="robot-state-inline">
-            <h3 ref={robotStateDisplayRef}>Robot State: Loading...</h3>
+            <h3>Robot State:</h3>
+            <p ref={robotStateDisplayRef}>Collision: Loading...</p>
             <p ref={positionDisplayRef}>Position: Loading...</p>
             <p ref={rotationDisplayRef}>Rotation (Quaternion): Loading...</p>
             <p ref={detectionDisplayRef}>Detected Objects: Waiting...</p>
             <p ref={objectsInViewDisplayRef}>Objects in View: Loading...</p> 
             <p ref={timerDisplayRef}>Time Remaining: 350s</p>
-            {/* Display the target using targetRef */}
-            <p id="target-display" ref={robotStateDisplayRef}></p>
-            <p id="target-display" ref={targetDisplayRef}></p>
-            <p id="closest-object-display" ref={closestObjectDisplayRef}>Closest Object: Loading...</p>
+            <p ref={targetDisplayRef}>Target: Loading...</p>
+            <p ref={closestObjectDisplayRef}>Closest Object: Loading...</p>
             <p ref={currentActionDisplayRef}>Current Actions: None</p>
          
           </div>

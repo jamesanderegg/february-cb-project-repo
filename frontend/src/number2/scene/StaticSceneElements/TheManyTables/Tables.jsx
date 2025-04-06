@@ -10,7 +10,7 @@ const Tables = ({ tableConfigs }) => {
   const standRadiusTop = 0.08;
   const standRadiusBottom = 0.2;
   const standHeight = 1;
-  const topSize = [1.4, 0.05, 1.4];
+  const topSize = [1.5, 0.05, 1.5];
 
   return (
     <>
