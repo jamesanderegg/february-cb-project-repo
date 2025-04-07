@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useMemo, forwardRef, useState } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { Color } from "three";
-import { useThree } from "@react-three/fiber";
+import { useThree, useFrame } from "@react-three/fiber";
 
 const Model = forwardRef(({
   filePath,
@@ -17,9 +17,14 @@ const Model = forwardRef(({
   castShadow = true,
   receiveShadow = true,
   physicsProps = { mass: 1, linearDamping: 0.5, angularDamping: 0.5 },
-  collider 
+  collider,
+  onPositionUpdate
 }, ref) => {
   const { scene } = useThree();
+  const rigidBodyRef = useRef();
+  
+  // Forward the ref to the RigidBody
+  React.useImperativeHandle(ref, () => rigidBodyRef.current);
 
   // Load GLTF Model
   const { scene: loadedScene } = useGLTF(filePath);
@@ -29,6 +34,21 @@ const Model = forwardRef(({
 
   // Preload texture
   const texture = texturePath ? useTexture(texturePath) : null;
+
+  // Track the current position and rotation for updates
+  useFrame(() => {
+    if (rigidBodyRef.current && onPositionUpdate) {
+      const currentPosition = rigidBodyRef.current.translation();
+      const currentRotation = rigidBodyRef.current.rotation();
+      
+      // Convert to arrays for consistency
+      const positionArray = [currentPosition.x, currentPosition.y, currentPosition.z];
+      const rotationArray = [currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w];
+      
+      // Call the callback with current position and rotation
+      onPositionUpdate(positionArray, rotationArray);
+    }
+  });
 
   useEffect(() => {
     if (!clonedScene) return;
@@ -50,22 +70,24 @@ const Model = forwardRef(({
     });
 
     setIsReady(true);
-  }, [clonedScene, color, metallic, roughness, scene, texture]);
+  }, [clonedScene, color, metallic, roughness, castShadow, receiveShadow, texture]);
 
   return isReady ? (
     <RigidBody
-      ref={ref} // Now Model supports refs correctly
+      ref={rigidBodyRef}
       type={physicsProps.mass === 0 ? "fixed" : "dynamic"}
       colliders={collider}
       mass={physicsProps.mass}
       linearDamping={physicsProps.linearDamping}
       angularDamping={physicsProps.angularDamping}
+      friction={physicsProps.friction || 0.7}
+      restitution={physicsProps.restitution || 0}
+      position={position}
+      rotation={rotation}
     >
       <primitive
         object={clonedScene}
         scale={scale}
-        position={position}
-        rotation={rotation}
         visible={visible}
       />
     </RigidBody>

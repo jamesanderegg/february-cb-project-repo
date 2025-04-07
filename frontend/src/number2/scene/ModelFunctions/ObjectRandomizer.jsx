@@ -2,7 +2,7 @@ import React, { useMemo, useEffect, useState, useRef, useImperativeHandle, forwa
 import { movableModels } from './MoveableModels';
 import Model from '../../helper/Model';
 
-const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) => {
+const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions, modelPositionsRef }, ref) => {
   const [resetCounter, setResetCounter] = useState(0);
   const objectRefs = useRef(new Map()); // Store refs for object persistence
 
@@ -84,6 +84,13 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
     });
   }, [objectPositions, setObjectPositions]);
 
+  // Update position tracking for the parent component
+  const handlePositionUpdate = (id, position, rotation) => {
+    if (modelPositionsRef && modelPositionsRef.current) {
+      modelPositionsRef.current[id] = { position, rotation };
+    }
+  };
+
   return (
     <>
       {objectPositions.map((obj) => {
@@ -112,6 +119,7 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
               restitution: obj.physicsProps?.restitution || 0,
             }}
             collider={obj.collider || 'cuboid'}
+            onPositionUpdate={(position, rotation) => handlePositionUpdate(obj.id, position, rotation)}
           />
         );
       })}

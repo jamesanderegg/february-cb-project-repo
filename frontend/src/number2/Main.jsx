@@ -22,6 +22,7 @@ import { useActionHandler } from './ActionHandler';
 import TimerHUDUpdater from "../components/TimerHUDUpdater";
 
 import { io } from "socket.io-client";
+import { model } from "@tensorflow/tfjs";
 
 const Main = ({ 
   robotCameraRef, 
@@ -45,6 +46,7 @@ const Main = ({
   const timerDisplayRef = useRef(null);
   const timerRef = useRef(350); 
   const timerIntervalRef = useRef(null);
+  const modelPositionsRef = useRef({});
 
   // State to track if we're waiting for replay save
   const [autoStoppedReplay, setAutoStoppedReplay] = useState(false);
@@ -614,6 +616,7 @@ const Main = ({
           keysPressed={keysPressed} // Pass keysPressed down to Buggy
           lastVActionTime={lastVActionTime} // Pass lastVActionTime down to Buggy
           physicsKey={physicsResetKey}
+          modelPositionsRef={modelPositionsRef}
         />
         
         {/* Add our GameLoop component */}

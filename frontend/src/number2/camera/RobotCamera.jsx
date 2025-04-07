@@ -6,6 +6,7 @@ const RobotCamera = forwardRef((
   { robotRef,
     objectPositions,
     objectsInViewRef,
+    modelPositionsRef,
     onCaptureImage // New prop to send image data to parent
   }, ref) => {
   const cameraRef = useRef();
@@ -31,7 +32,7 @@ const RobotCamera = forwardRef((
   }));
 
   useFrame(() => {
-    if (robotRef.current && cameraRef.current) {
+    if (robotRef.current && cameraRef.current && modelPositionsRef.current) {
       const body = robotRef.current;
 
       // Get robot position & rotation
@@ -54,30 +55,39 @@ const RobotCamera = forwardRef((
       );
       frustum.setFromProjectionMatrix(projScreenMatrix);
      
-      const visibleObjects = objectPositions
-      .map((obj) => {
-        const positionVec = new THREE.Vector3(...obj.position);
-        const cameraToObject = positionVec.clone().sub(cameraRef.current.position);
-        const dotProduct = cameraToObject.dot(lookDirection);
-        const isInFront = dotProduct > 0;
-        const isVisible = isInFront && frustum.containsPoint(positionVec);
+      // Get data from dynamic model positions ref instead of objectPositions array
+      const visibleObjects = Object.entries(modelPositionsRef.current)
+        .map(([id, data]) => {
+          // Find matching object in objectPositions to get additional metadata
+          const originalObj = objectPositions.find(obj => obj.id === id) || { id };
+          
+          // Create position vector from current dynamic position
+          const positionVec = new THREE.Vector3(...data.position);
+          
+          const cameraToObject = positionVec.clone().sub(cameraRef.current.position);
+          const dotProduct = cameraToObject.dot(lookDirection);
+          const isInFront = dotProduct > 0;
+          const isVisible = isInFront && frustum.containsPoint(positionVec);
 
-        if (!isVisible) return null;
+          if (!isVisible) return null;
 
-        // Project to normalized device coordinates (NDC)
-        const projected = positionVec.clone().project(cameraRef.current); // now in NDC space [-1, 1]
+          // Project to normalized device coordinates (NDC)
+          const projected = positionVec.clone().project(cameraRef.current); // now in NDC space [-1, 1]
 
-        // Distance from screen center (0,0) in NDC space
-        const ndcDistanceFromCenter = Math.sqrt(projected.x ** 2 + projected.y ** 2);
+          // Distance from screen center (0,0) in NDC space
+          const ndcDistanceFromCenter = Math.sqrt(projected.x ** 2 + projected.y ** 2);
 
-        return {
-          ...obj,
-          distance: cameraToObject.length(),
-          ndcDistanceFromCenter,
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a.ndcDistanceFromCenter - b.ndcDistanceFromCenter); // closest to center first
+          return {
+            ...originalObj,
+            id,
+            position: data.position,
+            rotation: data.rotation,
+            distance: cameraToObject.length(),
+            ndcDistanceFromCenter,
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.ndcDistanceFromCenter - b.ndcDistanceFromCenter); // closest to center first
 
       objectsInViewRef.current = visibleObjects;
 

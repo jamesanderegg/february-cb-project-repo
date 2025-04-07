@@ -13,6 +13,7 @@ const Buggy = forwardRef(({
   visible = true,
   robotCameraRef,
   YOLOdetectObject,
+  modelPositionsRef,
   robotPositionRef,
   robotRotationRef,
   collisionIndicator,
@@ -222,6 +223,7 @@ const Buggy = forwardRef(({
         objectsInViewRef={objectsInViewRef}
         objectPositions={objectPositions}
         onCaptureImage={onCaptureImage}
+        modelPositionsRef={modelPositionsRef}
       />
     </RigidBody>
   );

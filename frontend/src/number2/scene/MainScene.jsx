@@ -18,6 +18,7 @@ const MainScene = ({
   collisionIndicator,
   objectPositions,
   setObjectPositions,
+  modelPositionsRef,
   isRunning,
   setTarget,
   target,
@@ -75,6 +76,7 @@ const MainScene = ({
           ref={randomizerRef}
           tableConfigs={tableConfigs}
           setObjectPositions={setObjectPositions}
+          modelPositionsRef={modelPositionsRef}
         />
 
         <Buggy
@@ -90,6 +92,7 @@ const MainScene = ({
           setObjectPositions={setObjectPositions}
           COLAB_API_URL={COLAB_API_URL}
           objectsInViewRef={objectsInViewRef}
+          modelPositionsRef={modelPositionsRef}
           target={target}
           timerRef={timerRef}
           resetScene={resetScene}
