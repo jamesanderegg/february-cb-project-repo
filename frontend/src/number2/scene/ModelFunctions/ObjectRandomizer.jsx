@@ -68,7 +68,7 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
           linearDamping: selectedModel.linearDamping || 0.5,
           angularDamping: selectedModel.angularDamping || 0.5,
           friction: selectedModel.friction || 0.7, // Add friction for better physics
-          restitution: selectedModel.restitution || 0.2, // Add bounciness
+          restitution: selectedModel.restitution || 0, // Add bounciness
         }
       });
     }
@@ -109,7 +109,7 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions }, ref) 
               linearDamping: obj.physicsProps?.linearDamping || 0.5,
               angularDamping: obj.physicsProps?.angularDamping || 0.5,
               friction: obj.physicsProps?.friction || 0.7,
-              restitution: obj.physicsProps?.restitution || 0.2,
+              restitution: obj.physicsProps?.restitution || 0,
             }}
             collider={obj.collider || 'cuboid'}
           />

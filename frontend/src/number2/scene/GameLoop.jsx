@@ -278,7 +278,6 @@ const GameLoop = ({
           }
         }
         
-        
         // Update our last known state
         lastStateRef.current = {
           position: [...currentState.robot_pos],
