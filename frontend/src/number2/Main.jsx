@@ -18,7 +18,7 @@ import { useAgentController } from "./scene/AgentController";
 import AgentDashboard from "./scene/AgentDashboard";
 import { useActionHandler } from './ActionHandler';
 
-import HudCaptureUpdater from "../components/HudCaptureUpdater";
+
 import TimerHUDUpdater from "../components/TimerHUDUpdater";
 
 import { io } from "socket.io-client";
@@ -81,9 +81,6 @@ const Main = ({
     }
   });
 
-  const [hudImage, setHudImage] = useState(null);
-  const [miniMapImage, setMiniMapImage] = useState(null);
-
   const targetRef = useRef(target);  
   const buggyRef = useRef();
   const recordingControlsRef = useRef(null);
@@ -110,11 +107,6 @@ const Main = ({
     setObjectPositions,
     COLAB_API_URL
   });
-
-  const handleHudUpdate = ({ hudImage, miniMapImage }) => {
-    if (hudImage) setHudImage(hudImage);
-    if (miniMapImage) setMiniMapImage(miniMapImage);
-  };
 
   // Handler for recording state changes
   const handleRecordingStateChange = (isRecording) => {
@@ -531,6 +523,8 @@ const Main = ({
               : "None"}`;
         }
       }
+
+      
       // Request the next frame
       requestAnimationFrame(updateHUD);
     };
@@ -658,13 +652,8 @@ const Main = ({
           COLAB_API_URL={COLAB_API_URL}
         />
         
-        <Environment preset="apartment" intensity={20} />
+        <Environment preset="apartment" intensity={100} />
 
-        <HudCaptureUpdater 
-          robotCameraRef={robotCameraRef}
-          miniMapCameraRef={miniMapCameraRef}
-          onUpdate={handleHudUpdate}
-        />
         <TimerHUDUpdater 
           timerRef={timerRef} 
           timerDisplayRef={timerDisplayRef} 
@@ -674,11 +663,11 @@ const Main = ({
 
       <div className="hud-container" style={{ position: "relative", zIndex: 2 }}>
         <div className="mini-map-container">
-          <MiniMapHUD miniMapImage={miniMapImage} />
+          <MiniMapHUD getMiniMapImage={() => miniMapCameraRef.current?.getHudImage()} />
         </div>
 
         <div className="robot-camera-container">
-          <HUDView hudImage={hudImage} />
+          <HUDView getHudImage={() => robotCameraRef.current?.getHudImage()} />
         </div>
 
         <div className="robot-state-container">

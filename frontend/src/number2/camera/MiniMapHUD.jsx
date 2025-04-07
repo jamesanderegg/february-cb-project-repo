@@ -1,8 +1,26 @@
+import React, { useEffect, useRef } from "react";
 
+const MiniMapHUD = ({ getMiniMapImage }) => {
+  const imgRef = useRef(null);
 
-const MiniMapHUD = ({ miniMapImage }) => {
-  
-  
+  useEffect(() => {
+    let animationFrameId;
+
+    const updateMiniMap = () => {
+      if (imgRef.current && getMiniMapImage) {
+        const newSrc = getMiniMapImage();
+        if (imgRef.current.src !== newSrc) {
+          imgRef.current.src = newSrc;
+        }
+      }
+      animationFrameId = requestAnimationFrame(updateMiniMap);
+    };
+
+    updateMiniMap(); // Start update loop
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [getMiniMapImage]);
+
   return (
     <div style={{
       position: "absolute",
@@ -16,14 +34,9 @@ const MiniMapHUD = ({ miniMapImage }) => {
       alignItems: "center",
       justifyContent: "center",
     }}>
-      {miniMapImage ? (
-        <img src={miniMapImage} alt="MinMap View" style={{ width: "100%", height: "100%" }} />
-      ) : (
-        <span style={{ color: "white" }}>Loading...</span>
-      )}
+      <img ref={imgRef} alt="Minimap View" style={{ width: "100%", height: "100%" }} />
     </div>
   );
 };
-
 
 export default MiniMapHUD;

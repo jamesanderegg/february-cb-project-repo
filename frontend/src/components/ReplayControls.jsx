@@ -642,9 +642,9 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
           <input
             type="text"
             className="form-control"
-            placeholder="replay_name.json"
+            placeholder=".json"
             value={filename}
-            onChange={(e) => setFilename(e.target.value)}
+            onChange={(e) => setFilename(`${e.target.value}.json`)}
           />
         </div>
       </div>

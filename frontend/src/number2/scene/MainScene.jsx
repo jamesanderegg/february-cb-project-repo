@@ -65,7 +65,7 @@ const MainScene = ({
 
   return (
     <>
-      <Physics key={physicsKey} gravity={[0, -9.81, 0]} debug >
+      <Physics key={physicsKey} gravity={[0, -9.81, 0]} >
         <AmbientLight/>
         <ScaledEnvUniform scale={2} />
         <Tables tableConfigs={tableConfigs} />
