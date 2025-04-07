@@ -54,15 +54,30 @@ const RobotCamera = forwardRef((
       );
       frustum.setFromProjectionMatrix(projScreenMatrix);
      
-      const visibleObjects = objectPositions.filter(({ position }) => {
-        const objectVector = new THREE.Vector3(position[0], position[1], position[2]);
-        const cameraToObject = objectVector.clone().sub(cameraRef.current.position);
+      const visibleObjects = objectPositions
+      .map((obj) => {
+        const positionVec = new THREE.Vector3(...obj.position);
+        const cameraToObject = positionVec.clone().sub(cameraRef.current.position);
         const dotProduct = cameraToObject.dot(lookDirection);
         const isInFront = dotProduct > 0;
-        const isVisible = isInFront && frustum.containsPoint(objectVector);
+        const isVisible = isInFront && frustum.containsPoint(positionVec);
 
-        return isVisible;
-      });
+        if (!isVisible) return null;
+
+        // Project to normalized device coordinates (NDC)
+        const projected = positionVec.clone().project(cameraRef.current); // now in NDC space [-1, 1]
+
+        // Distance from screen center (0,0) in NDC space
+        const ndcDistanceFromCenter = Math.sqrt(projected.x ** 2 + projected.y ** 2);
+
+        return {
+          ...obj,
+          distance: cameraToObject.length(),
+          ndcDistanceFromCenter,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.ndcDistanceFromCenter - b.ndcDistanceFromCenter); // closest to center first
 
       objectsInViewRef.current = visibleObjects;
 
