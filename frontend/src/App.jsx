@@ -14,7 +14,7 @@ function App() {
   const detectObj = useRef(null);
   const collisionIndicator = useRef(0);
 
-  const COLAB_API_URL = "https://6847-35-199-161-227.ngrok-free.app"
+  const COLAB_API_URL = "https://e2ad-104-154-219-110.ngrok-free.app"
 
   const [isRunning, setIsRunning] = useState(true);
   const [target, setTarget] = useState(null);

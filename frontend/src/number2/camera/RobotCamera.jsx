@@ -18,7 +18,7 @@ const RobotCamera = forwardRef((
   const renderTarget = useRef(new THREE.WebGLRenderTarget(640, 640, { stencilBuffer: false }));
 
   useEffect(() => {
-    const camera = new THREE.PerspectiveCamera(45, 1, 1, 10);
+    const camera = new THREE.PerspectiveCamera(75, 1, 1, 10);
     cameraRef.current = camera;
     scene.add(camera);
 
@@ -62,7 +62,11 @@ const RobotCamera = forwardRef((
           const originalObj = objectPositions.find(obj => obj.id === id) || { id };
           
           // Create position vector from current dynamic position
-          const positionVec = new THREE.Vector3(...data.position);
+          const positionVec = new THREE.Vector3(
+            data.position[0],  // X from dynamic position
+            1.25,              // Static Y height of 1.25
+            data.position[2]   // Z from dynamic position
+          );;
           
           const cameraToObject = positionVec.clone().sub(cameraRef.current.position);
           const dotProduct = cameraToObject.dot(lookDirection);
