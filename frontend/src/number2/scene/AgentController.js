@@ -1,15 +1,37 @@
 // useAgentController.js
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
-export const useAgentController = ({ COLAB_API_URL }) => {
+export const useAgentController = ({ 
+  robotRef, 
+  robotCameraRef, 
+  robotPositionRef, 
+  robotRotationRef, 
+  collisionIndicator, 
+  targetObject, 
+  setObjectPositions, 
+  COLAB_API_URL 
+}) => {
   const [isConnected, setIsConnected] = useState(false);
   const [agentStatus, setAgentStatus] = useState("idle");
   const [lastAction, setLastAction] = useState(null);
-  const [metrics, setMetrics] = useState({ epsilon: 1.0, loss: 0.0, rewards: [] });
+  const [metrics, setMetrics] = useState({ 
+    epsilon: 1.0, 
+    loss: 0.0, 
+    rewards: [] 
+  });
+  const [replays, setReplays] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [trainingProgress, setTrainingProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const connectToAgent = async (customUrl) => {
+  // Connect to agent backend
+  const connectToAgent = useCallback(async (customUrl) => {
     const url = customUrl || COLAB_API_URL;
-    console.log("🔍 Using URL:", url);
+    console.log("🔍 Connecting to agent at:", url);
+    setIsLoading(true);
+    setErrorMessage("");
+    
     try {
       const response = await fetch(`${url}/status`, {
         method: "GET",
@@ -19,33 +41,325 @@ export const useAgentController = ({ COLAB_API_URL }) => {
         }
       });
   
-      const text = await response.text();
-      console.log("📦 Raw response from /status:", text);
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
   
-      // Try parsing after confirming it's JSON
-      const data = JSON.parse(text);
-      console.log("✅ Parsed JSON:", data);
-  
+      const data = await response.json();
+      
       if (data.status === "ok") {
         setIsConnected(true);
+        setSuccessMessage("Connected to agent successfully");
+        
+        // Load available replays
+        fetchReplays();
       } else {
-        console.warn("⚠️ Unexpected data:", data);
+        setErrorMessage("Unexpected response from agent");
         setIsConnected(false);
       }
     } catch (error) {
       console.error("❌ Failed to connect to agent:", error);
+      setErrorMessage(`Connection failed: ${error.message}`);
       setIsConnected(false);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [COLAB_API_URL]);
 
+  // Fetch available replays
+  const fetchReplays = useCallback(async () => {
+    if (!isConnected) return;
+    
+    try {
+      const response = await fetch(`${COLAB_API_URL}/list_replays`, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "ngrok-skip-browser-warning": "true"
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      setReplays(data.replays || []);
+      console.log(`📋 Retrieved ${data.replays?.length || 0} replays`);
+    } catch (error) {
+      console.error("❌ Error fetching replays:", error);
+      setErrorMessage(`Failed to fetch replays: ${error.message}`);
+    }
+  }, [COLAB_API_URL, isConnected]);
+
+  // Start agent training
+  const startTraining = useCallback(async (episodes = 10, batchSize = 32) => {
+    setIsLoading(true);
+    setErrorMessage("");
+    setAgentStatus("training");
+    setTrainingProgress(0);
+    
+    try {
+      // First make sure we have the latest replays list
+      await fetchReplays();
+      
+      if (replays.length === 0) {
+        throw new Error("No replay files available for training");
+      }
+
+      // Start consolidated training approach
+      const response = await fetch(`${COLAB_API_URL}/start_training`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          episodes: episodes, 
+          batch_size: batchSize 
+        })
+      });
+
+      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.status === 'error') {
+        throw new Error(data.message || "Failed to start training");
+      }
+      
+      console.log(`🚀 Started training with ${episodes} episodes`);
+      setSuccessMessage(`Training started with ${data.replay_count || replays.length} replays`);
+      
+      // Set up progress monitoring
+      startMonitoringProgress();
+      
+      return true;
+    } catch (error) {
+      console.error("❌ Training error:", error);
+      setErrorMessage(`Training error: ${error.message}`);
+      setAgentStatus("idle");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [COLAB_API_URL, fetchReplays, replays]);
+
+  // Stop agent training
+  const stopTraining = useCallback(async () => {
+    try {
+      const response = await fetch(`${COLAB_API_URL}/training/stop`, { method: 'POST' });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 'error') {
+        throw new Error(data.message || "Failed to stop training");
+      }
+      
+      console.log("⏹️ Training stopped");
+      setAgentStatus("idle");
+      setSuccessMessage("Training stopped");
+      
+      // Fetch the latest agent status
+      fetchAgentStatus();
+      
+      return true;
+    } catch (error) {
+      console.error("❌ Error stopping training:", error);
+      setErrorMessage(`Failed to stop training: ${error.message}`);
+      return false;
+    }
+  }, [COLAB_API_URL]);
+
+  // Start agent inference (epsilon-greedy exploration)
+  const startInference = useCallback(async () => {
+    try {
+      // Toggle agent mode to inference
+      const response = await fetch(`${COLAB_API_URL}/toggle_agent_training`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: false })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      console.log("🔮 Inference mode enabled", data);
+      setAgentStatus("inference");
+      setSuccessMessage("Agent switched to inference mode");
+      
+      return true;
+    } catch (error) {
+      console.error("❌ Error starting inference:", error);
+      setErrorMessage(`Failed to start inference: ${error.message}`);
+      return false;
+    }
+  }, [COLAB_API_URL]);
+
+  // Fetch current agent status
+  const fetchAgentStatus = useCallback(async () => {
+    if (!isConnected) return;
+    
+    try {
+      const response = await fetch(`${COLAB_API_URL}/agent_training_status`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      console.log("📊 Agent status:", data);
+
+      // Update metrics
+      setMetrics({
+        epsilon: data.epsilon || 1.0,
+        loss: data.last_loss || 0.0,
+        rewards: [...metrics.rewards], // Keep existing rewards
+        memorySize: data.memory_size || 0,
+        episodesCompleted: data.episodes_trained || 0
+      });
+      
+      // Update training progress if available
+      if (data.training_progress !== undefined) {
+        setTrainingProgress(data.training_progress);
+      }
+      
+      // Update status if we're training
+      if (data.status === 'training') {
+        setAgentStatus('training');
+      } else if (agentStatus === 'training' && data.status !== 'training') {
+        setAgentStatus('idle');
+        setSuccessMessage("Training completed");
+      }
+      
+    } catch (error) {
+      console.error("❌ Error fetching agent status:", error);
+    }
+  }, [COLAB_API_URL, isConnected, agentStatus, metrics.rewards]);
+
+  // Monitor training progress
+  const startMonitoringProgress = useCallback(() => {
+    const progressInterval = setInterval(async () => {
+      try {
+        await fetchAgentStatus();
+        
+        // Check if training is still active
+        if (agentStatus !== "training") {
+          clearInterval(progressInterval);
+          setTrainingProgress(100);
+        }
+      } catch (error) {
+        console.error("Failed to fetch training progress:", error);
+      }
+    }, 1000);
+    
+    // Auto-cleanup after 10 minutes (failsafe)
+    setTimeout(() => {
+      clearInterval(progressInterval);
+    }, 10 * 60 * 1000);
+    
+    return progressInterval;
+  }, [fetchAgentStatus, agentStatus]);
+
+  // Initial status check on connection
+  useEffect(() => {
+    if (isConnected) {
+      fetchAgentStatus();
+      fetchReplays();
+    }
+  }, [isConnected, fetchAgentStatus, fetchReplays]);
+
+  // Provide all the agent control functions
   return {
+    // Connection
     connectToAgent,
-    startTraining: () => {},     // Placeholder
-    stopTraining: () => {},      // Placeholder
-    startInference: () => {},    // Placeholder
+    
+    // Training functions
+    startTraining,
+    stopTraining,
+    startInference,
+    
+    // Replay management
+    fetchReplays,
+    
+    // Status and data
     agentStatus,
     isConnected,
     lastAction,
     metrics,
+    replays,
+    isLoading,
+    trainingProgress,
+    errorMessage,
+    successMessage,
+    
+    // Clear messages
+    clearMessages: () => {
+      setErrorMessage("");
+      setSuccessMessage("");
+    }
   };
 };
+
+
+
+// // useAgentController.js
+// import { useState } from "react";
+
+// export const useAgentController = ({ COLAB_API_URL }) => {
+//   const [isConnected, setIsConnected] = useState(false);
+//   const [agentStatus, setAgentStatus] = useState("idle");
+//   const [lastAction, setLastAction] = useState(null);
+//   const [metrics, setMetrics] = useState({ epsilon: 1.0, loss: 0.0, rewards: [] });
+
+//   const connectToAgent = async (customUrl) => {
+//     const url = customUrl || COLAB_API_URL;
+//     console.log("🔍 Using URL:", url);
+//     try {
+//       const response = await fetch(`${url}/status`, {
+//         method: "GET",
+//         headers: {
+//           "Accept": "application/json",
+//           "ngrok-skip-browser-warning": "true"
+//         }
+//       });
+  
+//       const text = await response.text();
+//       console.log("📦 Raw response from /status:", text);
+  
+//       // Try parsing after confirming it's JSON
+//       const data = JSON.parse(text);
+//       console.log("✅ Parsed JSON:", data);
+  
+//       if (data.status === "ok") {
+//         setIsConnected(true);
+//       } else {
+//         console.warn("⚠️ Unexpected data:", data);
+//         setIsConnected(false);
+//       }
+//     } catch (error) {
+//       console.error("❌ Failed to connect to agent:", error);
+//       setIsConnected(false);
+//     }
+//   };
+
+//   return {
+//     connectToAgent,
+//     startTraining: () => {},     // Placeholder
+//     stopTraining: () => {},      // Placeholder
+//     startInference: () => {},    // Placeholder
+//     agentStatus,
+//     isConnected,
+//     lastAction,
+//     metrics,
+//   };
+// };

@@ -182,6 +182,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
       }
   
       const data = await response.json();
+      console.log(data)
       setReplays(data.replays || []);
     } catch (error) {
       console.error("❌ Error fetching replays:", error);
@@ -338,7 +339,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: replayName })
       });
-      fetchReplays(); // Refresh replay list
+      fetchReplays(); // Refresh replay list `
     } catch (error) {
       console.error("❌ Error loading replay:", error);
     }
@@ -413,7 +414,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
       // Monitor training progress
       const progressInterval = setInterval(async () => {
         try {
-          const response = await fetch(`${COLAB_API_URL}/agent_status`);
+          const response = await fetch(`${COLAB_API_URL}/agent_training_status`);
           const data = await response.json();
           
           if (data.training_progress !== undefined) {
@@ -521,7 +522,7 @@ const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRec
     // Poll for training progress
     const progressInterval = setInterval(async () => {
       try {
-        const response = await fetch(`${COLAB_API_URL}/agent_status`);
+        const response = await fetch(`${COLAB_API_URL}/agent_training_status`);
         const data = await response.json();
         
         // Update training progress

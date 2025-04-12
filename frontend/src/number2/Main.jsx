@@ -90,15 +90,23 @@ const Main = ({
   // Socket.io connection
   const socketRef = useRef(null);
   
+  // Use the agent controller
   const {
     connectToAgent,
     startTraining,
     stopTraining,
     startInference,
+    fetchReplays,
     agentStatus,
     isConnected,
     lastAction,
-    metrics
+    metrics,
+    replays,
+    isLoading,
+    trainingProgress,
+    errorMessage,
+    successMessage,
+    clearMessages
   } = useAgentController({
     robotRef: buggyRef,
     robotCameraRef,
@@ -722,10 +730,17 @@ const Main = ({
                   isConnected={isConnected}
                   lastAction={lastAction}
                   metrics={metrics}
+                  replays={replays}
+                  isLoading={isLoading}
+                  trainingProgress={trainingProgress}
+                  errorMessage={errorMessage}
+                  successMessage={successMessage}
                   onConnect={connectToAgent}
                   onStartTraining={startTraining}
                   onStopTraining={stopTraining}
                   onStartInference={startInference}
+                  onFetchReplays={fetchReplays}
+                  onClearMessages={clearMessages}
                   COLAB_API_URL={COLAB_API_URL}
                 />
               )}

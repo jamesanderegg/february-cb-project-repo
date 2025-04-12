@@ -1,5 +1,5 @@
 // AgentDashboard.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/AgentDashboard.css'; 
 
 const AgentDashboard = ({ 
@@ -7,13 +7,44 @@ const AgentDashboard = ({
   isConnected, 
   lastAction, 
   metrics,
+  replays = [],
+  isLoading = false,
+  trainingProgress = 0,
+  errorMessage = "",
+  successMessage = "",
   onConnect,
   onStartTraining,
   onStopTraining,
   onStartInference,
+  onFetchReplays,
+  onClearMessages,
   COLAB_API_URL
 }) => {
-  const [serverUrl, setServerUrl] = useState(COLAB_API_URL || 'http://localhost:5001/api');  
+  const [serverUrl, setServerUrl] = useState(COLAB_API_URL || 'http://localhost:5001');
+  const [trainingEpisodes, setTrainingEpisodes] = useState(10);
+  
+  // Update replay selection when list changes
+  useEffect(() => {
+    if (isConnected && onFetchReplays) {
+      onFetchReplays();
+    }
+  }, [isConnected, onFetchReplays]);
+  
+  // Auto-clear success message after 5 seconds
+  useEffect(() => {
+    if (successMessage && onClearMessages) {
+      const timer = setTimeout(() => {
+        onClearMessages();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, onClearMessages]);
+  
+  // Handle starting training with current parameters
+  const handleStartTraining = () => {
+    onStartTraining(trainingEpisodes);
+  };
+  
   return (
     <div className="agent-dashboard">
       <h2 className="dashboard-title">Robot Agent Dashboard</h2>
@@ -31,9 +62,9 @@ const AgentDashboard = ({
           <button 
             onClick={() => onConnect(serverUrl)} 
             className={`connect-button ${isConnected ? 'connected' : ''}`}
-            disabled={isConnected}
+            disabled={isConnected || isLoading}
           >
-            {isConnected ? 'Connected' : 'Connect'}
+            {isLoading ? '...' : isConnected ? 'Connected' : 'Connect'}
           </button>
         </div>
         
@@ -43,32 +74,95 @@ const AgentDashboard = ({
         </div>
       </div>
       
+      {/* Error/Success Messages */}
+      {errorMessage && (
+        <div className="dashboard-section" style={{ backgroundColor: '#f56565', padding: '8px', borderRadius: '4px' }}>
+          {errorMessage}
+        </div>
+      )}
+      
+      {successMessage && (
+        <div className="dashboard-section" style={{ backgroundColor: '#48bb78', padding: '8px', borderRadius: '4px' }}>
+          {successMessage}
+        </div>
+      )}
+      
+      {/* Training Settings */}
+      <div className="dashboard-section">
+        <div className="settings-row">
+          <label htmlFor="episodes">Episodes:</label>
+          <input 
+            id="episodes"
+            type="number" 
+            min="1" 
+            max="100"
+            value={trainingEpisodes} 
+            onChange={(e) => setTrainingEpisodes(parseInt(e.target.value) || 10)} 
+            disabled={agentStatus === 'training' || !isConnected}
+            style={{ 
+              width: '60px', 
+              padding: '4px', 
+              backgroundColor: '#4a5568',
+              color: 'white',
+              border: '1px solid #718096',
+              borderRadius: '4px'
+            }}
+          />
+        </div>
+      </div>
+      
       {/* Agent Controls */}
       <div className="agent-controls dashboard-section">
-        <button 
-          onClick={onStartTraining} 
-          className={`control-button training ${agentStatus === 'training' ? 'active' : ''}`}
-          disabled={!isConnected || agentStatus === 'training'}
-        >
-          Start Training
-        </button>
+        <div className="control-button training" 
+             onClick={handleStartTraining}
+             style={{ opacity: (!isConnected || agentStatus === 'training' || isLoading) ? 0.5 : 1 }}>
+          {agentStatus === 'training' ? 'Training...' : 'Start Training'}
+        </div>
         
-        <button 
-          onClick={onStopTraining} 
-          className="control-button stop"
-          disabled={!isConnected || agentStatus !== 'training'}
-        >
+        <div className="control-button stop" 
+             onClick={onStopTraining}
+             style={{ opacity: (!isConnected || agentStatus !== 'training') ? 0.5 : 1 }}>
           Stop Training
-        </button>
+        </div>
         
-        <button 
-          onClick={onStartInference} 
-          className={`control-button inference ${agentStatus === 'inference' ? 'active' : ''}`}
-          disabled={!isConnected || agentStatus === 'inference'}
-        >
-          Start Inference
-        </button>
+        <div className="control-button inference" 
+             onClick={onStartInference}
+             style={{ opacity: (!isConnected || agentStatus === 'training') ? 0.5 : 1 }}>
+          Start Inference  
+        </div>
       </div>
+      
+      {/* Progress Bar (shown during training) */}
+      {agentStatus === 'training' && (
+        <div className="dashboard-section" style={{ padding: 0 }}>
+          <div style={{ 
+            height: '8px', 
+            backgroundColor: '#4a5568', 
+            borderRadius: '4px', 
+            overflow: 'hidden' 
+          }}>
+            <div style={{ 
+              height: '100%', 
+              width: `${trainingProgress}%`, 
+              backgroundColor: '#4299e1', 
+              transition: 'width 0.3s ease' 
+            }}></div>
+          </div>
+          <div style={{ textAlign: 'center', fontSize: '12px', marginTop: '4px' }}>
+            {trainingProgress.toFixed(1)}%
+          </div>
+        </div>
+      )}
+      
+      {/* Replay Information */}
+      {isConnected && (
+        <div className="dashboard-section">
+          <h3 className="section-title">Replay Data</h3>
+          <div style={{ textAlign: 'center', fontSize: '14px' }}>
+            {replays.length} replay files available
+          </div>
+        </div>
+      )}
       
       {/* Agent Status */}
       <div className="dashboard-section">
@@ -86,17 +180,6 @@ const AgentDashboard = ({
           <div className="status-value">{metrics.loss?.toFixed(4) || '0.0000'}</div>
         </div>
       </div>
-      
-      {/* Rewards Info */}
-      {metrics.rewards && metrics.rewards.length > 0 && (
-        <div className="dashboard-section">
-          <h3 className="section-title">Recent Rewards</h3>
-          <div className="rewards-info">
-            <div>Latest: {metrics.rewards[metrics.rewards.length - 1]?.toFixed(2) || 0}</div>
-            <div>Average: {(metrics.rewards.reduce((a, b) => a + b, 0) / metrics.rewards.length).toFixed(2)}</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
