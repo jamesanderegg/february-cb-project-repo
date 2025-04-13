@@ -158,98 +158,6 @@ const Main = ({
     
     return controls;
   };
-
-  // // Handler for socket events
-  // const setupSocketListeners = (socket) => {
-  //   // Listen for replay status updates
-  //   socket.on('replay_status', (statusUpdate) => {
-  //     console.log('📊 Replay status update:', statusUpdate);
-      
-  //     // Handle auto-stop from backend
-  //     if (statusUpdate.status === 'stopped' && statusUpdate.auto_stopped === true) {
-  //       console.log(`🛑 Recording auto-stopped due to: ${statusUpdate.stop_reason}`);
-        
-  //       // Update global recording state
-  //       window.isRecordingActive = false;
-  //       window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
-  //         detail: { isRecording: false }
-  //       }));
-        
-  //       // Set flag that we have an unsaved auto-stopped replay
-  //       setAutoStoppedReplay(true);
-  //     }
-  //   });
-    
-  //   return socket;
-  // };
-
-  // const setupSocketConnection = () => {
-  //   const socket = io(`${COLAB_API_URL.replace("http", "ws")}`, {
-  //     transports: ["websocket"],
-  //     reconnectionAttempts: 10,
-  //     reconnectionDelay: 1000,
-  //     reconnectionDelayMax: 5000,
-  //     timeout: 10000
-  //   });
-    
-  //   socketRef.current = socket;
-    
-  //   socket.on("connect", () => {
-  //     console.log("✅ WebSocket connected");
-      
-  //     // Send current recording state to ensure backend is in sync
-  //     if (window.isRecordingActive) {
-  //       fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' })
-  //         .then(response => response.json())
-  //         .then(data => {
-  //           console.log("🔄 Recording state resynced after reconnection**************************************************************");
-  //         })
-  //         .catch(error => {
-  //           console.error("❌ Error syncing recording state:", error);
-  //         });
-  //     }
-  //   });
-    
-  //   socket.on("disconnect", () => {
-  //     console.log("❌ WebSocket disconnected");
-  //   });
-    
-  //   socket.on("connect_error", (error) => {
-  //     console.error("❌ WebSocket connection error:", error);
-  //   });
-    
-  //   socket.on("reconnect_attempt", (attemptNumber) => {
-  //     console.log(`🔄 Attempting to reconnect (${attemptNumber})`);
-  //   });
-    
-  //   socket.on("reconnect", (attemptNumber) => {
-  //     console.log(`✅ Reconnected after ${attemptNumber} attempts`);
-  //   });
-    
-  //   socket.on("reconnect_failed", () => {
-  //     console.error("❌ Failed to reconnect after multiple attempts");
-  //   });
-    
-  //   // Handle action responses from the agent
-  //   socket.on("action", (action) => {
-  //     console.log("📩 Received action:", action);
-  //     // Process agent action here if needed
-  //   });
-    
-  //   return socket;
-  // };
-  
-  // // Call this in a useEffect
-  // useEffect(() => {
-  //   const socket = setupSocketConnection();
-    
-  //   return () => {
-  //     if (socket) {
-  //       socket.disconnect();
-  //       console.log("🔌 WebSocket disconnected on component unmount");
-  //     }
-  //   };
-  // }, [COLAB_API_URL]);
   
   // YOLO image processing function (moved from RobotCamera.jsx)
   async function captureAndSendImage(imageBlob) {
@@ -556,36 +464,6 @@ const Main = ({
   useEffect(() => {
     objectPositionsRef.current = objectPositions;
   }, [objectPositions]);
-  
-  // // Add the keyboard event listener for 'v' key and others
-  // useEffect(() => {
-  //   const handleKeyDown = (event) => {
-  //     keysPressed.current[event.key] = true;
-      
-  //     if (event.key === 'v' || event.key === 'V') {
-  //       console.log("📸 'v' key pressed in Main component");
-  //       setObjectPositions([]);
-  //     }
-  //   };
-    
-  //   const handleKeyUp = (event) => {
-  //     keysPressed.current[event.key] = false;
-  //   };
-
-  //   // Add event listeners
-  //   window.addEventListener('keydown', handleKeyDown);
-  //   window.addEventListener('keyup', handleKeyUp);
-    
-  //   if (window.resetEnvironment) {
-  //     window.resetEnvironment();
-  //   }
-    
-  //   // Clean up
-  //   return () => {
-  //     window.removeEventListener('keydown', handleKeyDown);
-  //     window.removeEventListener('keyup', handleKeyUp);
-  //   };
-  // }, []);
 
   return (
     <>
