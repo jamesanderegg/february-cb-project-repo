@@ -251,6 +251,154 @@ const Main = ({
     socket.on("disconnect", () => {
       console.log("❌ WebSocket disconnected");
     });
+
+    socket.on("replay_action", (replayData) => {
+      console.log("📩 Received replay action:", replayData);
+      
+      // Extract the action from the replay data
+      const action = replayData.action;
+      
+      // Update UI to show replay status
+      window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+        detail: { 
+          isReplaying: true,
+          step: replayData.step,
+          totalSteps: replayData.total_steps,
+          message: `Replaying step ${replayData.step + 1}/${replayData.total_steps}`
+        }
+      }));
+      
+      // Apply the action to the robot
+      if (action && Array.isArray(action) && action.length > 0) {
+        // 1. Simulate key presses
+        // First, reset all keys
+        Object.keys(keysPressed.current).forEach(k => {
+          keysPressed.current[k] = false;
+        });
+        
+        // Then set the current action key(s)
+        action.forEach(key => {
+          if (key && keysPressed.current) {
+            keysPressed.current[key] = true;
+            
+            // For "v" key (taking photo), also update lastVActionTime
+            if (key === "v" && lastVActionTime) {
+              lastVActionTime.current = Date.now();
+            }
+          }
+        });
+        
+        // Update currentActionRef
+        currentActionRef.current = action;
+      }
+      
+      // 2. Extract position and rotation from state
+      if (replayData.state && Array.isArray(replayData.state)) {
+        const state = replayData.state;
+        
+        // Based on your state structure: robot_pos (3) + robot_rot (3) + collision (1) + time_left (1) + detected_objects (5)
+        // So the first 3 elements are position, and the next 3 are rotation
+        if (state.length >= 6) {
+          const position = state.slice(0, 3);
+          const rotation = state.slice(3, 6);
+          
+          console.log("Robot position from state:", position);
+          console.log("Robot rotation from state:", rotation);
+          
+          // Update position reference if available
+          if (robotPositionRef && robotPositionRef.current) {
+            robotPositionRef.current = position;
+          }
+          
+          // Update rotation reference if available - handle the quaternion case
+          if (robotRotationRef && robotRotationRef.current) {
+            // If robotRotationRef is storing a quaternion (4 values), we need to convert the euler angles
+            // For now, we'll just update the first 3 components and keep the w component
+            if (robotRotationRef.current.length >= 4) {
+              robotRotationRef.current = [...rotation, robotRotationRef.current[3]];
+            } else {
+              robotRotationRef.current = rotation;
+            }
+          }
+          
+          // If we have direct access to the Three.js object, update it
+          if (buggyRef && buggyRef.current) {
+            // Check if position property exists (Three.js object)
+            if (buggyRef.current.position) {
+              buggyRef.current.position.set(position[0], position[1], position[2]);
+            }
+            
+            // Check if rotation property exists (Three.js object)
+            if (buggyRef.current.rotation) {
+              buggyRef.current.rotation.set(rotation[0], rotation[1], rotation[2]);
+            }
+          }
+        }
+      }
+    });
+    
+    socket.on("replay_complete", (data) => {
+      console.log("✅ Replay complete:", data);
+      
+      // Reset all key presses
+      if (keysPressed.current) {
+        Object.keys(keysPressed.current).forEach(k => {
+          keysPressed.current[k] = false;
+        });
+      }
+      
+      // Update UI to show replay is complete
+      if (recordingControlsRef.current && recordingControlsRef.current.updateStatus) {
+        recordingControlsRef.current.updateStatus({
+          message: `Replay complete - ${data.steps_played} steps played`,
+          type: 'complete'
+        });
+      }
+    });
+
+    socket.on("robot_position_update", (data) => {
+      console.log("📍 Received position update:", data);
+      
+      // Update robot position and rotation directly
+      if (data.position && Array.isArray(data.position) && data.position.length === 3) {
+        if (robotPositionRef && robotPositionRef.current) {
+          // Set position directly
+          robotPositionRef.current = data.position;
+        }
+        
+        // If we have a direct reference to the robot's Three.js object
+        if (buggyRef && buggyRef.current && buggyRef.current.position) {
+          buggyRef.current.position.set(
+            data.position[0],
+            data.position[1],
+            data.position[2]
+          );
+        }
+      }
+      
+      // Update rotation if available
+      if (data.rotation && Array.isArray(data.rotation)) {
+        if (robotRotationRef && robotRotationRef.current) {
+          // If rotation ref stores a quaternion (4 values)
+          if (robotRotationRef.current.length >= 4) {
+            // Preserve the w component
+            robotRotationRef.current = [...data.rotation, robotRotationRef.current[3]];
+          } else {
+            robotRotationRef.current = data.rotation;
+          }
+        }
+        
+        // If we have direct access to the robot's Three.js rotation
+        if (buggyRef && buggyRef.current && buggyRef.current.rotation) {
+          // Convert to Three.js rotation if needed
+          buggyRef.current.rotation.set(
+            data.rotation[0],
+            data.rotation[1],
+            data.rotation[2]
+          );
+        }
+      }
+    });
   
     return () => {
       if (socket) {

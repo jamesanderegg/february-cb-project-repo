@@ -494,3 +494,36 @@
   gap: 8px;
   font-size: 14px;
 }
+
+/* Add these CSS classes to your AgentDashboard.css or appropriate stylesheet */
+
+.status-replaying {
+  background-color: #3498db;
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 10px;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;
+}
+
+.status-complete {
+  background-color: #2ecc71;
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
