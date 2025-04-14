@@ -258,6 +258,7 @@
   justify-content: center !important;
   align-items: center !important;
   height: 33px !important;
+  position: static;
 }
 
 .action-button:disabled {
@@ -354,7 +355,7 @@
 }
 
 .replay-dropdown-menu {
-  position: absolute;
+
   top: 100%;
   left: 0;
   right: 0;
