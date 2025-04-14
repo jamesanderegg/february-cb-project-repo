@@ -16,27 +16,34 @@
   margin-bottom: 16px;
   border-bottom: 1px solid #4a5568;
   padding-bottom: 8px;
+  text-align: center;
 }
   
 .dashboard-section {
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #4a5568;
+  margin-bottom: 8px;
+  padding: 5px;
+  border: 2px solid #4a5568;
+  border-radius: 6px;
+  background-color: #374151;
 }
 
-/* URL input section */
-.url-input-container {
-  margin-bottom: 8px;
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  margin-top: 3px;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-  
-.url-input {
-  background-color: #4a5568;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 4px;
-  width: 100%;
-  margin-bottom: 8px;
+
+.section-title-2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Status indicator */
@@ -44,10 +51,8 @@
   display: flex;
   align-items: center;
   font-size: 14px;
-  margin-top: 8px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #4a5568;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
   
 .status-dot {
@@ -66,95 +71,7 @@
   background-color: #f56565;
 }
 
-/* Agent Controls - positioned in the middle */
-.agent-controls.dashboard-section {
-  position: relative;
-  width: 100%;
-  height: 38px;
-  margin: 0;
-  padding: 0;
-  /* Provide clear space around the controls */
-  margin-top: 20px;
-  margin-bottom: 20px;
-  /* No border needed anymore since we have a dedicated area */
-  border-bottom: none;
-  padding-bottom: 5px;
-}
-
-/* Manually position each button */
-.control-button.training {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 31%;
-  height: 38px;
-  background-color: #ecc94b;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.control-button.stop {
-  position: absolute;
-  left: 33%;
-  top: 0;
-  width: 31%;
-  height: 38px;
-  background-color: #f56565;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.control-button.inference {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 31%;
-  height: 38px;
-  background-color: #9f7aea;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-  
-.control-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-  
-.control-button.training:hover:not(:disabled) {
-  background-color: #d69e2e;
-}
-  
-.control-button.stop:hover:not(:disabled) {
-  background-color: #e53e3e;
-}
-  
-.control-button.inference:hover:not(:disabled) {
-  background-color: #805ad5;
-}
-  
-.control-button.active {
-  box-shadow: 0 0 0 2px white;
-}
-
-/* Connect button pushed below */
+/* Connect button */
 .connect-button {
   background-color: #4299e1;
   color: white;
@@ -163,13 +80,12 @@
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
-  width: 95%;
+  width: 94%;
   height: 38px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 20px auto;
-  top: 150px;
+  margin: 12px 0;
 }
   
 .connect-button:hover {
@@ -180,34 +96,401 @@
   background-color: #48bb78;
   cursor: not-allowed;
 }
+
+/* Error and success messages */
+.error-message {
+  background-color: #f56565;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  border: 2px solid #e53e3e;
+  margin-bottom: 16px;
+}
+
+.success-message {
+  background-color: #48bb78;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  border: 2px solid #38a169;
+  margin-bottom: 16px;
+}
+
+/* Tabs styling */
+.dashboard-tabs {
+  display: flex;
+  margin-bottom: 16px;
+  border: 2px solid #4a5568;
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+}
+
+.dashboard-tab {
+  flex: 1;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+  background-color: #2d3748;
+  transition: all 0.2s ease;
+  border-right: 2px solid #4a5568;
+}
+
+.dashboard-tab:last-child {
+  border-right: none;
+}
+
+.dashboard-tab:hover {
+  background-color: #3d4a5c;
+}
+
+.dashboard-tab.active {
+  background-color: #4299e1;
+  color: white;
+}
+
+/* Tab content */
+.tab-content {
+  margin-bottom: 8px;
+  border: 2px solid #4a5568;
+  border-radius: 0 0 6px 6px;
+  padding: 8px;
+  background-color: #374151;
+}
+
+/* Status indicator from ReplayControls */
+.status-indicator-section {
+  padding: 0;
+  overflow: hidden;
+}
+
+.status {
+  padding: 5px;
+  font-size: 14px;
+  text-align: center;
+  color: #fff;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-ready {
+  background-color: rgba(80, 80, 120, 0.6);
+}
+
+.status-recording {
+  background-color: rgba(255, 80, 80, 0.8);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.status-loading, .status-info {
+  background-color: rgba(80, 120, 255, 0.8);
+}
+
+.status-saved {
+  background-color: rgba(80, 200, 80, 0.8);
+}
+
+.status-warning {
+  background-color: rgba(255, 180, 50, 0.8);
+}
+
+.status-error {
+  background-color: rgba(255, 80, 80, 0.8);
+}
+
+/* Replay tab specific styles */
+.replay-tab {
+  width: 100% !important;
+  display: block !important;
+}
+
+/* IMPORTANT: This is the ONLY .replay-controls-grid definition */
+.replay-controls-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  grid-template-rows: auto auto auto !important;
+  grid-gap: 6px !important;
+  align-items: center !important;
+}
+
+.replay-controls-grid .record-button {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+}
+
+.replay-controls-grid .stop-button {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+}
+
+.replay-controls-grid .filename-input {
+  grid-column: 1 / span 2 !important;
+  grid-row: 2 !important;
+  margin-bottom: 5px !important;
+}
+
+.replay-controls-grid .save-button {
+  grid-column: 1 !important;
+  grid-row: 3 !important;
+}
+
+.replay-controls-grid .reset-button {
+  grid-column: 2 !important;
+  grid-row: 3 !important;
+}
+
+.action-button {
+  padding: 5px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  font-weight: bold !important;
+  color: white !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 33px !important;
+}
+
+.action-button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.record-button {
+  background-color: #e7ba67 !important;
+}
+
+.record-button:hover:not(:disabled) {
+  background-color: #d6a94c !important;
+}
+
+.record-button.recording {
+  background-color: #fc9960 !important;
+  animation: pulse 2s infinite !important;
+}
+
+.stop-button {
+  background-color: #fc9960 !important;
+}
+
+.stop-button:hover:not(:disabled) {
+  background-color: #ea8650 !important;
+}
+
+.save-button {
+  background-color: #ee8104 !important;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: #d57000 !important;
+}
+
+.reset-button {
+  background-color: #f56565 !important;
+}
+
+.reset-button:hover:not(:disabled) {
+  background-color: #e53e3e !important;
+}
+
+.filename-input {
+  width: 100% !important;
+}
+
+.filename-input input {
+  width: 100% !important;
+  padding: 8px !important;
+  background-color: #4a5568 !important;
+  color: white !important;
+  border: 1px solid #718096 !important;
+  border-radius: 4px !important;
+  height: 38px !important;
+  box-sizing: border-box !important;
+}
+
+/* Training tab specific styles */
+.replay-selection-section {
+  margin-bottom: 16px;
+}
+
+.replay-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.replay-dropdown-button {
+  width: 93%;
+  padding: 8px;
+  background-color: #ff6c4f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: -29px;
+}
+
+.replay-dropdown-button:hover:not(:disabled) {
+  background-color: #e55a3d;
+}
+
+.replay-dropdown-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.replay-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #4a5568;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.replay-dropdown-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #2d3748;
+}
+
+.replay-dropdown-item:hover {
+  background-color: #3d4a5c;
+}
+
+.replay-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.training-settings-section {
+  margin-bottom: 5px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.settings-row label {
+  font-weight: bold;
+}
+
+.settings-row input {
+  width: 60px;
+  padding: 4px;
+  background-color: #4a5568;
+  color: white;
+  border: 1px solid #718096;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Agent Controls */
+.agent-controls {
+  position: relative;
+  width: 100%;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Manually position each button */
+.control-button {
+  position: absolute;
+  height: 38px;
+  background-color: #4a5568;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.control-button.training {
+  left: 0;
+  top: 0;
+  width: 31%;
+  background-color: #ecc94b;
+}
+
+.control-button.stop {
+  left: 33%;
+  top: 0;
+  width: 31%;
+  background-color: #f56565;
+}
+
+.control-button.inference {
+  right: 0;
+  top: 0;
+  width: 31%;
+  background-color: #9f7aea;
+}
   
-/* Status Grid - comes after the controls */
+.control-button.training:hover {
+  background-color: #d69e2e;
+}
+  
+.control-button.stop:hover {
+  background-color: #e53e3e;
+}
+  
+.control-button.inference:hover {
+  background-color: #805ad5;
+}
+
+/* Training progress bar */
+.training-progress-section {
+  margin-top: 16px;
+}
+
+.progress-bar-container {
+  height: 8px;
+  background-color: #4a5568;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #4299e1;
+  transition: width 0.3s ease;
+}
+
+.progress-percentage {
+  text-align: center;
+  font-size: 12px;
+  margin-top: 4px;
+}
+  
+/* Status Grid */
 .status-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  font-size: 14px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #4a5568;
-}
-  
-.status-label {
-  font-weight: bold;
-}
-  
-.status-value {
-  text-align: right;
-}
-  
-.section-title {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-  
-.rewards-info {
-  display: flex;
-  justify-content: space-between;
   font-size: 14px;
 }

@@ -1,5 +1,5 @@
 // useAgentController.js
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export const useAgentController = ({ 
   robotRef, 
@@ -24,6 +24,7 @@ export const useAgentController = ({
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const progressIntervalRef = useRef(null);
 
   // Connect to agent backend
   const connectToAgent = useCallback(async (customUrl) => {
@@ -68,7 +69,7 @@ export const useAgentController = ({
 
   // Fetch available replays
   const fetchReplays = useCallback(async () => {
-    if (!isConnected) return;
+    if (!isConnected) return [];
     
     try {
       const response = await fetch(`${COLAB_API_URL}/list_replays`, {
@@ -84,11 +85,20 @@ export const useAgentController = ({
       }
   
       const data = await response.json();
-      setReplays(data.replays || []);
-      console.log(`📋 Retrieved ${data.replays?.length || 0} replays`);
+      console.log(`📋 Retrieved replays:`, data);
+      
+      if (data.replays && Array.isArray(data.replays)) {
+        setReplays(data.replays);
+        console.log(`📋 Retrieved ${data.replays.length} replays`);
+        return data.replays;
+      } else {
+        setReplays([]);
+        return [];
+      }
     } catch (error) {
       console.error("❌ Error fetching replays:", error);
       setErrorMessage(`Failed to fetch replays: ${error.message}`);
+      return [];
     }
   }, [COLAB_API_URL, isConnected]);
 
@@ -101,9 +111,9 @@ export const useAgentController = ({
     
     try {
       // First make sure we have the latest replays list
-      await fetchReplays();
+      const availableReplays = await fetchReplays();
       
-      if (replays.length === 0) {
+      if (availableReplays.length === 0) {
         throw new Error("No replay files available for training");
       }
 
@@ -116,8 +126,6 @@ export const useAgentController = ({
           batch_size: batchSize 
         })
       });
-
-      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
       
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
@@ -130,7 +138,7 @@ export const useAgentController = ({
       }
       
       console.log(`🚀 Started training with ${episodes} episodes`);
-      setSuccessMessage(`Training started with ${data.replay_count || replays.length} replays`);
+      setSuccessMessage(`Training started with ${data.replay_count || availableReplays.length} replays`);
       
       // Set up progress monitoring
       startMonitoringProgress();
@@ -144,12 +152,12 @@ export const useAgentController = ({
     } finally {
       setIsLoading(false);
     }
-  }, [COLAB_API_URL, fetchReplays, replays]);
+  }, [COLAB_API_URL, fetchReplays]);
 
   // Stop agent training
   const stopTraining = useCallback(async () => {
     try {
-      const response = await fetch(`${COLAB_API_URL}/training/stop`, { method: 'POST' });
+      const response = await fetch(`${COLAB_API_URL}/stop_training`, { method: 'POST' });
       
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
@@ -164,6 +172,11 @@ export const useAgentController = ({
       console.log("⏹️ Training stopped");
       setAgentStatus("idle");
       setSuccessMessage("Training stopped");
+      
+      // Clean up progress interval
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
       
       // Fetch the latest agent status
       fetchAgentStatus();
@@ -223,7 +236,7 @@ export const useAgentController = ({
       setMetrics({
         epsilon: data.epsilon || 1.0,
         loss: data.last_loss || 0.0,
-        rewards: [...metrics.rewards], // Keep existing rewards
+        rewards: [...(metrics.rewards || [])], // Keep existing rewards
         memorySize: data.memory_size || 0,
         episodesCompleted: data.episodes_trained || 0
       });
@@ -248,6 +261,12 @@ export const useAgentController = ({
 
   // Monitor training progress
   const startMonitoringProgress = useCallback(() => {
+    // Clear any existing interval
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+    
+    // Start a new interval
     const progressInterval = setInterval(async () => {
       try {
         await fetchAgentStatus();
@@ -262,9 +281,15 @@ export const useAgentController = ({
       }
     }, 1000);
     
+    // Store the interval ID
+    progressIntervalRef.current = progressInterval;
+    
     // Auto-cleanup after 10 minutes (failsafe)
     setTimeout(() => {
-      clearInterval(progressInterval);
+      if (progressIntervalRef.current === progressInterval) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
     }, 10 * 60 * 1000);
     
     return progressInterval;
@@ -276,6 +301,13 @@ export const useAgentController = ({
       fetchAgentStatus();
       fetchReplays();
     }
+    
+    // Cleanup on unmount
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
   }, [isConnected, fetchAgentStatus, fetchReplays]);
 
   // Provide all the agent control functions

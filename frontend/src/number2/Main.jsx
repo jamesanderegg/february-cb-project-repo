@@ -47,6 +47,7 @@ const Main = ({
   const timerRef = useRef(350); 
   const timerIntervalRef = useRef(null);
   const modelPositionsRef = useRef({});
+  const recordingControlsRef = useRef(null);
 
   // State to track if we're waiting for replay save
   const [autoStoppedReplay, setAutoStoppedReplay] = useState(false);
@@ -85,7 +86,6 @@ const Main = ({
 
   const targetRef = useRef(target);  
   const buggyRef = useRef();
-  const recordingControlsRef = useRef(null);
   
   // Socket.io connection
   const socketRef = useRef(null);
@@ -259,6 +259,11 @@ const Main = ({
       }
     };
   }, [COLAB_API_URL, objectPositions]); // Dependency added for objectPositions
+
+  useEffect(() => {
+    // Make the recordingControlsRef available globally so other components can access it
+    window.recordingControlsRef = recordingControlsRef;
+  }, []);
   
   // Function to apply action to robot
   const applyAction = (action) => {
@@ -317,7 +322,6 @@ const Main = ({
       }
 
       timerRef.current = 350;
-      
 
       if (detectionDisplayRef.current) {
         detectionDisplayRef.current.innerText = "Detected Objects: Waiting...";
@@ -577,9 +581,13 @@ const Main = ({
         <div className="replay-controls-container">
           <ReplayControlsModal 
             setObjectPositions={setObjectPositions} 
-            onReset={resetScene} // Pass the resetScene function to the ReplayControls component
+            onReset={resetScene}
             COLAB_API_URL={COLAB_API_URL}
-            onRecordingRef={(controls) => recordingControlsRef.current = controls}
+            onRecordingRef={(controls) => {
+              recordingControlsRef.current = controls;
+              window.recordingControlsRef = { current: controls };
+              return controls;
+            }}
           />
         </div>
         <div className="agent-dashboard-container">
