@@ -194,40 +194,19 @@ const AgentDashboard = ({
   };
   
   // Handle recording functions
-  const startRecording = async () => {
-    try {
-      // First, reset the scene
-      console.log("🔄 Resetting scene before starting recording...");
-      if (window.resetEnvironment) {
-        window.resetEnvironment();
-      }
+  const startRecording = () => {
+    // First, reset scene if needed
+    if (window.resetEnvironment) {
+      window.resetEnvironment();
       
-      // Wait a short time for the scene to fully reset
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Now start recording
-      const response = await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
-      const data = await response.json();
-      
-      // Update global recording state
-      window.isRecordingActive = true;
-      window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
-        detail: { isRecording: true }
-      }));
-      
-      // Update UI
-      setRecordingStatus({ 
-        message: data.message || 'Recording started after scene reset', 
-        type: 'recording' 
-      });
-      
-      console.log("🎥 Recording started - scene reset completed");
-    } catch (error) {
-      console.error("❌ Error starting recording:", error);
-      setRecordingStatus({ message: "Failed to start recording", type: "error" });
+      // Wait a short time for reset to complete
+      setTimeout(() => {
+        executeStartRecording();
+      }, 500);
+    } else {
+      executeStartRecording();
     }
   };
-  
   
   const executeStartRecording = () => {
     fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' })
@@ -247,92 +226,55 @@ const AgentDashboard = ({
       });
   };
   
-  const stopRecording = async () => {
-    try {
-      const response = await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
-      const data = await response.json();
-      
-      // Update global recording state
-      window.isRecordingActive = false;
-      window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
-        detail: { isRecording: false }
-      }));
-      
-      setRecordingStatus({ 
-        message: data.message || 'Recording stopped', 
-        type: 'warning' 
+  const stopRecording = () => {
+    fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' })
+      .then(response => response.json())
+      .then(data => {
+        console.log("⏹️ Recording stopped");
+        // Update global recording state
+        window.isRecordingActive = false;
+        window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+          detail: { isRecording: false }
+        }));
+        setRecordingStatus({ message: 'Recording stopped. Ready to save.', type: 'warning' });
+      })
+      .catch(error => {
+        console.error("❌ Error stopping recording:", error);
+        setRecordingStatus({ message: 'Failed to stop recording', type: 'error' });
       });
-      
-      console.log("⏹️ Recording stopped - scene reset detection disabled");
-    } catch (error) {
-      console.error("❌ Error stopping recording:", error);
-      setRecordingStatus({ message: "Failed to stop recording", type: "error" });
-      // Still update the recording state even on error
-      window.isRecordingActive = false;
-    }
   };
   
-  const saveReplay = async () => {
+  const saveReplay = () => {
     const replayName = filename || `replay_${Date.now()}.json`;
-    try {
-      // Show saving status
-      setRecordingStatus({ message: "Saving replay...", type: "info" });
-      
-      const response = await fetch(`${COLAB_API_URL}/save_replay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: replayName })
-      });
-      
-      const data = await response.json();
-      
-      // Update status based on response
-      setRecordingStatus({ 
-        message: data.message || `Saved replay as ${replayName}`, 
-        type: data.status === 'error' ? 'error' : 'saved' 
-      });
-      
-      console.log(`💾 Replay saved as ${replayName}`);
-      
-      // Refresh replay list after saving
+    setRecordingStatus({ message: 'Saving replay...', type: 'info' });
+    
+    fetch(`${COLAB_API_URL}/save_replay`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: replayName })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(`💾 Saved replay as ${replayName}`);
+      setRecordingStatus({ message: `Saved replay as ${replayName}`, type: 'saved' });
+      // Refresh replay list
       if (onFetchReplays) {
         onFetchReplays();
       }
-      
       // Clear the filename input
       setFilename('');
-    } catch (error) {
+    })
+    .catch(error => {
       console.error("❌ Error saving replay:", error);
-      setRecordingStatus({ message: "Failed to save replay", type: "error" });
-    }
+      setRecordingStatus({ message: 'Failed to save replay', type: 'error' });
+    });
   };
   
   // Reset the scene
   const resetScene = () => {
-    console.log("🔄 Resetting scene from AgentDashboard...");
-    
-    // Check if recording is in progress, and stop it before resetting
-    if (window.isRecordingActive) {
-      console.log("Recording in progress - stopping recording automatically");
-      stopRecording();
-      setRecordingStatus({ message: "Recording stopped due to scene reset. Please save your experience.", type: "warning" });
-    }
-    
-    // Call the global reset function if available
     if (window.resetEnvironment) {
       window.resetEnvironment();
-    }
-  
-    // Also call reset_scene endpoint in the backend
-    try {
-      fetch(`${COLAB_API_URL}/reset_scene`, { method: 'POST' });
-    } catch (error) {
-      console.error("❌ Error calling reset_scene API:", error);
-    }
-  
-    // Set status message if not already set by recording stop
-    if (!window.isRecordingActive) {
-      setRecordingStatus({ message: "Scene reset!", type: "info" });
+      setRecordingStatus({ message: 'Scene reset', type: 'info' });
     }
   };
   
