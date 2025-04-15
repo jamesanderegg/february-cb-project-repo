@@ -10,7 +10,7 @@ import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
 import MiniMapHUD from "./camera/MiniMapHUD";
 import TopDownCamera from "./camera/TopDownCamera";
-import ReplayControlsModal from '../components/ReplayControls';
+// import ReplayControlsModal from '../components/ReplayControls';
 import AmbientLight from "./lights/AmbientLight";
 import GameLoop from "./scene/GameLoop"; // Import our new GameLoop component
 import RecordingStatusMonitor from '../components/RecordingStatusMonitor';
@@ -355,6 +355,25 @@ const Main = ({
         });
       }
     });
+
+    window.recordingControlsRef = { current: {
+      isRecording: () => window.isRecordingActive === true,
+      stopRecording: async () => {
+        try {
+          const response = await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
+          window.isRecordingActive = false;
+          window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+            detail: { isRecording: false }
+          }));
+          console.log("⏹️ Recording stopped from global reference");
+          return response.json();
+        } catch (error) {
+          console.error("❌ Error stopping recording from global reference:", error);
+          window.isRecordingActive = false; // Still update state on error
+          return { status: 'error', message: error.message };
+        }
+      }
+    }};
 
     socket.on("robot_position_update", (data) => {
       console.log("📍 Received position update:", data);
@@ -726,7 +745,7 @@ const Main = ({
          
           </div>
         </div>
-        <div className="replay-controls-container">
+        {/* <div className="replay-controls-container">
           <ReplayControlsModal 
             setObjectPositions={setObjectPositions} 
             onReset={resetScene}
@@ -737,7 +756,7 @@ const Main = ({
               return controls;
             }}
           />
-        </div>
+        </div> */}
         <div className="agent-dashboard-container">
           <button 
             onClick={() => setShowDashboard(prev => !prev)}
