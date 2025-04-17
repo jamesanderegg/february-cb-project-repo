@@ -18,7 +18,8 @@ const AgentDashboard = ({
   onStartInference,
   onFetchReplays,
   onClearMessages,
-  COLAB_API_URL
+  COLAB_API_URL,
+  resetScene
 }) => {
   const [activeTab, setActiveTab] = useState('replay');
   const [trainingEpisodes, setTrainingEpisodes] = useState(10);
@@ -271,12 +272,12 @@ const AgentDashboard = ({
   };
   
   // Reset the scene
-  const resetScene = () => {
-    if (window.resetEnvironment) {
-      window.resetEnvironment();
-      setRecordingStatus({ message: 'Scene reset', type: 'info' });
-    }
-  };
+  // const resetScene = () => {
+  //   if (window.resetEnvironment) {
+  //     window.resetEnvironment();
+  //     setRecordingStatus({ message: 'Scene reset', type: 'info' });
+  //   }
+  // };
   
   // Feed to agent
   const feedToAgent = () => {

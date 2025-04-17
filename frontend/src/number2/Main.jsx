@@ -419,6 +419,74 @@ const Main = ({
     // Logic to update the robot's movement/state
   };
   
+  // const resetScene = () => {
+  //   console.log("🔄 Resetting scene from Main component...");
+  //   window.dispatchEvent(new Event("sceneReset"));
+    
+  //   if (recordingControlsRef.current && 
+  //       recordingControlsRef.current.isRecording && 
+  //       recordingControlsRef.current.isRecording()) {
+  //     console.log("Recording in progress - stopping recording before reset");
+  //     recordingControlsRef.current.stopRecording();
+  //   }
+  //   setIsRunning(false);
+
+  //   fetch(`${COLAB_API_URL}/reset_scene`, { 
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     }
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     console.log("✅ Reset successful, updating local state:", data);
+  //     // Update robot position and rotation directly from the response if available
+  //     if (data.data && data.data.robot_position && robotPositionRef.current) {
+  //       robotPositionRef.current = data.data.robot_position;
+  //     } else {
+  //       // Default position if not provided
+  //       if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
+  //     }
+      
+  //     if (data.data && data.data.robot_rotation && robotRotationRef.current) {
+  //       robotRotationRef.current = data.data.robot_rotation;
+  //     } else {
+  //       // Default rotation if not provided
+  //       if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
+  //     }
+  //   })
+  //   .catch(error => {
+  //     console.error("❌ Error calling reset_scene API:", error);
+  //     // Fall back to default reset behavior
+  //     if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
+  //     if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
+  //   });
+
+  //   setTimeout(() => {
+  //     console.log("🛠 Resetting robot and objects...");
+
+  //     if (window.resetEnvironment) {
+  //       window.resetEnvironment();
+  //     }
+
+  //     // timerRef.current = 350;
+
+  //     if (detectionDisplayRef.current) {
+  //       detectionDisplayRef.current.innerText = "Detected Objects: Waiting...";
+  //     }
+
+  //     robotMemoryRef.current = [];
+
+  //     // Reset object positions
+  //     setObjectPositions([]);
+  //     setPhysicsResetKey(prev => prev + 1);
+  //     setTimeout(() => {
+  //       setIsRunning(true);
+  //       console.log("▶️ Scene restarted.");
+  //     }, 350);
+  //   }, 2000);
+  // };
+
   const resetScene = () => {
     console.log("🔄 Resetting scene from Main component...");
     window.dispatchEvent(new Event("sceneReset"));
@@ -430,7 +498,13 @@ const Main = ({
       recordingControlsRef.current.stopRecording();
     }
     setIsRunning(false);
-
+  
+    // Explicitly reset the timer immediately
+    timerRef.current = 350;
+    if (timerDisplayRef.current) {
+      timerDisplayRef.current.innerText = `Time Remaining: 350s`;
+    }
+  
     fetch(`${COLAB_API_URL}/reset_scene`, { 
       method: 'POST',
       headers: {
@@ -461,22 +535,23 @@ const Main = ({
       if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
       if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
     });
-
+  
     setTimeout(() => {
       console.log("🛠 Resetting robot and objects...");
-
+  
       if (window.resetEnvironment) {
         window.resetEnvironment();
       }
-
-      timerRef.current = 350;
-
+  
+      // No need to reset timer here since we did it above
+      // timerRef.current = 350;
+  
       if (detectionDisplayRef.current) {
         detectionDisplayRef.current.innerText = "Detected Objects: Waiting...";
       }
-
+  
       robotMemoryRef.current = [];
-
+  
       // Reset object positions
       setObjectPositions([]);
       setPhysicsResetKey(prev => prev + 1);
@@ -544,7 +619,7 @@ const Main = ({
             : "No high-confidence detections.";
       }
       if (timerDisplayRef.current) {
-        timerDisplayRef.current.innerText = `Time Remaining: ${timerRef.current}s`;
+        timerDisplayRef.current.innerText = `Time Remaining: ${timerRef.current.toFixed(0)}s`;
       }
     
       // Calculate and display closest object
@@ -776,6 +851,7 @@ const Main = ({
                   onFetchReplays={fetchReplays}
                   onClearMessages={clearMessages}
                   COLAB_API_URL={COLAB_API_URL}
+                  resetScene={resetScene}
                 />
               )}
             </div>
