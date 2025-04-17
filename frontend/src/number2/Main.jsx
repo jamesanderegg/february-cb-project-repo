@@ -10,7 +10,7 @@ import MainScene from "./scene/MainScene";
 import HUDView from './camera/HUDView';
 import MiniMapHUD from "./camera/MiniMapHUD";
 import TopDownCamera from "./camera/TopDownCamera";
-import ReplayControlsModal from '../components/ReplayControls';
+// import ReplayControlsModal from '../components/ReplayControls';
 import AmbientLight from "./lights/AmbientLight";
 import GameLoop from "./scene/GameLoop"; // Import our new GameLoop component
 import RecordingStatusMonitor from '../components/RecordingStatusMonitor';
@@ -726,7 +726,7 @@ const Main = ({
          
           </div>
         </div>
-        <div className="replay-controls-container">
+        {/* <div className="replay-controls-container">
           <ReplayControlsModal 
             setObjectPositions={setObjectPositions} 
             onReset={resetScene}
@@ -737,7 +737,7 @@ const Main = ({
               return controls;
             }}
           />
-        </div>
+        </div> */}
         <div className="agent-dashboard-container">
           <button 
             onClick={() => setShowDashboard(prev => !prev)}

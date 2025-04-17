@@ -1,592 +1,592 @@
-import React, { useState, useEffect, useRef } from 'react';
-import '../styles/ReplayControls.css';
+// import React, { useState, useEffect, useRef } from 'react';
+// import '../styles/ReplayControls.css';
 
-const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRecordingRef }) => {
-  const [activeTab, setActiveTab] = useState('record');
-  const [isRecording, setIsRecording] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [currentScreenData, setCurrentScreenData] = useState(null);
-  const [loadedScreens, setLoadedScreens] = useState({});
-  const [status, setStatus] = useState({ message: 'Ready', type: 'ready' });
-  const [replays, setReplays] = useState([]);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isTraining, setIsTraining] = useState(false);
-  const [filename, setFilename] = useState('');
-  const [trainingEpisodes, setTrainingEpisodes] = useState(10);
-  const [batchSize, setBatchSize] = useState(32);
-  const [trainingProgress, setTrainingProgress] = useState(0);
-  const [trainingStats, setTrainingStats] = useState(null);
-  const [autoStopReason, setAutoStopReason] = useState(null);
+// const ReplayControlsModal = ({ setObjectPositions, onReset, COLAB_API_URL, onRecordingRef }) => {
+//   const [activeTab, setActiveTab] = useState('record');
+//   const [isRecording, setIsRecording] = useState(false);
+//   const [isMinimized, setIsMinimized] = useState(false);
+//   const [currentScreenData, setCurrentScreenData] = useState(null);
+//   const [loadedScreens, setLoadedScreens] = useState({});
+//   const [status, setStatus] = useState({ message: 'Ready', type: 'ready' });
+//   const [replays, setReplays] = useState([]);
+//   const [loadingProgress, setLoadingProgress] = useState(0);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [isTraining, setIsTraining] = useState(false);
+//   const [filename, setFilename] = useState('');
+//   const [trainingEpisodes, setTrainingEpisodes] = useState(10);
+//   const [batchSize, setBatchSize] = useState(32);
+//   const [trainingProgress, setTrainingProgress] = useState(0);
+//   const [trainingStats, setTrainingStats] = useState(null);
+//   const [autoStopReason, setAutoStopReason] = useState(null);
 
-  useEffect(() => {
-    // Fetch initial list of replays when the component mounts
-    fetchReplays();
+//   useEffect(() => {
+//     // Fetch initial list of replays when the component mounts
+//     fetchReplays();
     
-    // Expose recording state and stopRecording function to parent component
-    if (onRecordingRef && typeof onRecordingRef === 'function') {
-      onRecordingRef({
-        isRecording: () => isRecording,
-        stopRecording: stopRecording
-      });
-    }
-  }, []); // Only run once on mount
+//     // Expose recording state and stopRecording function to parent component
+//     if (onRecordingRef && typeof onRecordingRef === 'function') {
+//       onRecordingRef({
+//         isRecording: () => isRecording,
+//         stopRecording: stopRecording
+//       });
+//     }
+//   }, []); // Only run once on mount
   
-  // Update recording state in window and dispatch event when it changes
-  useEffect(() => {
-    // Set global recording status for other components
-    window.isRecordingActive = isRecording;
+//   // Update recording state in window and dispatch event when it changes
+//   useEffect(() => {
+//     // Set global recording status for other components
+//     window.isRecordingActive = isRecording;
     
-    // Notify other components of recording status change
-    window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
-      detail: { isRecording }
-    }));
+//     // Notify other components of recording status change
+//     window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+//       detail: { isRecording }
+//     }));
     
-    console.log(`🎬 ReplayControls: Recording state set to ${isRecording}`);
-  }, [isRecording]);
+//     console.log(`🎬 ReplayControls: Recording state set to ${isRecording}`);
+//   }, [isRecording]);
 
-  useEffect(() => {
-    // Listen for auto-stopped recordings
-    const handleRecordingStatusChange = (event) => {
-      if (event && event.detail) {
-        // Check if this was an auto-stop event
-        if (event.detail.autoStopped && event.detail.reason) {
-          console.log(`🔴 Recording was auto-stopped due to: ${event.detail.reason}`);
+//   useEffect(() => {
+//     // Listen for auto-stopped recordings
+//     const handleRecordingStatusChange = (event) => {
+//       if (event && event.detail) {
+//         // Check if this was an auto-stop event
+//         if (event.detail.autoStopped && event.detail.reason) {
+//           console.log(`🔴 Recording was auto-stopped due to: ${event.detail.reason}`);
           
-          // Only call stopRecording if we were actually recording
-          if (isRecording) {
-            stopRecording();
-          }
+//           // Only call stopRecording if we were actually recording
+//           if (isRecording) {
+//             stopRecording();
+//           }
           
-          // Update recording state
-          setIsRecording(false);
+//           // Update recording state
+//           setIsRecording(false);
           
-          // Format a user-friendly reason
-          let reasonMessage = '';
-          switch(event.detail.reason) {
-            case 'collision':
-              reasonMessage = 'collision detected';
-              break;
-            case 'picture_taken':
-              reasonMessage = 'picture taken';
-              break;
-            case 'time_expired':
-              reasonMessage = 'time limit reached';
-              break;
-            default:
-              reasonMessage = event.detail.reason;
-          }
+//           // Format a user-friendly reason
+//           let reasonMessage = '';
+//           switch(event.detail.reason) {
+//             case 'collision':
+//               reasonMessage = 'collision detected';
+//               break;
+//             case 'picture_taken':
+//               reasonMessage = 'picture taken';
+//               break;
+//             case 'time_expired':
+//               reasonMessage = 'time limit reached';
+//               break;
+//             default:
+//               reasonMessage = event.detail.reason;
+//           }
           
-          // Update status with the reason
-          setStatus({
-            message: `Recording automatically stopped (${reasonMessage}). Ready to save.`,
-            type: 'warning'
-          });
+//           // Update status with the reason
+//           setStatus({
+//             message: `Recording automatically stopped (${reasonMessage}). Ready to save.`,
+//             type: 'warning'
+//           });
           
-          // Store reason for potential display
-          setAutoStopReason(reasonMessage);
-        } else if (typeof event.detail.isRecording === 'boolean') {
-          // Standard recording state change
-          setIsRecording(event.detail.isRecording);
+//           // Store reason for potential display
+//           setAutoStopReason(reasonMessage);
+//         } else if (typeof event.detail.isRecording === 'boolean') {
+//           // Standard recording state change
+//           setIsRecording(event.detail.isRecording);
           
-          // Clear auto-stop reason if starting a new recording
-          if (event.detail.isRecording) {
-            setAutoStopReason(null);
-          }
-        }
-      }
-    };
+//           // Clear auto-stop reason if starting a new recording
+//           if (event.detail.isRecording) {
+//             setAutoStopReason(null);
+//           }
+//         }
+//       }
+//     };
     
-    // Add event listener
-    window.addEventListener('recordingStatusChanged', handleRecordingStatusChange);
+//     // Add event listener
+//     window.addEventListener('recordingStatusChanged', handleRecordingStatusChange);
     
-    // Clean up
-    return () => {
-      window.removeEventListener('recordingStatusChanged', handleRecordingStatusChange);
-    };
-  }, [isRecording]);
+//     // Clean up
+//     return () => {
+//       window.removeEventListener('recordingStatusChanged', handleRecordingStatusChange);
+//     };
+//   }, [isRecording]);
 
 
-  const fetchReplays = async () => {
-    try {
-      const response = await fetch(`${COLAB_API_URL}/list_replays`, {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-          "ngrok-skip-browser-warning": "true"
-        }
-      });
+//   const fetchReplays = async () => {
+//     try {
+//       const response = await fetch(`${COLAB_API_URL}/list_replays`, {
+//         method: "GET",
+//         headers: {
+//           "Accept": "application/json",
+//           "ngrok-skip-browser-warning": "true"
+//         }
+//       });
   
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned non-JSON response");
-      }
+//       const contentType = response.headers.get("content-type");
+//       if (!contentType || !contentType.includes("application/json")) {
+//         throw new Error("Server returned non-JSON response");
+//       }
   
-      const data = await response.json();
-      console.log(data)
-      setReplays(data.replays || []);
-    } catch (error) {
-      console.error("❌ Error fetching replays:", error);
-      setStatus({ message: "Failed to fetch replays", type: "error" });
-    }
-  };
+//       const data = await response.json();
+//       console.log(data)
+//       setReplays(data.replays || []);
+//     } catch (error) {
+//       console.error("❌ Error fetching replays:", error);
+//       setStatus({ message: "Failed to fetch replays", type: "error" });
+//     }
+//   };
 
-  const startRecording = async () => {
-    try {
-      // First, reset the scene
-      console.log("🔄 Resetting scene before starting recording...");
-      if (window.resetEnvironment) {
-        window.resetEnvironment();
-      }
+//   const startRecording = async () => {
+//     try {
+//       // First, reset the scene
+//       console.log("🔄 Resetting scene before starting recording...");
+//       if (window.resetEnvironment) {
+//         window.resetEnvironment();
+//       }
       
-      // Wait a short time for the scene to fully reset
-      await new Promise(resolve => setTimeout(resolve, 500));
+//       // Wait a short time for the scene to fully reset
+//       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Now start recording
-      const response = await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
-      const data = await response.json();
+//       // Now start recording
+//       const response = await fetch(`${COLAB_API_URL}/start_recording`, { method: 'POST' });
+//       const data = await response.json();
       
-      // Update global recording state
-      window.isRecordingActive = true;
-      window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
-        detail: { isRecording: true }
-      }));
+//       // Update global recording state
+//       window.isRecordingActive = true;
+//       window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+//         detail: { isRecording: true }
+//       }));
       
-      // Update UI
-      setRecordingStatus({ 
-        message: data.message || 'Recording started after scene reset', 
-        type: 'recording' 
-      });
+//       // Update UI
+//       setRecordingStatus({ 
+//         message: data.message || 'Recording started after scene reset', 
+//         type: 'recording' 
+//       });
       
-      console.log("🎥 Recording started - scene reset completed");
-    } catch (error) {
-      console.error("❌ Error starting recording:", error);
-      setRecordingStatus({ message: "Failed to start recording", type: "error" });
-    }
-  };
+//       console.log("🎥 Recording started - scene reset completed");
+//     } catch (error) {
+//       console.error("❌ Error starting recording:", error);
+//       setRecordingStatus({ message: "Failed to start recording", type: "error" });
+//     }
+//   };
 
-  const stopRecording = async () => {
-    try {
-      const response = await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
-      const data = await response.json();
+//   const stopRecording = async () => {
+//     try {
+//       const response = await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
+//       const data = await response.json();
       
-      // Update global recording state
-      window.isRecordingActive = false;
-      window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
-        detail: { isRecording: false }
-      }));
+//       // Update global recording state
+//       window.isRecordingActive = false;
+//       window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+//         detail: { isRecording: false }
+//       }));
       
-      setRecordingStatus({ 
-        message: data.message || 'Recording stopped', 
-        type: 'warning' 
-      });
+//       setRecordingStatus({ 
+//         message: data.message || 'Recording stopped', 
+//         type: 'warning' 
+//       });
       
-      console.log("⏹️ Recording stopped - scene reset detection disabled");
-    } catch (error) {
-      console.error("❌ Error stopping recording:", error);
-      setRecordingStatus({ message: "Failed to stop recording", type: "error" });
-      // Still update the recording state even on error
-      window.isRecordingActive = false;
-    }
-  };
+//       console.log("⏹️ Recording stopped - scene reset detection disabled");
+//     } catch (error) {
+//       console.error("❌ Error stopping recording:", error);
+//       setRecordingStatus({ message: "Failed to stop recording", type: "error" });
+//       // Still update the recording state even on error
+//       window.isRecordingActive = false;
+//     }
+//   };
 
-  const saveReplay = async () => {
-    const replayName = filename || `replay_${Date.now()}.json`;
-    try {
-      // Show saving status
-      setRecordingStatus({ message: "Saving replay...", type: "info" });
+//   const saveReplay = async () => {
+//     const replayName = filename || `replay_${Date.now()}.json`;
+//     try {
+//       // Show saving status
+//       setRecordingStatus({ message: "Saving replay...", type: "info" });
       
-      const response = await fetch(`${COLAB_API_URL}/save_replay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: replayName })
-      });
+//       const response = await fetch(`${COLAB_API_URL}/save_replay`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ filename: replayName })
+//       });
       
-      const data = await response.json();
+//       const data = await response.json();
       
-      // Update status based on response
-      setRecordingStatus({ 
-        message: data.message || `Saved replay as ${replayName}`, 
-        type: data.status === 'error' ? 'error' : 'saved' 
-      });
+//       // Update status based on response
+//       setRecordingStatus({ 
+//         message: data.message || `Saved replay as ${replayName}`, 
+//         type: data.status === 'error' ? 'error' : 'saved' 
+//       });
       
-      console.log(`💾 Replay saved as ${replayName}`);
+//       console.log(`💾 Replay saved as ${replayName}`);
       
-      // Refresh replay list after saving
-      if (onFetchReplays) {
-        onFetchReplays();
-      }
+//       // Refresh replay list after saving
+//       if (onFetchReplays) {
+//         onFetchReplays();
+//       }
       
-      // Clear the filename input
-      setFilename('');
-    } catch (error) {
-      console.error("❌ Error saving replay:", error);
-      setRecordingStatus({ message: "Failed to save replay", type: "error" });
-    }
-  };
+//       // Clear the filename input
+//       setFilename('');
+//     } catch (error) {
+//       console.error("❌ Error saving replay:", error);
+//       setRecordingStatus({ message: "Failed to save replay", type: "error" });
+//     }
+//   };
 
-  const handleReplayStatus = (data) => {
-    console.log('Replay status update:', data);
-    setStatus({ message: getStatusMessage(data), type: data.status });
-  };
+//   const handleReplayStatus = (data) => {
+//     console.log('Replay status update:', data);
+//     setStatus({ message: getStatusMessage(data), type: data.status });
+//   };
 
-  const handleReplayScreen = (data) => {
-    if (data && data.screen_id) {
-      setLoadedScreens(prev => ({ ...prev, [data.screen_id]: data }));
-      if (Object.keys(loadedScreens).length === 0) {
-        setCurrentScreenData(data);
-      }
-    }
-  };
+//   const handleReplayScreen = (data) => {
+//     if (data && data.screen_id) {
+//       setLoadedScreens(prev => ({ ...prev, [data.screen_id]: data }));
+//       if (Object.keys(loadedScreens).length === 0) {
+//         setCurrentScreenData(data);
+//       }
+//     }
+//   };
 
-  const handleTrainingStatus = (data) => {
-    console.log('Training status update:', data);
-    if (data.status === 'training') {
-      setIsTraining(true);
-      setTrainingProgress(data.progress || 0);
-      setStatus({
-        message: `Training in progress: ${data.progress}%`,
-        type: 'loading'
-      });
-    } else if (data.status === 'completed') {
-      setIsTraining(false);
-      setTrainingProgress(100);
-      setStatus({
-        message: `Training completed (${data.episodes} episodes)`,
-        type: 'saved'
-      });
-    } else if (data.status === 'error') {
-      setIsTraining(false);
-      setStatus({
-        message: `Training error: ${data.message}`,
-        type: 'error'
-      });
-    }
-  };
+//   const handleTrainingStatus = (data) => {
+//     console.log('Training status update:', data);
+//     if (data.status === 'training') {
+//       setIsTraining(true);
+//       setTrainingProgress(data.progress || 0);
+//       setStatus({
+//         message: `Training in progress: ${data.progress}%`,
+//         type: 'loading'
+//       });
+//     } else if (data.status === 'completed') {
+//       setIsTraining(false);
+//       setTrainingProgress(100);
+//       setStatus({
+//         message: `Training completed (${data.episodes} episodes)`,
+//         type: 'saved'
+//       });
+//     } else if (data.status === 'error') {
+//       setIsTraining(false);
+//       setStatus({
+//         message: `Training error: ${data.message}`,
+//         type: 'error'
+//       });
+//     }
+//   };
 
-  const handleTrainingStats = (data) => {
-    console.log('Training stats update:', data);
-    setTrainingStats(data);
-  };
+//   const handleTrainingStats = (data) => {
+//     console.log('Training stats update:', data);
+//     setTrainingStats(data);
+//   };
 
-  // const stopRecording = async () => {
-  //   try {
-  //     await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
-  //     setIsRecording(false);
-  //     console.log("⏹️ Recording stopped - scene reset detection disabled");
-  //   } catch (error) {
-  //     console.error("❌ Error stopping recording:", error);
-  //   }
-  // };
+//   // const stopRecording = async () => {
+//   //   try {
+//   //     await fetch(`${COLAB_API_URL}/stop_recording`, { method: 'POST' });
+//   //     setIsRecording(false);
+//   //     console.log("⏹️ Recording stopped - scene reset detection disabled");
+//   //   } catch (error) {
+//   //     console.error("❌ Error stopping recording:", error);
+//   //   }
+//   // };
 
-  const loadReplay = async (replayName) => {
-    if (!replayName) return;
-    try {
-      setIsLoading(true);
-      await fetch(`${COLAB_API_URL}/load_replay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: replayName })
-      });
-      fetchReplays(); // Refresh replay list `
-    } catch (error) {
-      console.error("❌ Error loading replay:", error);
-    }
-  };
+//   const loadReplay = async (replayName) => {
+//     if (!replayName) return;
+//     try {
+//       setIsLoading(true);
+//       await fetch(`${COLAB_API_URL}/load_replay`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ filename: replayName })
+//       });
+//       fetchReplays(); // Refresh replay list `
+//     } catch (error) {
+//       console.error("❌ Error loading replay:", error);
+//     }
+//   };
 
-  const feedToAgent = async () => {
-    try {
-      await fetch(`${COLAB_API_URL}/feed_to_agent`, { method: 'POST' });
+//   const feedToAgent = async () => {
+//     try {
+//       await fetch(`${COLAB_API_URL}/feed_to_agent`, { method: 'POST' });
 
 
-    } catch (error) {
-      console.error("❌ Error feeding to agent:", error);
-    }
-  };
+//     } catch (error) {
+//       console.error("❌ Error feeding to agent:", error);
+//     }
+//   };
 
-  const takePicture = () => {
-    setStatus({ message: "Taking picture...", type: "info" });
+//   const takePicture = () => {
+//     setStatus({ message: "Taking picture...", type: "info" });
     
-    try {
-      // Create a keyboard event for 'v' key
-      const event = new KeyboardEvent('keydown', {
-        key: 'v',
-        code: 'KeyV',
-        which: 86,
-        keyCode: 86,
-        bubbles: true
-      });
+//     try {
+//       // Create a keyboard event for 'v' key
+//       const event = new KeyboardEvent('keydown', {
+//         key: 'v',
+//         code: 'KeyV',
+//         which: 86,
+//         keyCode: 86,
+//         bubbles: true
+//       });
       
-      // Dispatch the event
-      window.dispatchEvent(event);
+//       // Dispatch the event
+//       window.dispatchEvent(event);
       
-      setStatus({ message: "Picture taken! Processing...", type: "info" });
-    } catch (error) {
-      console.error("❌ Error taking picture:", error);
-      setStatus({ message: "Error taking picture", type: "error" });
-    }
-  };
+//       setStatus({ message: "Picture taken! Processing...", type: "info" });
+//     } catch (error) {
+//       console.error("❌ Error taking picture:", error);
+//       setStatus({ message: "Error taking picture", type: "error" });
+//     }
+//   };
 
-  const startTraining = async () => {
-    if (replays.length === 0) {
-      setStatus({ message: "No replay files available for training", type: "error" });
-      return;
-    }
+//   const startTraining = async () => {
+//     if (replays.length === 0) {
+//       setStatus({ message: "No replay files available for training", type: "error" });
+//       return;
+//     }
     
-    setIsLoading(true);
+//     setIsLoading(true);
     
-    try {
-      // Use the latest saved replay file
-      const latestReplay = replays[0];
+//     try {
+//       // Use the latest saved replay file
+//       const latestReplay = replays[0];
       
-      // Load the latest replay
-      const loadResult = await fetch(`${COLAB_API_URL}/load_replay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: latestReplay })
-      });
+//       // Load the latest replay
+//       const loadResult = await fetch(`${COLAB_API_URL}/load_replay`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ filename: latestReplay })
+//       });
       
-      const loadData = await loadResult.json();
+//       const loadData = await loadResult.json();
       
-      // Start training
-      const trainResult = await fetch(`${COLAB_API_URL}/start_training`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ episodes: trainingEpisodes })
-      });
+//       // Start training
+//       const trainResult = await fetch(`${COLAB_API_URL}/start_training`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ episodes: trainingEpisodes })
+//       });
       
-      const trainData = await trainResult.json();
+//       const trainData = await trainResult.json();
       
-      setIsTraining(true);
-      setStatus({ message: `Training started with ${trainingEpisodes} episodes`, type: "info" });
+//       setIsTraining(true);
+//       setStatus({ message: `Training started with ${trainingEpisodes} episodes`, type: "info" });
       
-      // Monitor training progress
-      const progressInterval = setInterval(async () => {
-        try {
-          const response = await fetch(`${COLAB_API_URL}/agent_training_status`);
-          const data = await response.json();
+//       // Monitor training progress
+//       const progressInterval = setInterval(async () => {
+//         try {
+//           const response = await fetch(`${COLAB_API_URL}/agent_training_status`);
+//           const data = await response.json();
           
-          if (data.training_progress !== undefined) {
-            setTrainingProgress(data.training_progress);
-          }
+//           if (data.training_progress !== undefined) {
+//             setTrainingProgress(data.training_progress);
+//           }
           
-          if (data.status !== "training") {
-            clearInterval(progressInterval);
-            setIsTraining(false);
-            setTrainingProgress(100);
-            setStatus({ message: "Training completed!", type: "saved" });
-          }
-        } catch (error) {
-          console.error("Failed to fetch training progress:", error);
-        }
-      }, 1000);
+//           if (data.status !== "training") {
+//             clearInterval(progressInterval);
+//             setIsTraining(false);
+//             setTrainingProgress(100);
+//             setStatus({ message: "Training completed!", type: "saved" });
+//           }
+//         } catch (error) {
+//           console.error("Failed to fetch training progress:", error);
+//         }
+//       }, 1000);
       
-    } catch (error) {
-      console.error("Training error:", error);
-      setStatus({ message: error.message || "Failed to start training", type: "error" });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+//     } catch (error) {
+//       console.error("Training error:", error);
+//       setStatus({ message: error.message || "Failed to start training", type: "error" });
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
     
-  const startMonitoringProgress = () => {
-    // Poll for training progress
-    const progressInterval = setInterval(async () => {
-      try {
-        const response = await fetch(`${COLAB_API_URL}/agent_training_status`);
-        const data = await response.json();
+//   const startMonitoringProgress = () => {
+//     // Poll for training progress
+//     const progressInterval = setInterval(async () => {
+//       try {
+//         const response = await fetch(`${COLAB_API_URL}/agent_training_status`);
+//         const data = await response.json();
         
-        // Update training progress
-        if (data.training_progress !== undefined) {
-          setTrainingProgress(data.training_progress);
-        }
+//         // Update training progress
+//         if (data.training_progress !== undefined) {
+//           setTrainingProgress(data.training_progress);
+//         }
         
-        // Check if training is still active
-        if (data.status !== "training") {
-          clearInterval(progressInterval);
-          setIsTraining(false);
-          setTrainingProgress(100); // Set to 100% when complete
-          setSuccessMessage("Training completed!");
-          setTimeout(() => setSuccessMessage(""), 3000);
-        }
-      } catch (error) {
-        console.error("Failed to fetch training progress:", error);
-      }
-    }, 1000);
+//         // Check if training is still active
+//         if (data.status !== "training") {
+//           clearInterval(progressInterval);
+//           setIsTraining(false);
+//           setTrainingProgress(100); // Set to 100% when complete
+//           setSuccessMessage("Training completed!");
+//           setTimeout(() => setSuccessMessage(""), 3000);
+//         }
+//       } catch (error) {
+//         console.error("Failed to fetch training progress:", error);
+//       }
+//     }, 1000);
     
-    // Store the interval ID for cleanup
-    progressIntervalRef.current = progressInterval;
-  };
+//     // Store the interval ID for cleanup
+//     progressIntervalRef.current = progressInterval;
+//   };
   
 
-  const stopTraining = async () => {
-    try {
-      await fetch(`${COLAB_API_URL}/stop_training`, { method: 'POST' });
-    } catch (error) {
-      console.error("❌ Error stopping training:", error);
-    }
-  };
+//   const stopTraining = async () => {
+//     try {
+//       await fetch(`${COLAB_API_URL}/stop_training`, { method: 'POST' });
+//     } catch (error) {
+//       console.error("❌ Error stopping training:", error);
+//     }
+//   };
 
-  const resetScene = () => {
-    console.log("🔄 Resetting scene from AgentDashboard...");
+//   const resetScene = () => {
+//     console.log("🔄 Resetting scene from AgentDashboard...");
     
-    // Check if recording is in progress, and stop it before resetting
-    if (window.isRecordingActive) {
-      console.log("Recording in progress - stopping recording automatically");
-      stopRecording();
-      setRecordingStatus({ message: "Recording stopped due to scene reset. Please save your experience.", type: "warning" });
-    }
+//     // Check if recording is in progress, and stop it before resetting
+//     if (window.isRecordingActive) {
+//       console.log("Recording in progress - stopping recording automatically");
+//       stopRecording();
+//       setRecordingStatus({ message: "Recording stopped due to scene reset. Please save your experience.", type: "warning" });
+//     }
     
-    // Call the global reset function if available
-    if (window.resetEnvironment) {
-      window.resetEnvironment();
-    }
+//     // Call the global reset function if available
+//     if (window.resetEnvironment) {
+//       window.resetEnvironment();
+//     }
   
-    // Also call reset_scene endpoint in the backend
-    try {
-      fetch(`${COLAB_API_URL}/reset_scene`, { method: 'POST' });
-    } catch (error) {
-      console.error("❌ Error calling reset_scene API:", error);
-    }
+//     // Also call reset_scene endpoint in the backend
+//     try {
+//       fetch(`${COLAB_API_URL}/reset_scene`, { method: 'POST' });
+//     } catch (error) {
+//       console.error("❌ Error calling reset_scene API:", error);
+//     }
   
-    // Set status message if not already set by recording stop
-    if (!window.isRecordingActive) {
-      setRecordingStatus({ message: "Scene reset!", type: "info" });
-    }
-  };
+//     // Set status message if not already set by recording stop
+//     if (!window.isRecordingActive) {
+//       setRecordingStatus({ message: "Scene reset!", type: "info" });
+//     }
+//   };
 
-  const getStatusMessage = (data) => {
-    switch (data.status) {
-      case 'recording':
-        return `Recording episode ${data.episode}...`;
-      case 'stopped':
-        return `Recording stopped. ${data.episode} episodes recorded.`;
-      case 'saved':
-        return `Saved ${data.episodes} episodes (${data.steps} steps).`;
-      case 'loaded':
-        return `Loaded ${data.episodes} episodes successfully.`;
-      case 'replayed':
-        return `Added ${data.experiences} experiences to agent memory.`;
-      case 'error':
-        return data.message || 'Error processing replay request.';
-      default:
-        return data.message || 'Ready';
-    }
-  };
+//   const getStatusMessage = (data) => {
+//     switch (data.status) {
+//       case 'recording':
+//         return `Recording episode ${data.episode}...`;
+//       case 'stopped':
+//         return `Recording stopped. ${data.episode} episodes recorded.`;
+//       case 'saved':
+//         return `Saved ${data.episodes} episodes (${data.steps} steps).`;
+//       case 'loaded':
+//         return `Loaded ${data.episodes} episodes successfully.`;
+//       case 'replayed':
+//         return `Added ${data.experiences} experiences to agent memory.`;
+//       case 'error':
+//         return data.message || 'Error processing replay request.';
+//       default:
+//         return data.message || 'Ready';
+//     }
+//   };
 
-  return (
-    <div className="replay-controls-container">
-      {/* Record Button Panel */}
-      <div className="control-panel-item">
-        <button
-          className={`action-button action-record ${isRecording ? 'disabled' : ''}`}
-          onClick={startRecording}
-          disabled={isRecording}
-        >
-          Start Recording
-        </button>
-      </div>
+//   return (
+//     <div className="replay-controls-container">
+//       {/* Record Button Panel */}
+//       <div className="control-panel-item">
+//         <button
+//           className={`action-button action-record ${isRecording ? 'disabled' : ''}`}
+//           onClick={startRecording}
+//           disabled={isRecording}
+//         >
+//           Start Recording
+//         </button>
+//       </div>
 
-      {/* Stop Button Panel */}
-      <div className="control-panel-item">
-        <button
-          className={`action-button action-stop ${!isRecording ? 'disabled' : ''}`}
-          onClick={stopRecording}
-          disabled={!isRecording}
-        >
-          Stop
-        </button>
-      </div>
+//       {/* Stop Button Panel */}
+//       <div className="control-panel-item">
+//         <button
+//           className={`action-button action-stop ${!isRecording ? 'disabled' : ''}`}
+//           onClick={stopRecording}
+//           disabled={!isRecording}
+//         >
+//           Stop
+//         </button>
+//       </div>
 
-      {/* Filename Input Panel */}
-      <div className="control-panel-item">
-        <div className="panel-content">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="replay_name.json"
-            value={filename}
-            onChange={(e) => setFilename(e.target.value)}
-          />
-        </div>
-      </div>
+//       {/* Filename Input Panel */}
+//       <div className="control-panel-item">
+//         <div className="panel-content">
+//           <input
+//             type="text"
+//             className="form-control"
+//             placeholder="replay_name.json"
+//             value={filename}
+//             onChange={(e) => setFilename(e.target.value)}
+//           />
+//         </div>
+//       </div>
 
-      {/* Save Button Panel */}
-      <div className="control-panel-item">
-        <button
-          className="action-button action-save"
-          onClick={saveReplay}
-        >
-          Save
-        </button>
-      </div>
+//       {/* Save Button Panel */}
+//       <div className="control-panel-item">
+//         <button
+//           className="action-button action-save"
+//           onClick={saveReplay}
+//         >
+//           Save
+//         </button>
+//       </div>
 
-      {/* Load Replay Button Panel */}
-      <div className="control-panel-item">
-        <button
-          className="action-button action-play"
-          onClick={() => {
-            if (replays.length > 0) {
-              loadReplay(replays[0].filename);
-            }
-          }}
-          disabled={isLoading || replays.length === 0}
-        >
-          Load Replay
-        </button>
-      </div>
+//       {/* Load Replay Button Panel */}
+//       <div className="control-panel-item">
+//         <button
+//           className="action-button action-play"
+//           onClick={() => {
+//             if (replays.length > 0) {
+//               loadReplay(replays[0].filename);
+//             }
+//           }}
+//           disabled={isLoading || replays.length === 0}
+//         >
+//           Load Replay
+//         </button>
+//       </div>
 
-      {/* Feed to Agent Button Panel */}
-      <div className="control-panel-item">
-        <button
-          className="action-button action-feed"
-          onClick={feedToAgent}
-        >
-          Feed to Agent
-        </button>
-      </div>
+//       {/* Feed to Agent Button Panel */}
+//       <div className="control-panel-item">
+//         <button
+//           className="action-button action-feed"
+//           onClick={feedToAgent}
+//         >
+//           Feed to Agent
+//         </button>
+//       </div>
 
-      {/* Train Button Panel */}
-      <div className="control-panel-item">
-        <button 
-          className="action-button action-train"
-          onClick={startTraining}
-          disabled={isTraining || replays.length === 0}
-        >
-          {isTraining ? 'Training...' : 'Train Agent'}
-        </button>
+//       {/* Train Button Panel */}
+//       <div className="control-panel-item">
+//         <button 
+//           className="action-button action-train"
+//           onClick={startTraining}
+//           disabled={isTraining || replays.length === 0}
+//         >
+//           {isTraining ? 'Training...' : 'Train Agent'}
+//         </button>
 
-        {isTraining && (
-          <div className="progress-container">
-            <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ width: `${trainingProgress}%` }}
-              ></div>
-            </div>
-            <div className="progress-text">{trainingProgress.toFixed(1)}%</div>
-          </div>
-        )}
-      </div>
+//         {isTraining && (
+//           <div className="progress-container">
+//             <div className="progress-bar">
+//               <div 
+//                 className="progress-fill" 
+//                 style={{ width: `${trainingProgress}%` }}
+//               ></div>
+//             </div>
+//             <div className="progress-text">{trainingProgress.toFixed(1)}%</div>
+//           </div>
+//         )}
+//       </div>
 
-      {/* Reset Button Panel */}
-      <div className="control-panel-item">
-        <button
-          className="action-button action-stop"
-          onClick={resetScene}
-        >
-          Reset Scene
-        </button>
-      </div>
+//       {/* Reset Button Panel */}
+//       <div className="control-panel-item">
+//         <button
+//           className="action-button action-stop"
+//           onClick={resetScene}
+//         >
+//           Reset Scene
+//         </button>
+//       </div>
 
-      {/* Status Panel */}
-      <div className="control-panel-item">
-        <div className={`status status-${status.type}`}>
-          {status.message}
-        </div>
-      </div>
-    </div>
-  );
-};
+//       {/* Status Panel */}
+//       <div className="control-panel-item">
+//         <div className={`status status-${status.type}`}>
+//           {status.message}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
-export default ReplayControlsModal;
+// export default ReplayControlsModal;
