@@ -40,33 +40,33 @@ const AgentDashboard = ({
         // Handle replay status
         if (event.detail.isReplaying !== undefined) {
           // Update UI for replay status
-          setStatus({
+          setRecordingStatus({
             message: event.detail.message || 'Replaying...',
             type: 'replaying'
           });
         } 
         else if (event.detail.type === 'complete') {
           // Update UI for completed replay
-          setStatus({
+          setRecordingStatus({
             message: event.detail.message || 'Replay complete',
             type: 'complete'
           });
         }
         // Existing recording status handling...
         else if (event.detail.isRecording) {
-          setStatus({
+          setRecordingStatus({
             message: 'Recording in progress...',
             type: 'recording'
           });
         } 
         else if (event.detail.autoStopped) {
-          setStatus({
+          setRecordingStatus({
             message: `Recording auto-stopped: ${event.detail.reason || 'unknown reason'}`,
             type: 'warning'
           });
         } 
         else {
-          setStatus({
+          setRecordingStatus({
             message: 'Recording stopped',
             type: 'warning'
           });

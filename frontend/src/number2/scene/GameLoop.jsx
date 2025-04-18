@@ -257,7 +257,7 @@ const GameLoop = ({
       if (socket && socket.connected) {
         
         socket.emit("state", currentState);
-        console.log(currentState)
+        // console.log(currentState)
         // Log significant state changes
         if (hasCollisionChanged) {
           console.log(`🚨 Sending state update with collision change: ${currentState.collision}`);

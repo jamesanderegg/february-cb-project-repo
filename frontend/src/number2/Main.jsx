@@ -189,7 +189,7 @@ const Main = ({
         });
 
         const data = await response.json();
-        console.log("✅ YOLO Detection Results:", data);
+        // console.log("✅ YOLO Detection Results:", data);
         YOLOdetectObject.current = data.detections; // Update with latest detections
       } catch (error) {
         console.error("❌ Error sending image:", error);
