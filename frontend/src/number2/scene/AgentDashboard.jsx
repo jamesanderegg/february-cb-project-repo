@@ -164,8 +164,7 @@ const AgentDashboard = ({
     }
   };
 
-  const executeReplayLoading = (replayName) => {
-    // Load the selected replay using the API
+  const executeReplayLoading = (replayName, updateSceneObjects) => {
     fetch(`${COLAB_API_URL}/load_replay`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -175,8 +174,16 @@ const AgentDashboard = ({
     .then(data => {
       console.log(`✅ Loaded replay: ${replayName}`);
       setRecordingStatus({ message: `Loaded replay: ${replayName}`, type: 'info' });
-      
-      // Now that the replay is loaded, start the replay
+  
+      const objectPositionsReplay = data.object_positions || [];
+  
+      if (objectPositionsReplay.length > 0) {
+        console.log("🌐 Received object positions:", objectPositionsReplay);
+        if (typeof updateSceneObjects === 'function') {
+          updateSceneObjects(objectPositionsReplay);
+        }
+      }
+  
       return fetch(`${COLAB_API_URL}/start_replay`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -193,6 +200,8 @@ const AgentDashboard = ({
       setRecordingStatus({ message: `Error with replay: ${error}`, type: 'error' });
     });
   };
+  
+  
   
   // Handle recording functions
   const startRecording = () => {
