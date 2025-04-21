@@ -17,6 +17,8 @@ const MainScene = ({
   collisionIndicator,
   objectPositions,
   setObjectPositions,
+  replayPositions,
+  setReplayPositions,
   modelPositionsRef,
   isRunning,
   setTarget,
@@ -76,6 +78,7 @@ const MainScene = ({
           tableConfigs={tableConfigs}
           setObjectPositions={setObjectPositions}
           modelPositionsRef={modelPositionsRef}
+          replayPositions={replayPositions}
         />
 
         <Buggy

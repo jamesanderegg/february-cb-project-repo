@@ -85,7 +85,7 @@ export const useAgentController = ({
       }
   
       const data = await response.json();
-      console.log(`📋 Retrieved replays:`, data);
+      
       
       if (data.replays && Array.isArray(data.replays)) {
         setReplays(data.replays);

@@ -2,7 +2,12 @@ import React, { useMemo, useEffect, useState, useRef, useImperativeHandle, forwa
 import { movableModels } from './MoveableModels';
 import Model from '../../helper/Model';
 
-const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions, modelPositionsRef }, ref) => {
+const ObjectRandomizer = forwardRef(({ 
+    tableConfigs, 
+    setObjectPositions, 
+    modelPositionsRef, 
+    replayPositions = null 
+  }, ref) => {
   const [resetCounter, setResetCounter] = useState(0);
   const objectRefs = useRef(new Map()); // Store refs for object persistence
 
@@ -10,8 +15,10 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions, modelPo
   useImperativeHandle(ref, () => ({
     resetEnvironment: () => {
       console.log("🔄 Resetting object positions...");
+      console.log("ReplayPositions:", replayPositions);
       setResetCounter((prev) => prev + 1);
     }
+    
   }));
 
   // Memoize object positions to minimize recalculations
@@ -19,6 +26,11 @@ const ObjectRandomizer = forwardRef(({ tableConfigs, setObjectPositions, modelPo
     if (!tableConfigs.length) return [];
 
     console.log(`🔄 Generating new positions | Reset Count: ${resetCounter}`);
+
+    if (replayPositions && replayPositions.length > 0) {
+      console.log("📥 Injected replay object positions used.");
+      return replayPositions;
+    }
 
     let availableTables = [...tableConfigs];
     let availableModels = [...movableModels];

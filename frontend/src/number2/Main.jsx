@@ -58,6 +58,8 @@ const Main = ({
 
   const [showDashboard, setShowDashboard] = useState(false);
   const [objectPositions, setObjectPositions] = useState([]);
+  const [replayPositions, setReplayPositions] = useState(null);
+  
   const objectPositionsRef = useRef([]);
   const closestObjectDisplayRef = useRef(null);
 
@@ -303,7 +305,7 @@ const Main = ({
           const rotation = state.slice(3, 6);
           
           console.log("Robot position from state:", position);
-          console.log("Robot rotation from state:", rotation);
+          
           
           // Update position reference if available
           if (robotPositionRef && robotPositionRef.current) {
@@ -716,6 +718,8 @@ const Main = ({
           collisionIndicator={collisionIndicator}
           objectPositions={objectPositions}
           setObjectPositions={setObjectPositions}
+          replayPositions={replayPositions}
+          setReplayPositions={setReplayPositions}
           isRunning={isRunning}
           setTarget={setTarget}
           target={target}
@@ -852,6 +856,7 @@ const Main = ({
                   onClearMessages={clearMessages}
                   COLAB_API_URL={COLAB_API_URL}
                   resetScene={resetScene}
+                  setReplayPositions={setReplayPositions}
                 />
               )}
             </div>
