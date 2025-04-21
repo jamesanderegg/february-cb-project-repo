@@ -103,47 +103,6 @@ const AgentDashboard = ({
   const handleStartTraining = () => {
     onStartTraining(trainingEpisodes);
   };
-  
-  // Modified handleSelectReplay function for AgentDashboard.jsx
-  // const handleSelectReplay = (replayName) => {
-  //   console.log(`Selected replay: ${replayName}`);
-  //   // Close dropdown
-  //   setReplayDropdownOpen(false);
-    
-  //   // First, reset the scene to ensure clean replay
-  //   if (window.resetEnvironment) {
-  //     window.resetEnvironment();
-  //     setRecordingStatus({ message: 'Scene reset for replay...', type: 'info' });
-  //   }
-    
-  //   // Load the selected replay using the API
-  //   fetch(`${COLAB_API_URL}/load_replay`, {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ filename: replayName })
-  //   })
-  //   .then(response => response.json())
-  //   .then(data => {
-  //     console.log(`✅ Loaded replay: ${replayName}`);
-  //     setRecordingStatus({ message: `Loaded replay: ${replayName}`, type: 'info' });
-      
-  //     // Now that the replay is loaded, start the replay
-  //     return fetch(`${COLAB_API_URL}/start_replay`, {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ filename: replayName })
-  //     });
-  //   })
-  //   .then(response => response.json())
-  //   .then(data => {
-  //     console.log(`▶️ Started replay playback`);
-  //     setRecordingStatus({ message: 'Replay in progress...', type: 'recording' });
-  //   })
-  //   .catch(error => {
-  //     console.error(`❌ Error with replay: ${error}`);
-  //     setRecordingStatus({ message: `Error with replay: ${error}`, type: 'error' });
-  //   });
-  // };
 
   // Handle replay selection
   const handleSelectReplay = (replayName) => {
@@ -152,7 +111,6 @@ const AgentDashboard = ({
     setReplayDropdownOpen(false);
     executeReplayLoading(replayName);
   };
-
 
   const executeReplayLoading = (replayName) => {
     fetch(`${COLAB_API_URL}/load_replay`, {
@@ -193,9 +151,6 @@ const AgentDashboard = ({
       setRecordingStatus({ message: `Error with replay: ${error}`, type: 'error' });
     });
   };
-  
-  
-  
   
   // Handle recording functions
   const startRecording = () => {
