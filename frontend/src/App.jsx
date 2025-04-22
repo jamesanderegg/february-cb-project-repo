@@ -14,7 +14,7 @@ function App() {
   const detectObj = useRef(null);
   const collisionIndicator = useRef(0);
 
-  const COLAB_API_URL = "https://choosing-moving-walk-affair.trycloudflare.com"
+  const COLAB_API_URL = "https://nitrogen-poem-far-z.trycloudflare.com"
 
   const [isRunning, setIsRunning] = useState(true);
   const [target, setTarget] = useState(null);

@@ -10,6 +10,7 @@ const ObjectRandomizer = forwardRef(({
   }, ref) => {
   const [resetCounter, setResetCounter] = useState(0);
   const objectRefs = useRef(new Map()); // Store refs for object persistence
+  const prevPositionsRef = useRef([]); // Store previous positions for comparison
 
   // Expose reset function for parent components
   useImperativeHandle(ref, () => ({
@@ -18,17 +19,22 @@ const ObjectRandomizer = forwardRef(({
       console.log("ReplayPositions:", replayPositions);
       setResetCounter((prev) => prev + 1);
     }
-    
   }));
 
-  // Memoize object positions to minimize recalculations
+  // Memo-ize object positions to minimize recalculations
   const objectPositions = useMemo(() => {
     if (!tableConfigs.length) return [];
 
     console.log(`🔄 Generating new positions | Reset Count: ${resetCounter}`);
 
-    if (replayPositions && replayPositions.length > 0) {
-      console.log("📥 Injected replay object positions used.");
+    // if (replayPositions && replayPositions.length > 0) {
+    //   console.log("📥 Injected replay object positions used.");
+    //   return replayPositions;
+    // }
+
+    // Check if we have valid replay positions
+    if (replayPositions && Array.isArray(replayPositions) && replayPositions.length > 0) {
+      console.log("📥 Using replay object positions:", replayPositions.length, "objects");
       return replayPositions;
     }
 
@@ -85,15 +91,35 @@ const ObjectRandomizer = forwardRef(({
       });
     }
     return positions;
-  }, [tableConfigs, resetCounter]); // Recalculate only on reset
+  }, [tableConfigs, resetCounter, replayPositions]); // Recalculate only on reset
+
+  // // Batch update the state only if positions change
+  // useEffect(() => {
+  //   setObjectPositions((prevPositions) => {
+  //     if (JSON.stringify(prevPositions) === JSON.stringify(objectPositions)) return prevPositions;
+  //     console.log("📦 Updated object positions:", objectPositions);
+  //     return objectPositions;
+  //   });
+  // }, [objectPositions, setObjectPositions]);
+
+  // // Update position tracking for the parent component
+  // const handlePositionUpdate = (id, position, rotation) => {
+  //   if (modelPositionsRef && modelPositionsRef.current) {
+  //     modelPositionsRef.current[id] = { position, rotation };
+  //   }
+  // };
 
   // Batch update the state only if positions change
   useEffect(() => {
-    setObjectPositions((prevPositions) => {
-      if (JSON.stringify(prevPositions) === JSON.stringify(objectPositions)) return prevPositions;
+    // Compare with previous positions
+    const prevPositions = prevPositionsRef.current;
+    const positionsChanged = JSON.stringify(prevPositions) !== JSON.stringify(objectPositions);
+    
+    if (positionsChanged) {
       console.log("📦 Updated object positions:", objectPositions);
-      return objectPositions;
-    });
+      prevPositionsRef.current = objectPositions;
+      setObjectPositions(objectPositions);
+    }
   }, [objectPositions, setObjectPositions]);
 
   // Update position tracking for the parent component

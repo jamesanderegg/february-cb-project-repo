@@ -18,6 +18,8 @@ import { useAgentController } from "./scene/AgentController";
 import AgentDashboard from "./scene/AgentDashboard";
 import { useActionHandler } from './ActionHandler';
 
+import ReplayController from './scene/Replays/ReplayController';
+import DirectReplayController from './scene/Replays/DirectReplayController';
 
 import TimerHUDUpdater from "../components/TimerHUDUpdater";
 
@@ -420,74 +422,6 @@ const Main = ({
     console.log("🔄 Applying action:", action);
     // Logic to update the robot's movement/state
   };
-  
-  // const resetScene = () => {
-  //   console.log("🔄 Resetting scene from Main component...");
-  //   window.dispatchEvent(new Event("sceneReset"));
-    
-  //   if (recordingControlsRef.current && 
-  //       recordingControlsRef.current.isRecording && 
-  //       recordingControlsRef.current.isRecording()) {
-  //     console.log("Recording in progress - stopping recording before reset");
-  //     recordingControlsRef.current.stopRecording();
-  //   }
-  //   setIsRunning(false);
-
-  //   fetch(`${COLAB_API_URL}/reset_scene`, { 
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     }
-  //   })
-  //   .then(response => response.json())
-  //   .then(data => {
-  //     console.log("✅ Reset successful, updating local state:", data);
-  //     // Update robot position and rotation directly from the response if available
-  //     if (data.data && data.data.robot_position && robotPositionRef.current) {
-  //       robotPositionRef.current = data.data.robot_position;
-  //     } else {
-  //       // Default position if not provided
-  //       if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
-  //     }
-      
-  //     if (data.data && data.data.robot_rotation && robotRotationRef.current) {
-  //       robotRotationRef.current = data.data.robot_rotation;
-  //     } else {
-  //       // Default rotation if not provided
-  //       if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
-  //     }
-  //   })
-  //   .catch(error => {
-  //     console.error("❌ Error calling reset_scene API:", error);
-  //     // Fall back to default reset behavior
-  //     if (robotPositionRef.current) robotPositionRef.current = [7, 0.1, 15];
-  //     if (robotRotationRef.current) robotRotationRef.current = [0, -Math.PI / 2, 0, 1];
-  //   });
-
-  //   setTimeout(() => {
-  //     console.log("🛠 Resetting robot and objects...");
-
-  //     if (window.resetEnvironment) {
-  //       window.resetEnvironment();
-  //     }
-
-  //     // timerRef.current = 350;
-
-  //     if (detectionDisplayRef.current) {
-  //       detectionDisplayRef.current.innerText = "Detected Objects: Waiting...";
-  //     }
-
-  //     robotMemoryRef.current = [];
-
-  //     // Reset object positions
-  //     setObjectPositions([]);
-  //     setPhysicsResetKey(prev => prev + 1);
-  //     setTimeout(() => {
-  //       setIsRunning(true);
-  //       console.log("▶️ Scene restarted.");
-  //     }, 350);
-  //   }, 2000);
-  // };
 
   const resetScene = () => {
     console.log("🔄 Resetting scene from Main component...");
@@ -779,6 +713,22 @@ const Main = ({
           timerDisplayRef={timerDisplayRef} 
           resetScene={resetScene}
         />
+
+        <DirectReplayController
+          COLAB_API_URL={COLAB_API_URL}
+          socketRef={socketRef}
+          buggyRef={buggyRef}
+          robotPositionRef={robotPositionRef}
+          robotRotationRef={robotRotationRef}
+          keysPressed={keysPressed}
+          currentActionRef={currentActionRef}
+          lastVActionTime={lastVActionTime}
+          objectPositions={objectPositions}
+          setObjectPositions={setObjectPositions}
+          setReplayPositions={setReplayPositions}
+          resetScene={resetScene}
+        />
+        
       </Canvas>
 
       <div className="hud-container" style={{ position: "relative", zIndex: 2 }}>
@@ -817,6 +767,22 @@ const Main = ({
             }}
           />
         </div> */}
+
+        <ReplayController
+          COLAB_API_URL={COLAB_API_URL}
+          socketRef={socketRef}
+          robotRef={buggyRef}
+          robotPositionRef={robotPositionRef}
+          robotRotationRef={robotRotationRef}
+          keysPressed={keysPressed}
+          currentActionRef={currentActionRef}
+          lastVActionTime={lastVActionTime}
+          onReplayComplete={() => {
+            console.log("✅ Replay playback completed");
+            // Any additional cleanup or notifications
+          }}
+        />
+
         <div className="agent-dashboard-container">
           <button 
             onClick={() => setShowDashboard(prev => !prev)}

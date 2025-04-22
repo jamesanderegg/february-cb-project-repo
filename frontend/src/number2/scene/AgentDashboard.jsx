@@ -1,6 +1,7 @@
 // AgentDashboard.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import '../../styles/AgentDashboard.css'; 
+import ReplaySpeedControlUI from '../scene/Replays/ReplaySpeedControlUI';
 
 const AgentDashboard = ({ 
   agentStatus, 
@@ -28,7 +29,8 @@ const AgentDashboard = ({
   const [replayDropdownOpen, setReplayDropdownOpen] = useState(false);
   const [recordingStatus, setRecordingStatus] = useState({ message: 'Ready', type: 'ready' });
   const recordingControlsRef = useRef(null);
-  
+  const [isReplayActive, setIsReplayActive] = useState(false);
+
   // Get recording controls reference from window if available
   useEffect(() => {
     if (window.recordingControlsRef) {
@@ -98,6 +100,25 @@ const AgentDashboard = ({
       return () => clearTimeout(timer);
     }
   }, [successMessage, onClearMessages]);
+
+  useEffect(() => {
+    const handleReplayStatus = (event) => {
+      if (event && event.detail) {
+        // Update replay active status based on event
+        if (event.detail.isReplaying !== undefined) {
+          setIsReplayActive(event.detail.isReplaying);
+        } else if (event.detail.type === 'complete' || event.detail.type === 'cancelled') {
+          setIsReplayActive(false);
+        }
+      }
+    };
+    
+    window.addEventListener('recordingStatusChanged', handleReplayStatus);
+    
+    return () => {
+      window.removeEventListener('recordingStatusChanged', handleReplayStatus);
+    };
+  }, []);
   
   // Handle starting training with current parameters
   const handleStartTraining = () => {
@@ -105,14 +126,74 @@ const AgentDashboard = ({
   };
 
   // Handle replay selection
+  // const handleSelectReplay = (replayName) => {
+  //   console.log(`🎬 Selected replay: ${replayName}`);
+  //   setRecordingStatus({ message: 'Loading replay...', type: 'info' });
+  //   setReplayDropdownOpen(false);
+    
+  //   // First, get object positions from the replay file
+  //   fetch(`${COLAB_API_URL}/get_replay_objects`, {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ filename: replayName })
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     if (data.status === 'error') {
+  //       throw new Error(data.message || 'Failed to load object positions');
+  //     }
+      
+  //     console.log(`📦 Loaded object positions: ${data.count} objects`);
+      
+  //     // Set replay positions in state to be used by ObjectRandomizer
+  //     if (data.objectPositions && data.objectPositions.length > 0) {
+  //       console.log("🌐 Injecting replay object positions:", data.objectPositions);
+  //       setReplayPositions(data.objectPositions);
+        
+  //       // Allow time for state update
+  //       setTimeout(() => {
+  //         console.log("🔁 Calling resetScene() after injecting replay positions");
+  //         resetScene();
+          
+  //         // After scene reset and objects positioned, load and start the replay
+  //         setTimeout(() => {
+  //           loadAndStartReplay(replayName);
+  //         }, 800); // Wait for scene reset to complete
+  //       }, 100);
+  //     } else {
+  //       // If no object positions, just load and start the replay directly
+  //       loadAndStartReplay(replayName);
+  //     }
+  //   })
+  //   .catch(error => {
+  //     console.error(`❌ Error loading object positions: ${error}`);
+  //     setRecordingStatus({ 
+  //       message: `Error loading object positions: ${error.message}`, 
+  //       type: 'error' 
+  //     });
+  //   });
+  // };
+
   const handleSelectReplay = (replayName) => {
     console.log(`🎬 Selected replay: ${replayName}`);
     setRecordingStatus({ message: 'Loading replay...', type: 'info' });
     setReplayDropdownOpen(false);
-    executeReplayLoading(replayName);
+    
+    // Use the global startReplay function exposed by DirectReplayController
+    if (window.startReplay && typeof window.startReplay === 'function') {
+      window.startReplay(replayName);
+    } else {
+      console.error("❌ startReplay function not available. Make sure DirectReplayController is mounted.");
+      setRecordingStatus({ 
+        message: 'Error: replay controller not available', 
+        type: 'error' 
+      });
+    }
   };
 
-  const executeReplayLoading = (replayName) => {
+  // New helper function to load and start the replay
+  const loadAndStartReplay = (replayName) => {
+    // Load the replay
     fetch(`${COLAB_API_URL}/load_replay`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -122,19 +203,8 @@ const AgentDashboard = ({
     .then(data => {
       console.log(`✅ Loaded replay: ${replayName}`);
       setRecordingStatus({ message: `Loaded replay: ${replayName}`, type: 'info' });
-  
-      const objectPositionsReplay = data.object_positions || [];
-  
-      if (objectPositionsReplay.length > 0) {
-        console.log("🌐 Injecting replay object positions:", objectPositionsReplay);
-        setReplayPositions(objectPositionsReplay)
-        setTimeout(() => {
-          console.log("🔁 Calling resetScene() after injecting replay positions");
-          resetScene();
-        }, 100); 
-      }
-  
-      // ✅ Start the replay
+      
+      // Start the replay
       return fetch(`${COLAB_API_URL}/start_replay`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -151,6 +221,46 @@ const AgentDashboard = ({
       setRecordingStatus({ message: `Error with replay: ${error}`, type: 'error' });
     });
   };
+
+  // const executeReplayLoading = (replayName) => {
+  //   fetch(`${COLAB_API_URL}/load_replay`, {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ filename: replayName })
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     console.log(`✅ Loaded replay: ${replayName}`);
+  //     setRecordingStatus({ message: `Loaded replay: ${replayName}`, type: 'info' });
+  
+  //     const objectPositionsReplay = data.object_positions || [];
+  
+  //     if (objectPositionsReplay.length > 0) {
+  //       console.log("🌐 Injecting replay object positions:", objectPositionsReplay);
+  //       setReplayPositions(objectPositionsReplay)
+  //       setTimeout(() => {
+  //         console.log("🔁 Calling resetScene() after injecting replay positions");
+  //         resetScene();
+  //       }, 100); 
+  //     }
+  
+  //     // ✅ Start the replay
+  //     return fetch(`${COLAB_API_URL}/start_replay`, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ filename: replayName })
+  //     });
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     console.log(`▶️ Started replay playback: ${data.message}`);
+  //     setRecordingStatus({ message: 'Replay in progress...', type: 'replaying' });
+  //   })
+  //   .catch(error => {
+  //     console.error(`❌ Error with replay: ${error}`);
+  //     setRecordingStatus({ message: `Error with replay: ${error}`, type: 'error' });
+  //   });
+  // };
   
   // Handle recording functions
   const startRecording = () => {
@@ -397,6 +507,11 @@ const AgentDashboard = ({
                 Feed to Agent
               </button> */}
             </div>
+
+            <ReplaySpeedControlUI 
+              COLAB_API_URL={COLAB_API_URL}
+              isReplaying={isReplayActive}
+            />
             
             {/* Training Settings */}
             <div className="dashboard-section training-settings-section">
