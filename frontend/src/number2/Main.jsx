@@ -19,7 +19,7 @@ import AgentDashboard from "./scene/AgentDashboard";
 import { useActionHandler } from './ActionHandler';
 
 import ReplayController from './scene/Replays/ReplayController';
-import DirectReplayController from './scene/Replays/DirectReplayController';
+import CombinedReplayController from './scene/Replays/CombinedReplayController';
 
 import TimerHUDUpdater from "../components/TimerHUDUpdater";
 
@@ -714,7 +714,7 @@ const Main = ({
           resetScene={resetScene}
         />
 
-        <DirectReplayController
+        <CombinedReplayController
           COLAB_API_URL={COLAB_API_URL}
           socketRef={socketRef}
           buggyRef={buggyRef}

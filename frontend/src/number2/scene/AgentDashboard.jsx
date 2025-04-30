@@ -179,11 +179,11 @@ const AgentDashboard = ({
     setRecordingStatus({ message: 'Loading replay...', type: 'info' });
     setReplayDropdownOpen(false);
     
-    // Use the global startReplay function exposed by DirectReplayController
+    // Use the global startReplay function exposed by CombinedReplayController
     if (window.startReplay && typeof window.startReplay === 'function') {
       window.startReplay(replayName);
     } else {
-      console.error("❌ startReplay function not available. Make sure DirectReplayController is mounted.");
+      console.error("❌ startReplay function not available. Make sure CombinedReplayController is mounted.");
       setRecordingStatus({ 
         message: 'Error: replay controller not available', 
         type: 'error' 
