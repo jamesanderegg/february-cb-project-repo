@@ -125,55 +125,6 @@ const AgentDashboard = ({
     onStartTraining(trainingEpisodes);
   };
 
-  // Handle replay selection
-  // const handleSelectReplay = (replayName) => {
-  //   console.log(`🎬 Selected replay: ${replayName}`);
-  //   setRecordingStatus({ message: 'Loading replay...', type: 'info' });
-  //   setReplayDropdownOpen(false);
-    
-  //   // First, get object positions from the replay file
-  //   fetch(`${COLAB_API_URL}/get_replay_objects`, {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ filename: replayName })
-  //   })
-  //   .then(response => response.json())
-  //   .then(data => {
-  //     if (data.status === 'error') {
-  //       throw new Error(data.message || 'Failed to load object positions');
-  //     }
-      
-  //     console.log(`📦 Loaded object positions: ${data.count} objects`);
-      
-  //     // Set replay positions in state to be used by ObjectRandomizer
-  //     if (data.objectPositions && data.objectPositions.length > 0) {
-  //       console.log("🌐 Injecting replay object positions:", data.objectPositions);
-  //       setReplayPositions(data.objectPositions);
-        
-  //       // Allow time for state update
-  //       setTimeout(() => {
-  //         console.log("🔁 Calling resetScene() after injecting replay positions");
-  //         resetScene();
-          
-  //         // After scene reset and objects positioned, load and start the replay
-  //         setTimeout(() => {
-  //           loadAndStartReplay(replayName);
-  //         }, 800); // Wait for scene reset to complete
-  //       }, 100);
-  //     } else {
-  //       // If no object positions, just load and start the replay directly
-  //       loadAndStartReplay(replayName);
-  //     }
-  //   })
-  //   .catch(error => {
-  //     console.error(`❌ Error loading object positions: ${error}`);
-  //     setRecordingStatus({ 
-  //       message: `Error loading object positions: ${error.message}`, 
-  //       type: 'error' 
-  //     });
-  //   });
-  // };
-
   const handleSelectReplay = (replayName) => {
     console.log(`🎬 Selected replay: ${replayName}`);
     setRecordingStatus({ message: 'Loading replay...', type: 'info' });
@@ -339,14 +290,6 @@ const AgentDashboard = ({
     });
   };
   
-  // Reset the scene
-  // const resetScene = () => {
-  //   if (window.resetEnvironment) {
-  //     window.resetEnvironment();
-  //     setRecordingStatus({ message: 'Scene reset', type: 'info' });
-  //   }
-  // };
-  
   // Feed to agent
   const feedToAgent = () => {
     fetch(`${COLAB_API_URL}/feed_to_agent`, { method: 'POST' })
@@ -506,6 +449,7 @@ const AgentDashboard = ({
               >
                 Feed to Agent
               </button> */}
+              
             </div>
 
             <ReplaySpeedControlUI 

@@ -105,6 +105,81 @@ const Buggy = forwardRef(({
     });
   }, [loadedScene, color, texture]);
   
+  // useFrame(() => {
+  //   if (!buggyRef.current) return;
+    
+  //   const body = buggyRef.current;
+  //   let moveDirection = 0;
+  //   let turnDirection = 0;
+  
+  //   // Apply movement based on keys pressed
+  //   if (keysPressed.current["w"]) moveDirection = moveSpeed;
+  //   if (keysPressed.current["s"]) moveDirection = -moveSpeed;
+  //   if (keysPressed.current["a"]) turnDirection = rotationSpeed;
+  //   if (keysPressed.current["d"]) turnDirection = -rotationSpeed;
+    
+  //   // Handle 'v' key press with throttling
+  //   const now = Date.now();
+  //   if (keysPressed.current["v"] && now - lastVActionTime.current > 500) { // 500ms cooldown
+  //     lastVActionTime.current = now;
+      
+  //     // Get the current state data
+  //     const currentState = {
+  //       robot_position: robotPositionRef.current,
+  //       robot_rotation: robotRotationRef.current,
+  //       detections: YOLOdetectObject.current || [],
+  //       objects_in_view: objectsInViewRef.current || [],
+  //       target_object: target,
+  //       collision: collisionIndicator.current,
+  //       time_left: timerRef?.current || 0
+  //     };
+
+  //     console.log("📸 'v' key pressed - taking picture", currentState);
+      
+  //     // Auto-stop recording when V key is pressed
+  //     // if (window.isRecordingActive) {
+  //     //   console.log("🛑 Picture taken during recording - triggering auto-stop");
+  //     //   window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
+  //     //     detail: { 
+  //     //       isRecording: false,
+  //     //       autoStopped: true,
+  //     //       reason: 'picture_taken'
+  //     //     }
+  //     //   }));
+  //     // }
+
+  //     // Process the picture action
+  //     takePicture({
+  //       currentState,
+  //       COLAB_API_URL,
+  //       onProcessed: handlePictureResult,
+  //       resetScene
+  //     }).catch(error => {
+  //       console.error("Failed to process picture:", error);
+  //       if (resetScene) resetScene();
+  //     });
+  //   }
+  
+  //   // Apply rotation
+  //   const currentRotation = new Quaternion().copy(body.rotation());
+  //   if (turnDirection !== 0) {
+  //     const turnQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), turnDirection * 0.05);
+  //     currentRotation.multiply(turnQuaternion);
+  //     body.setRotation(currentRotation, true);
+  //   }
+  
+  //   // Apply forward/backward movement
+  //   let forward = new Vector3(0, 0, -moveDirection);
+  //   forward.applyQuaternion(currentRotation);
+  //   body.setLinvel({ x: forward.x, y: body.linvel().y, z: forward.z }, true);
+  
+  //   // Update position and rotation references
+  //   const { x, y, z } = body.translation();
+  //   const rotationQuat = body.rotation();
+  //   robotPositionRef.current = [x, y, z];
+  //   robotRotationRef.current = [rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w];
+  // });
+
   useFrame(() => {
     if (!buggyRef.current) return;
     
@@ -118,7 +193,7 @@ const Buggy = forwardRef(({
     if (keysPressed.current["a"]) turnDirection = rotationSpeed;
     if (keysPressed.current["d"]) turnDirection = -rotationSpeed;
     
-    // Handle 'v' key press with throttling
+    // Handle 'v' key press with throttling (unchanged)
     const now = Date.now();
     if (keysPressed.current["v"] && now - lastVActionTime.current > 500) { // 500ms cooldown
       lastVActionTime.current = now;
@@ -133,21 +208,9 @@ const Buggy = forwardRef(({
         collision: collisionIndicator.current,
         time_left: timerRef?.current || 0
       };
-
+  
       console.log("📸 'v' key pressed - taking picture", currentState);
       
-      // Auto-stop recording when V key is pressed
-      // if (window.isRecordingActive) {
-      //   console.log("🛑 Picture taken during recording - triggering auto-stop");
-      //   window.dispatchEvent(new CustomEvent('recordingStatusChanged', {
-      //     detail: { 
-      //       isRecording: false,
-      //       autoStopped: true,
-      //       reason: 'picture_taken'
-      //     }
-      //   }));
-      // }
-
       // Process the picture action
       takePicture({
         currentState,
@@ -160,7 +223,17 @@ const Buggy = forwardRef(({
       });
     }
   
-    // Apply rotation
+    // Check if we're in replay mode - if so, skip physics updates
+    if (window.isReplaying) {
+      // Just update references from current state
+      const { x, y, z } = body.translation();
+      const rotationQuat = body.rotation();
+      robotPositionRef.current = [x, y, z];
+      robotRotationRef.current = [rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w];
+      return; // Skip the rest of the physics updates
+    }
+  
+    // Apply rotation (unchanged from original)
     const currentRotation = new Quaternion().copy(body.rotation());
     if (turnDirection !== 0) {
       const turnQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), turnDirection * 0.05);
@@ -168,12 +241,12 @@ const Buggy = forwardRef(({
       body.setRotation(currentRotation, true);
     }
   
-    // Apply forward/backward movement
+    // Apply forward/backward movement (unchanged from original)
     let forward = new Vector3(0, 0, -moveDirection);
     forward.applyQuaternion(currentRotation);
     body.setLinvel({ x: forward.x, y: body.linvel().y, z: forward.z }, true);
   
-    // Update position and rotation references
+    // Update position and rotation references (unchanged from original)
     const { x, y, z } = body.translation();
     const rotationQuat = body.rotation();
     robotPositionRef.current = [x, y, z];

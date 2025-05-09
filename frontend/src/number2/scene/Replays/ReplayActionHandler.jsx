@@ -11,7 +11,7 @@ const ReplayActionHandler = ({
   currentActionRef,
   lastVActionTime
 }) => {
-  // Handle the actions part of replay
+  // Handle replay socket events for actions
   const handleReplayAction = useCallback((data) => {
     if (!data) return;
     
@@ -31,7 +31,7 @@ const ReplayActionHandler = ({
         if (key && typeof key === 'string') {
           keysPressed.current[key] = true;
           
-          // Special handling for 'v' key
+          // For "v" key (taking photo), also update lastVActionTime
           if (key === 'v' && lastVActionTime) {
             lastVActionTime.current = Date.now();
           }
@@ -44,91 +44,89 @@ const ReplayActionHandler = ({
       }
     }
     
-    // 2. DIRECTLY update robot position and rotation from state
-    if (state && state.length >= 6) {
+    // 2. CRITICAL: Handle physics-based position & rotation updates
+    if (state && state.length >= 6 && buggyRef && buggyRef.current) {
       const position = state.slice(0, 3);
       const rotation = state.slice(3, 6);
       
-      // Update ref values
+      // Update reference variables
       if (robotPositionRef) {
         robotPositionRef.current = [...position];
       }
       
       if (robotRotationRef) {
         if (robotRotationRef.current.length >= 4) {
-          robotRotationRef.current = [...rotation, robotRotationRef.current[3]];
+          // Convert Euler to quaternion for rigid body
+          const euler = new Euler(rotation[0], rotation[1], rotation[2]);
+          const quat = new Quaternion().setFromEuler(euler);
+          robotRotationRef.current = [quat.x, quat.y, quat.z, quat.w];
         } else {
           robotRotationRef.current = [...rotation];
         }
       }
       
-      // CRITICAL: Directly update the RigidBody
-      if (buggyRef && buggyRef.current && buggyRef.current.setTranslation) {
-        // Force update position
-        buggyRef.current.setTranslation({ 
+      // CRITICAL FIX: Force update the RigidBody directly
+      const rb = buggyRef.current;
+      
+      // Set global flag for replay mode to disable physics in useFrame
+      window.isReplaying = true;
+      
+      // Direct position update
+      if (typeof rb.setTranslation === 'function') {
+        // Debug log
+        console.log(`🤖 Updating robot position to:`, position);
+        
+        // Apply position update with wake parameter
+        rb.setTranslation({
           x: position[0], 
           y: position[1], 
-          z: position[2] 
+          z: position[2]
         }, true);
         
-        // Convert Euler angles to quaternion for rotation
+        // Zero out velocity to prevent physics interference
+        if (typeof rb.setLinvel === 'function') {
+          rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        }
+      }
+      
+      // Direct rotation update 
+      if (typeof rb.setRotation === 'function') {
+        // Convert to proper quaternion for physics
         const euler = new Euler(rotation[0], rotation[1], rotation[2]);
-        const quaternion = new Quaternion().setFromEuler(euler);
+        const quat = new Quaternion().setFromEuler(euler);
         
-        // Force update rotation
-        buggyRef.current.setRotation(quaternion, true);
+        // Debug log
+        console.log(`🔄 Updating robot rotation to:`, [quat.x, quat.y, quat.z, quat.w]);
         
-        // Reset velocities to prevent physics from interfering
-        buggyRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
-        buggyRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        // Apply rotation update with wake parameter
+        rb.setRotation(quat, true);
+        
+        // Zero out angular velocity
+        if (typeof rb.setAngvel === 'function') {
+          rb.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        }
       }
     }
   }, [buggyRef, robotPositionRef, robotRotationRef, keysPressed, currentActionRef, lastVActionTime]);
-  
-  // Load and start replay actions
-  const startReplayActions = useCallback(async (replayName) => {
-    if (!replayName) return;
-    
-    try {
-      // Load and start replay
-      await fetch(`${COLAB_API_URL}/load_replay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: replayName })
-      });
-      
-      console.log("▶️ Starting replay");
-      await fetch(`${COLAB_API_URL}/start_replay`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: replayName })
-      });
-      
-      return true;
-    } catch (error) {
-      console.error("❌ Error starting replay actions:", error);
-      return false;
-    }
-  }, [COLAB_API_URL]);
-  
-  // Define global startReplayActions function
-  useEffect(() => {
-    console.log("🚀 ReplayActionHandler mounted");
-    window.startReplayActions = startReplayActions;
-    console.log("🔄 window.startReplayActions function defined:", typeof window.startReplayActions);
-    
-    return () => {
-      delete window.startReplayActions;
-    };
-  }, [startReplayActions]);
   
   // Set up socket event listeners once socket is available
   useEffect(() => {
     if (!socketRef || !socketRef.current) return;
     
     const socket = socketRef.current;
+    
+    console.log('🔊 Setting up replay action socket handlers');
+    
+    // Add event listeners
     socket.on('replay_action', handleReplayAction);
+    
+    // Handle end of replay
     socket.on('replay_complete', () => {
+      console.log('✅ Replay complete - resetting keys and flags');
+      
+      // Clear replay mode flag
+      window.isReplaying = false;
+      
       // Reset key presses
       if (keysPressed && keysPressed.current) {
         Object.keys(keysPressed.current).forEach(k => {
@@ -143,8 +141,12 @@ const ReplayActionHandler = ({
     });
     
     return () => {
+      // Clean up listeners
       socket.off('replay_action', handleReplayAction);
       socket.off('replay_complete');
+      
+      // Reset replay mode flag
+      window.isReplaying = false;
     };
   }, [socketRef, handleReplayAction, keysPressed, currentActionRef]);
   

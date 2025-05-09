@@ -416,6 +416,36 @@ const Main = ({
     // Make the recordingControlsRef available globally so other components can access it
     window.recordingControlsRef = recordingControlsRef;
   }, []);
+
+  useEffect(() => {
+    if (!socketRef.current) return;
+    
+    // Debug monitor for ALL socket events
+    const originalOn = socketRef.current.on.bind(socketRef.current);
+    socketRef.current.on = function(event, callback) {
+      // Debug wrapper for the callback
+      const wrappedCallback = (...args) => {
+        console.log(`🔍 Socket event received: ${event}`, args[0] ? (typeof args[0] === 'object' ? {...args[0]} : args[0]) : null);
+        return callback(...args);
+      };
+      return originalOn(event, wrappedCallback);
+    };
+    
+    // Debug monitor for emissions
+    const originalEmit = socketRef.current.emit.bind(socketRef.current);
+    socketRef.current.emit = function(event, ...args) {
+      console.log(`📤 Socket event emitted: ${event}`, args[0] ? (typeof args[0] === 'object' ? {...args[0]} : args[0]) : null);
+      return originalEmit(event, ...args);
+    };
+    
+    return () => {
+      // Restore original functions if needed
+      if (socketRef.current) {
+        socketRef.current.on = originalOn;
+        socketRef.current.emit = originalEmit;
+      }
+    };
+  }, [socketRef.current]);
   
   // Function to apply action to robot
   const applyAction = (action) => {
