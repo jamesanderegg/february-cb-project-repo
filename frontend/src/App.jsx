@@ -14,7 +14,7 @@ function App() {
   const detectObj = useRef(null);
   const collisionIndicator = useRef(0);
 
-  const COLAB_API_URL = "https://explicit-throws-cottages-lens.trycloudflare.com"
+  const COLAB_API_URL = "https://conversations-restaurants-freedom-var.trycloudflare.com"
 
   const [isRunning, setIsRunning] = useState(true);
   const [target, setTarget] = useState(null);

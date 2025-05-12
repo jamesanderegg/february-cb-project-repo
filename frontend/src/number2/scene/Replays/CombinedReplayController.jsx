@@ -33,6 +33,24 @@ const CombinedReplayController = (props) => {
       delete window.startReplay;
     };
   }, [handleReplaySelection]);
+
+  useEffect(() => {
+    // Listen for replay completion to ensure isReplaying is properly reset
+    const handleReplayStatusChange = (event) => {
+      if (event && event.detail) {
+        if (event.detail.type === 'complete' || event.detail.type === 'cancelled') {
+          console.log('🚫 Ensuring replay mode is disabled');
+          window.isReplaying = false;
+        }
+      }
+    };
+    
+    window.addEventListener('recordingStatusChanged', handleReplayStatusChange);
+    
+    return () => {
+      window.removeEventListener('recordingStatusChanged', handleReplayStatusChange);
+    };
+  }, []);
   
   return (
     <>
