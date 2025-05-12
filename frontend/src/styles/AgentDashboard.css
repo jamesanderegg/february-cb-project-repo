@@ -1,125 +1,47 @@
-/* AgentDashboard.css */
+button{
+  position: inherit;
+  background-color: #3182ce;
+  color: white;
+  text-align: center;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 0px;
+    
+}
+
 .agent-dashboard {
   background-color: #2d3748;
   color: white;
   padding: 16px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 320px;
+  width: 260px;
   font-family: Arial, sans-serif;
-  position: relative;
+  position: fixed;
+  top: 10px;
+  right: 20px;
+  z-index: 9999;
 }
-  
+
 .dashboard-title {
   font-size: 18px;
   font-weight: bold;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   border-bottom: 1px solid #4a5568;
   padding-bottom: 8px;
   text-align: center;
 }
-  
-.dashboard-section {
-  margin-bottom: 8px;
-  padding: 5px;
-  border: 2px solid #4a5568;
-  border-radius: 6px;
-  background-color: #374151;
-}
 
-.section-title {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 5px;
-  margin-top: 3px;
-  color: #a0aec0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.section-title-2 {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #a0aec0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Status indicator */
-.status-indicator {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-  
-.status-dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-  
-.status-dot.connected {
-  background-color: #48bb78;
-}
-  
-.status-dot.disconnected {
-  background-color: #f56565;
-}
-
-/* Connect button */
-.connect-button {
-  background-color: #4299e1;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  width: 94%;
-  height: 38px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 12px 0;
-}
-  
-.connect-button:hover {
-  background-color: #3182ce;
-}
-  
-.connect-button.connected {
-  background-color: #48bb78;
-  cursor: not-allowed;
-}
-
-/* Error and success messages */
-.error-message {
-  background-color: #f56565;
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  border: 2px solid #e53e3e;
-  margin-bottom: 16px;
-}
-
-.success-message {
-  background-color: #48bb78;
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  border: 2px solid #38a169;
-  margin-bottom: 16px;
-}
-
-/* Tabs styling */
 .dashboard-tabs {
-  display: flex;
-  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin-bottom: 8px;
   border: 2px solid #4a5568;
   border-radius: 6px 6px 0 0;
   overflow: hidden;
@@ -127,11 +49,12 @@
 
 .dashboard-tab {
   flex: 1;
-  padding: 10px 16px;
+  padding: 10px;
   cursor: pointer;
   font-weight: bold;
   text-align: center;
   background-color: #2d3748;
+  color: white;
   transition: all 0.2s ease;
   border-right: 2px solid #4a5568;
 }
@@ -149,400 +72,76 @@
   color: white;
 }
 
-/* Tab content */
 .tab-content {
-  margin-bottom: 8px;
+  padding: 12px;
+  background-color: #374151;
   border: 2px solid #4a5568;
   border-radius: 0 0 6px 6px;
-  padding: 8px;
-  background-color: #374151;
 }
-
-/* Status indicator from ReplayControls */
-.status-indicator-section {
-  padding: 0;
-  overflow: hidden;
-}
-
-.status {
-  padding: 5px;
-  font-size: 14px;
-  text-align: center;
-  color: #fff;
-  min-height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.status-ready {
-  background-color: rgba(80, 80, 120, 0.6);
-}
-
-.status-recording {
-  background-color: rgba(255, 80, 80, 0.8);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
-}
-
-.status-loading, .status-info {
-  background-color: rgba(80, 120, 255, 0.8);
-}
-
-.status-saved {
-  background-color: rgba(80, 200, 80, 0.8);
-}
-
-.status-warning {
-  background-color: rgba(255, 180, 50, 0.8);
-}
-
-.status-error {
-  background-color: rgba(255, 80, 80, 0.8);
-}
-
-/* Replay tab specific styles */
-.replay-tab {
-  width: 100% !important;
-  display: block !important;
-}
-
-/* IMPORTANT: This is the ONLY .replay-controls-grid definition */
-.replay-controls-grid {
-  display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
-  grid-template-rows: auto auto auto !important;
-  grid-gap: 6px !important;
-  align-items: center !important;
-}
-
-.replay-controls-grid .record-button {
-  grid-column: 1 !important;
-  grid-row: 1 !important;
-}
-
-.replay-controls-grid .stop-button {
-  grid-column: 2 !important;
-  grid-row: 1 !important;
-}
-
-.replay-controls-grid .filename-input {
-  grid-column: 1 / span 2 !important;
-  grid-row: 2 !important;
-  margin-bottom: 5px !important;
-}
-
-.replay-controls-grid .save-button {
-  grid-column: 1 !important;
-  grid-row: 3 !important;
-}
-
-.replay-controls-grid .reset-button {
-  grid-column: 2 !important;
-  grid-row: 3 !important;
-}
-
-.action-button {
-  padding: 5px !important;
-  border: none !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  font-weight: bold !important;
-  color: white !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  height: 33px !important;
-  position: static;
-}
-
-.action-button:disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-}
-
-.record-button {
-  background-color: #e7ba67 !important;
-}
-
-.record-button:hover:not(:disabled) {
-  background-color: #d6a94c !important;
-}
-
-.record-button.recording {
-  background-color: #fc9960 !important;
-  animation: pulse 2s infinite !important;
-}
-
-.stop-button {
-  background-color: #fc9960 !important;
-}
-
-.stop-button:hover:not(:disabled) {
-  background-color: #ea8650 !important;
-}
-
-.save-button {
-  background-color: #ee8104 !important;
-}
-
-.save-button:hover:not(:disabled) {
-  background-color: #d57000 !important;
-}
-
-.reset-button {
-  background-color: #f56565 !important;
-}
-
-.reset-button:hover:not(:disabled) {
-  background-color: #e53e3e !important;
-}
-
-.filename-input {
-  width: 100% !important;
-}
-
-.filename-input input {
-  width: 100% !important;
-  padding: 8px !important;
-  background-color: #4a5568 !important;
-  color: white !important;
-  border: 1px solid #718096 !important;
-  border-radius: 4px !important;
-  height: 38px !important;
-  box-sizing: border-box !important;
-}
-
-/* Training tab specific styles */
-.replay-selection-section {
-  margin-bottom: 16px;
-}
-
-.replay-dropdown-container {
-  position: relative;
-  width: 100%;
-}
-
-.replay-dropdown-button {
-  width: 93%;
-  padding: 8px;
-  background-color: #ff6c4f;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: -29px;
-}
-
-.replay-dropdown-button:hover:not(:disabled) {
-  background-color: #e55a3d;
-}
-
-.replay-dropdown-button:disabled {
-  opacity: 0.5;
+.dashboard-tab.disabled {
+  opacity: 0.4;
+  pointer-events: none;
   cursor: not-allowed;
 }
 
-.replay-dropdown-menu {
-
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: #4a5568;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-  max-height: 150px;
-  overflow-y: auto;
-}
-
-.replay-dropdown-item {
-  padding: 8px 12px;
-  cursor: pointer;
-  border-bottom: 1px solid #2d3748;
-}
-
-.replay-dropdown-item:hover {
-  background-color: #3d4a5c;
-}
-
-.replay-dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.training-settings-section {
-  margin-bottom: 5px;
-}
-
-.settings-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2px;
-}
-
-.settings-row label {
-  font-weight: bold;
-}
-
-.settings-row input {
-  width: 60px;
-  padding: 4px;
-  background-color: #4a5568;
-  color: white;
-  border: 1px solid #718096;
-  border-radius: 4px;
-  text-align: center;
-}
-
-/* Agent Controls */
-.agent-controls {
-  position: relative;
-  width: 100%;
-  height: 38px;
-  margin: 0;
-  padding: 0;
-}
-
-/* Manually position each button */
-.control-button {
-  position: absolute;
-  height: 38px;
-  background-color: #4a5568;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.2s ease;
-}
-
-.control-button.training {
-  left: 0;
-  top: 0;
-  width: 31%;
-  background-color: #ecc94b;
-}
-
-.control-button.stop {
-  left: 33%;
-  top: 0;
-  width: 31%;
-  background-color: #f56565;
-}
-
-.control-button.inference {
-  right: 0;
-  top: 0;
-  width: 31%;
-  background-color: #9f7aea;
-}
-  
-.control-button.training:hover {
-  background-color: #d69e2e;
-}
-  
-.control-button.stop:hover {
-  background-color: #e53e3e;
-}
-  
-.control-button.inference:hover {
-  background-color: #805ad5;
-}
-
-/* Training progress bar */
-.training-progress-section {
-  margin-top: 16px;
-}
-
-.progress-bar-container {
-  height: 8px;
-  background-color: #4a5568;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background-color: #4299e1;
-  transition: width 0.3s ease;
-}
-
-.progress-percentage {
-  text-align: center;
-  font-size: 12px;
-  margin-top: 4px;
-}
-  
-/* Status Grid */
-.status-grid {
+.status-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  flex-direction: column;
   gap: 8px;
+  margin-bottom: 16px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
   font-size: 14px;
 }
 
-/* Add these CSS classes to your AgentDashboard.css or appropriate stylesheet */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
 
-.status-replaying {
-  background-color: #3498db;
+.status-dot.connected {
+  background-color: #48bb78;
+}
+
+.status-dot.disconnected {
+  background-color: #f56565;
+}
+
+.connect-button {
+  background-color: #4299e1;
   color: white;
+  border: none;
   padding: 8px;
   border-radius: 4px;
-  margin-top: 10px;
+  cursor: pointer;
   font-weight: bold;
-  animation: pulse 1.5s infinite;
 }
 
-.status-complete {
-  background-color: #2ecc71;
+.connect-button:hover {
+  background-color: #3182ce;
+}
+
+.connect-button.connected {
+  background-color: #48bb78;
+  cursor: not-allowed;
+}
+
+.reset-button {
+  background-color: #f56565;
   color: white;
+  border: none;
   padding: 8px;
   border-radius: 4px;
-  margin-top: 10px;
+  cursor: pointer;
   font-weight: bold;
 }
 
-.agent-dashboard-container {
-  position: fixed;
-  top: 10px;
-  right: 60px;
-  bottom: 840px;
-  width: 250px;
-  z-index: 1000;
-  display: grid;
-  grid-template-rows: repeat(auto-fit, minmax(60px, auto));
-  grid-gap: 12px;
-  align-content: start;
-}
-.agentDashboard{
-  position: fixed;
-  top: 80px;
-  right: 20px;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.7;
-  }
+.reset-button:hover {
+  background-color: #e53e3e;
 }
