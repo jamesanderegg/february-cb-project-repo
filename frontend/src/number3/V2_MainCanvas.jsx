@@ -15,7 +15,10 @@ const V2_MainCanvas = (
         liveStateRef,
         recordingBufferRef,
         isRecordingActiveRef,
-        frameResetRef
+        frameResetRef,
+        timerRef,
+        currentActionRef,
+        controlMode
     }
 ) => {
 
@@ -38,6 +41,9 @@ const V2_MainCanvas = (
                     recordingBufferRef={recordingBufferRef}
                     isRecordingActiveRef={isRecordingActiveRef}
                     frameResetRef={frameResetRef}
+                    timerRef={timerRef}
+                    currentActionRef={currentActionRef}
+                    controlMode={controlMode} 
                 />
 
 

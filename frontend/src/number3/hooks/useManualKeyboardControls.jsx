@@ -1,14 +1,15 @@
 import { useEffect } from "react";
 
-export default function useManualKeyboardControls(keysPressedRef, isManualControlRef) {
+export default function useManualKeyboardControls(keysPressedRef, controlModeRef) {
+
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (!isManualControlRef.current) return;
+      if (controlModeRef.current !== "manual") return;
       keysPressedRef.current[e.key.toLowerCase()] = true;
     };
 
     const handleKeyUp = (e) => {
-      if (!isManualControlRef.current) return;
+      if (controlModeRef.current !== "manual") return;
       keysPressedRef.current[e.key.toLowerCase()] = false;
     };
 
@@ -18,5 +19,6 @@ export default function useManualKeyboardControls(keysPressedRef, isManualContro
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [keysPressedRef, isManualControlRef]);
+  }, [controlModeRef]);
+
 }

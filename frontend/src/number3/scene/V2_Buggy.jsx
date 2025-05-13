@@ -19,6 +19,9 @@ const Buggy = forwardRef(({
   liveStateRef,
   recordingBufferRef,
   isRecordingActiveRef,
+  frameResetRef,
+  timerRef,
+  currentActionRef
 }, ref) => {
   const buggyRef = useRef();
   const moveSpeed = 40;
@@ -61,27 +64,32 @@ const Buggy = forwardRef(({
   }, [loadedScene, color, texture]);
 
   useStateCollector({
-  robotPositionRef,
-  robotRotationRef,
-  keysPressed,
-  collisionIndicator,
-  liveStateRef,
-  recordingBufferRef,
-  isRecordingActiveRef,
-});
+    robotPositionRef,
+    robotRotationRef,
+    keysPressed,
+    collisionIndicator,
+    liveStateRef,
+    recordingBufferRef,
+    isRecordingActiveRef,
+    frameResetRef,
+    timerRef
+  });
 
 
   useFrame(() => {
     if (!buggyRef.current) return;
 
     const body = buggyRef.current;
+    const activeKeys = currentActionRef?.current || [];
+
     let moveDirection = 0;
     let turnDirection = 0;
 
-    if (keysPressed.current["w"]) moveDirection = moveSpeed;
-    if (keysPressed.current["s"]) moveDirection = -moveSpeed;
-    if (keysPressed.current["a"]) turnDirection = rotationSpeed;
-    if (keysPressed.current["d"]) turnDirection = -rotationSpeed;
+    if (activeKeys.includes("w")) moveDirection = moveSpeed;
+    if (activeKeys.includes("s")) moveDirection = -moveSpeed;
+    if (activeKeys.includes("a")) turnDirection = rotationSpeed;
+    if (activeKeys.includes("d")) turnDirection = -rotationSpeed;
+
 
     // Rotation
     const currentRotation = new Quaternion().copy(body.rotation());

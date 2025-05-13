@@ -11,10 +11,15 @@ const AgentDashboard = ({
   successMessage = '',
   onStartRecording = () => { },
   onStopRecording = () => { },
-  onSaveReplay = () => {},
+  onSaveReplay = () => { },
   replayFilename = '',
-  setReplayFilename = () => {},
+  setReplayFilename = () => { },
   liveStateRef = { current: {} },
+  selectedReplay = '',
+  setSelectedReplay = () => { },
+  isReplayPlaying = false,
+  onStartReplay = () => { },
+  onStopReplay = () => { },
 }) => {
   const [activeTab, setActiveTab] = useState('status');
 
@@ -93,13 +98,33 @@ const AgentDashboard = ({
             )}
 
             <label htmlFor="replaySelect">Select Replay:</label>
-            <select id="replaySelect" className="replay-dropdown">
-              {replays.length === 0 && <option disabled>No replays found</option>}
+            <select
+              id="replaySelect"
+              className="replay-dropdown"
+              value={selectedReplay}
+              onChange={(e) => setSelectedReplay(e.target.value)}
+            >
+              <option value="" disabled>Select a replay</option>
               {replays.map((name, idx) => (
                 <option key={idx} value={name}>{name}</option>
               ))}
             </select>
-
+            <div style={{ marginTop: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <button
+                className="record-button"
+                onClick={onStartReplay}
+                disabled={!selectedReplay || isReplayPlaying}
+              >
+                ▶️ 
+              </button>
+              <button
+                className="record-button"
+                onClick={onStopReplay}
+                disabled={!selectedReplay || !isReplayPlaying}
+              >
+                ⏹ 
+              </button>
+            </div>
             <div style={{ marginTop: '8px' }}>
               <button className="record-button" onClick={() => onStartRecording()}>
                 Start Recording
@@ -137,6 +162,7 @@ const AgentDashboard = ({
             <p><strong>Detected:</strong> {liveStateRef.current?.detectedObjects?.join(', ') || 'None'}</p>
             <p><strong>In View:</strong> {liveStateRef.current?.objectsInView?.join(', ') || 'None'}</p>
             <p><strong>Time Left:</strong> {liveStateRef.current?.time_left ?? '---'}s</p>
+
             <p><strong>Target:</strong> {liveStateRef.current?.target_object || '---'}</p>
             <p><strong>Actions:</strong> {liveStateRef.current?.currentActions?.join(', ') || 'None'}</p>
             <p><strong>Frame:</strong> #{liveStateRef.current?.frame_number ?? '---'}</p>

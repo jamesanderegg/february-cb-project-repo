@@ -19,11 +19,18 @@ function V2_App() {
   const robotRotationRef = useRef([0, 0, 0, 1]);
   const keysPressed = useRef({});
   const collisionIndicator = useRef(false);
-  
+
+  const [selectedReplay, setSelectedReplay] = useState('');
+  const [isReplayPlaying, setIsReplayPlaying] = useState(false);
 
   const recordingBufferRef = useRef([]);
   const isRecordingActiveRef = useRef(false);
   const frameResetRef = useRef(null);
+
+  const timerRef = useRef(350);
+
+  const [controlMode, setControlMode] = useState("manual"); // "manual" | "replay" | "agent"
+  const currentActionRef = useRef([]);
 
 
   const liveStateRef = useRef({});
@@ -62,19 +69,33 @@ function V2_App() {
     setSuccessMessage(`Recording stopped. ${framesRecorded} frames recorded.`);
   };
 
-  // Monitor socket connection state
+  const handleStartReplay = () => {
+    if (selectedReplay) {
+      console.log(`▶️ Starting replay: ${selectedReplay}`);
+      setIsReplayPlaying(true);
+      socket.emit("start_replay", { filename: selectedReplay });
+    }
+  };
+
+  const handleStopReplay = () => {
+    if (selectedReplay) {
+      console.log(`⏹ Stopping replay: ${selectedReplay}`);
+      setIsReplayPlaying(false);
+      socket.emit("stop_replay");
+    }
+  };
   useEffect(() => {
-    const onConnect = () => setIsConnected(true);
-    const onDisconnect = () => setIsConnected(false);
-
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
-
-    return () => {
-      socket.off('connect', onConnect);
-      socket.off('disconnect', onDisconnect);
+    const onReplayFrame = (frame) => {
+      if (frame?.currentActions) {
+        currentActionRef.current = frame.currentActions;
+      }
     };
+
+    socket.on('replay_frame', onReplayFrame);
+    return () => socket.off('replay_frame', onReplayFrame);
   }, []);
+
+
 
   // Fetch replay list from backend
   const handleFetchReplays = () => {
@@ -127,6 +148,30 @@ function V2_App() {
   const handleSetReplayPositions = (positions) => {
     window.dispatchEvent(new CustomEvent('injectObjectPositions', { detail: positions }));
   };
+  // Monitor socket connection state
+  useEffect(() => {
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (controlMode !== "manual") return;
+
+    const interval = setInterval(() => {
+      const manualKeys = Object.keys(keysPressed.current).filter(k => keysPressed.current[k]);
+      currentActionRef.current = manualKeys;
+    }, 50); // update every 50ms
+
+    return () => clearInterval(interval);
+  }, [controlMode]);
 
   return (
     <div className="app-container">
@@ -139,6 +184,9 @@ function V2_App() {
         recordingBufferRef={recordingBufferRef}
         isRecordingActiveRef={isRecordingActiveRef}
         frameResetRef={frameResetRef}
+        timerRef={timerRef}
+        currentActionRef={currentActionRef}
+        controlMode={controlMode}
       />
       <HUDView />
       <MiniMapHUD />
@@ -157,6 +205,15 @@ function V2_App() {
         replayFilename={replayFilename}
         setReplayFilename={setReplayFilename}
         liveStateRef={liveStateRef}
+        timerRef={timerRef}
+        selectedReplay={selectedReplay}
+        setSelectedReplay={setSelectedReplay}
+        isReplayPlaying={isReplayPlaying}
+        onStartReplay={handleStartReplay}
+        onStopReplay={handleStopReplay}
+        controlMode={controlMode}
+        setControlMode={setControlMode}
+
       />
     </div>
   );

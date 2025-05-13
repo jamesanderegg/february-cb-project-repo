@@ -14,6 +14,27 @@ button{
   border-radius: 0px;
     
 }
+.record-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 6px 14px;
+  margin: 4px 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.record-button:hover {
+  background-color: #45a049;
+}
+
+.record-button:disabled {
+  background-color: #999; /* Gray */
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 
 .agent-dashboard {
   background-color: #2d3748;

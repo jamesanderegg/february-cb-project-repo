@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { Environment as DreiEnvironment } from "@react-three/drei";
 
 import OrbitControls from "../controls/OrbitControls.jsx";
@@ -12,7 +12,7 @@ import Buggy from "./V2_Buggy.jsx";
 
 import { useSceneReset } from '../hooks/useSceneReset';
 import useManualKeyboardControls from "../hooks/useManualKeyboardControls.jsx";
-import useStateCollector from "../hooks/useStateCollector.jsx";
+import { useCountdownTimer } from '../hooks/useCountdownTimer';
 
 const SceneEnvironment = ({
     robotPositionRef,
@@ -24,14 +24,20 @@ const SceneEnvironment = ({
     isRecordingActiveRef,
     frameResetRef,
     timerRef,
+    currentActionRef,
+    controlMode
 }) => {
     const buggyRef = useRef(); // 
-
+    const controlModeRef = useRef("manual");
 
     const setObjectPositions = () => { }; // placeholder for now
 
-    const isManualControlRef = useRef(true);
-    useManualKeyboardControls(keysPressed, isManualControlRef);
+    // keep it synced with prop
+    useEffect(() => {
+        controlModeRef.current = controlMode;
+    }, [controlMode]);
+    useManualKeyboardControls(keysPressed, controlModeRef);
+    useCountdownTimer(timerRef);
 
     useSceneReset(() => {
         console.log("🔄 Scene Reset Triggered");
@@ -87,7 +93,9 @@ const SceneEnvironment = ({
                 liveStateRef={liveStateRef}
                 recordingBufferRef={recordingBufferRef}
                 isRecordingActiveRef={isRecordingActiveRef}
-
+                frameResetRef={frameResetRef}
+                timerRef={timerRef}
+                currentActionRef={currentActionRef}
             />
 
         </>
