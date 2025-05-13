@@ -96,7 +96,7 @@ const AgentDashboard = ({
     if (successMessage && onClearMessages) {
       const timer = setTimeout(() => {
         onClearMessages();
-      }, 5000);
+      }, 5001);
       return () => clearTimeout(timer);
     }
   }, [successMessage, onClearMessages]);

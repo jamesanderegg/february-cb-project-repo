@@ -2,7 +2,7 @@
 import { io } from "socket.io-client";
 
 // Disable autoConnect
-export const socket = io("http://localhost:5000", {
+export const socket = io("http://localhost:5001", {
   autoConnect: false
 });
 
