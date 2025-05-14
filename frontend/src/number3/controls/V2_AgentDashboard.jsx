@@ -15,11 +15,14 @@ const AgentDashboard = ({
   replayFilename = '',
   setReplayFilename = () => { },
   liveStateRef = { current: {} },
+  timerRef = { current: 0 },
   selectedReplay = '',
   setSelectedReplay = () => { },
   isReplayPlaying = false,
   onStartReplay = () => { },
   onStopReplay = () => { },
+  controlMode = 'manual',
+  setControlMode = () => { },
 }) => {
   const [activeTab, setActiveTab] = useState('status');
 
@@ -30,7 +33,7 @@ const AgentDashboard = ({
     } else {
       setActiveTab('status');
     }
-  }, [isConnected]);
+  }, [isConnected, onFetchReplays]);
 
   const [, forceUpdate] = useState(0);
 
@@ -62,6 +65,22 @@ const AgentDashboard = ({
           Reset Scene
         </button>
       </div>
+
+      {/* Control Mode Selector */}
+      {isConnected && (
+        <div className="control-mode-selector">
+          <label>Control Mode:</label>
+          <select 
+            value={controlMode} 
+            onChange={(e) => setControlMode(e.target.value)}
+            className="control-mode-dropdown"
+          >
+            <option value="manual">Manual</option>
+            <option value="replay">Replay</option>
+            <option value="agent">Agent</option>
+          </select>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="dashboard-tabs">
@@ -162,7 +181,7 @@ const AgentDashboard = ({
             <p><strong>Detected:</strong> {liveStateRef.current?.detectedObjects?.join(', ') || 'None'}</p>
             <p><strong>In View:</strong> {liveStateRef.current?.objectsInView?.join(', ') || 'None'}</p>
             <p><strong>Time Left:</strong> {liveStateRef.current?.time_left ?? '---'}s</p>
-
+            <p><strong>Mode:</strong> {controlMode}</p>
             <p><strong>Target:</strong> {liveStateRef.current?.target_object || '---'}</p>
             <p><strong>Actions:</strong> {liveStateRef.current?.currentActions?.join(', ') || 'None'}</p>
             <p><strong>Frame:</strong> #{liveStateRef.current?.frame_number ?? '---'}</p>
