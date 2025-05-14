@@ -4,6 +4,8 @@ from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 import os
 import json
+import time
+import threading
 
 # Load environment variables
 load_dotenv()
@@ -18,6 +20,11 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 REPLAYS_DIR = "replays"
 os.makedirs(REPLAYS_DIR, exist_ok=True)
 
+# Global variables to manage replay state
+current_replay = None
+replay_thread = None
+replay_running = False
+
 @app.route("/hello")
 def hello():
     return {"message": "Flask is working!"}
@@ -26,6 +33,12 @@ def hello():
 def on_connect():
     print("Client connected")
     emit('connected', {'msg': 'You are connected!'})
+
+@socketio.on('disconnect')
+def on_disconnect():
+    print("Client disconnected")
+    # Make sure to stop any ongoing replay when client disconnects
+    stop_replay_thread()
 
 # ✅ Save a replay to disk
 @app.route('/save_replay', methods=['POST'])
@@ -53,6 +66,100 @@ def list_replays():
         return jsonify({"replays": files})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# Function to run a replay in a separate thread
+def run_replay(filename):
+    global replay_running
+    replay_running = True
+    
+    filepath = os.path.join(REPLAYS_DIR, filename)
+    try:
+        with open(filepath, 'r') as f:
+            replay_data = json.load(f)
+        
+        print(f"Starting replay: {filename} with {len(replay_data)} frames")
+        socketio.emit('replay_status', {'status': 'started', 'filename': filename})
+        
+        # Iterate through each frame in the replay data
+        for frame_index, frame in enumerate(replay_data):
+            if not replay_running:
+                break
+                
+            # Emit the current frame data to the client
+            socketio.emit('replay_frame', frame)
+            
+            # Use the timer value from the frame or default to a small delay
+            frame_delay = frame.get('frameTime', 0.05)  # 50ms default
+            time.sleep(frame_delay)
+            
+            # Optional: emit progress information
+            if frame_index % 10 == 0:  # Every 10 frames
+                socketio.emit('replay_progress', {
+                    'frame': frame_index,
+                    'total': len(replay_data),
+                    'percentage': (frame_index / len(replay_data)) * 100
+                })
+                
+        # Emit completion message when replay finishes naturally
+        if replay_running:
+            socketio.emit('replay_status', {'status': 'completed', 'filename': filename})
+            
+    except Exception as e:
+        error_msg = f"Error during replay: {str(e)}"
+        print(error_msg)
+        socketio.emit('replay_status', {'status': 'error', 'message': error_msg})
+    
+    finally:
+        replay_running = False
+
+# Stop any running replay thread
+def stop_replay_thread():
+    global replay_running, replay_thread
+    
+    if replay_thread and replay_thread.is_alive():
+        replay_running = False
+        replay_thread.join(timeout=1.0)
+        print("Replay stopped")
+    
+    replay_thread = None
+
+# ✅ Socket handler for starting a replay
+@socketio.on('start_replay')
+def handle_start_replay(data):
+    global current_replay, replay_thread
+    
+    # Stop any running replay first
+    stop_replay_thread()
+    
+    filename = data.get('filename')
+    if not filename:
+        emit('replay_status', {'status': 'error', 'message': 'No filename provided'})
+        return
+    
+    filepath = os.path.join(REPLAYS_DIR, filename)
+    if not os.path.exists(filepath):
+        emit('replay_status', {'status': 'error', 'message': f'Replay file not found: {filename}'})
+        return
+    
+    current_replay = filename
+    replay_thread = threading.Thread(target=run_replay, args=(filename,))
+    replay_thread.daemon = True
+    replay_thread.start()
+    
+    print(f"Started replay thread for {filename}")
+    emit('replay_status', {'status': 'starting', 'filename': filename})
+
+# ✅ Socket handler for stopping a replay
+@socketio.on('stop_replay')
+def handle_stop_replay():
+    global current_replay
+    
+    replay_name = current_replay
+    stop_replay_thread()
+    current_replay = None
+    
+    emit('replay_status', {'status': 'stopped', 'filename': replay_name})
+    print(f"Stopped replay: {replay_name}")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
