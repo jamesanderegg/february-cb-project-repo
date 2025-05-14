@@ -75,7 +75,6 @@ const Buggy = forwardRef(({
     timerRef
   });
 
-
   useFrame(() => {
     if (!buggyRef.current) return;
 

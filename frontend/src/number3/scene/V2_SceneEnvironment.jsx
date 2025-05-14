@@ -4,9 +4,11 @@ import { Environment as DreiEnvironment } from "@react-three/drei";
 import OrbitControls from "../controls/OrbitControls.jsx";
 import AmbientLight from "../lights/AmbientLight.jsx";
 import SpotLights from "../lights/Spotlights.jsx";
-import Plane from "./V2_Plane.jsx";
+
+import Plane from "./StaticSceneElements/ScaledEnvironment/V2_Plane.jsx";
 import Tables from "./StaticSceneElements/Tables/Tables.jsx"
 import { tableConfigs } from './StaticSceneElements/Tables/tableConfig.js';
+import ScaledEnvUniform from "./StaticSceneElements/ScaledEnvironment/ScaledEnv.jsx";
 
 import Buggy from "./V2_Buggy.jsx";
 
@@ -87,6 +89,7 @@ const SceneEnvironment = ({
 
             <Plane />
             <Tables tableConfigs={tableConfigs} />
+            <ScaledEnvUniform scale={2} />
 
             <Buggy
                 ref={buggyRef}
