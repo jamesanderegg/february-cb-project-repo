@@ -95,8 +95,6 @@ function V2_App() {
     return () => socket.off('replay_frame', onReplayFrame);
   }, []);
 
-
-
   // Fetch replay list from backend
   const handleFetchReplays = () => {
     fetch(`${COLAB_API_URL}/list_replays`)
