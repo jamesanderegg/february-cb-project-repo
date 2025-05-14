@@ -5,11 +5,12 @@ import OrbitControls from "../controls/OrbitControls.jsx";
 import AmbientLight from "../lights/AmbientLight.jsx";
 import SpotLights from "../lights/Spotlights.jsx";
 import Plane from "./V2_Plane.jsx";
-
+import Tables from "./StaticSceneElements/Tables/Tables.jsx"
+import { tableConfigs } from './StaticSceneElements/Tables/tableConfig.js';
 
 import Buggy from "./V2_Buggy.jsx";
 
-
+import ObjectRandomizer from "./ModelFunctions/ObjectRandomizer.jsx";
 import { useSceneReset } from '../hooks/useSceneReset';
 import useManualKeyboardControls from "../hooks/useManualKeyboardControls.jsx";
 import { useCountdownTimer } from '../hooks/useCountdownTimer';
@@ -25,12 +26,16 @@ const SceneEnvironment = ({
     frameResetRef,
     timerRef,
     currentActionRef,
-    controlMode
+    controlMode,
+    modelPositionsRef,
+    replayPositions
 }) => {
     const buggyRef = useRef(); // 
     const controlModeRef = useRef("manual");
 
     const setObjectPositions = () => { }; // placeholder for now
+    // Add a ref for the ObjectRandomizer
+    const randomizerRef = useRef(null);
 
     // keep it synced with prop
     useEffect(() => {
@@ -81,6 +86,7 @@ const SceneEnvironment = ({
             <DreiEnvironment preset="city" background={false} />
 
             <Plane />
+            <Tables tableConfigs={tableConfigs} />
 
             <Buggy
                 ref={buggyRef}
@@ -96,6 +102,14 @@ const SceneEnvironment = ({
                 frameResetRef={frameResetRef}
                 timerRef={timerRef}
                 currentActionRef={currentActionRef}
+            />
+
+            <ObjectRandomizer
+                ref={randomizerRef}
+                tableConfigs={tableConfigs}
+                setObjectPositions={setObjectPositions}
+                modelPositionsRef={modelPositionsRef}
+                replayPositions={replayPositions}
             />
 
         </>
