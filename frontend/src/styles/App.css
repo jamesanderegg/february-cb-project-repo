@@ -53,3 +53,36 @@ canvas {
   right: 10px;
   z-index: 9999;
 }
+
+.robot-state-container {
+  margin: 10px;
+  position: fixed;
+  right: 200px;
+  order: 3; /* Last in flex order */
+  z-index: 9999;
+}
+
+.robot-state-inline {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 10px;
+  border-radius: 4px;
+  min-width: 200px;
+  z-index: 9999;
+}
+
+.robot-state-inline h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.robot-state-inline p {
+  margin: 5px 0;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+/* Legacy robot state class - now hidden */
+.robot-state {
+  display: none;
+}

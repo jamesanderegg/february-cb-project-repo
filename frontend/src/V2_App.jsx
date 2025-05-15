@@ -5,6 +5,7 @@ import MiniMapHUD from "./number3/camera/V2_MiniMapHUD.jsx";
 import AgentDashboard from "./number3/controls/V2_AgentDashboard.jsx";
 import { socket } from './number3/controls/socket.js';
 import useReplayController from './number3/hooks/useReplayController.js';
+import RobotStatePanel from './number3/controls/RobotStateHUD.jsx';
 
 import './styles/App.css';
 
@@ -80,6 +81,7 @@ function V2_App() {
       />
       <HUDView />
       <MiniMapHUD />
+      <RobotStatePanel liveStateRef={liveStateRef} controlMode={controlMode} />
 
       <div className="dashboard-buttons">
         <button className="unstyled-button" onClick={() => setShowStatus(prev => !prev)}>

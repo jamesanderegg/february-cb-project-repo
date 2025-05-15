@@ -1,0 +1,25 @@
+// src/components/RobotStatePanel.jsx (or wherever fits your structure)
+import React from 'react';
+import '../../styles/AgentDashboard.css';
+
+const RobotStatePanel = ({ liveStateRef, controlMode }) => {
+  return (
+    <div className="robot-state-container">
+      <div className="robot-state-inline">
+        <h3 style={{ margin: '4px 0', fontSize: '12px' }}>🤖 Robot State</h3>
+        <p><strong>Collision:</strong> {liveStateRef.current?.collision ? 'Yes' : 'No'}</p>
+        <p><strong>Pos:</strong> {liveStateRef.current?.robot_pos?.map(n => n.toFixed(2)).join(', ') || '---'}</p>
+        <p><strong>Rot:</strong> {liveStateRef.current?.robot_rot?.map(n => n.toFixed(2)).join(', ') || '---'}</p>
+        <p><strong>Detected:</strong> {liveStateRef.current?.detectedObjects?.join(', ') || 'None'}</p>
+        <p><strong>In View:</strong> {liveStateRef.current?.objectsInView?.join(', ') || 'None'}</p>
+        <p><strong>Time Left:</strong> {liveStateRef.current?.time_left ?? '---'}s</p>
+        <p><strong>Mode:</strong> {controlMode}</p>
+        <p><strong>Target:</strong> {liveStateRef.current?.target_object || '---'}</p>
+        <p><strong>Actions:</strong> {liveStateRef.current?.currentActions?.join(', ') || 'None'}</p>
+        <p><strong>Frame:</strong> #{liveStateRef.current?.frame_number ?? '---'}</p>
+      </div>
+    </div>
+  );
+};
+
+export default RobotStatePanel;
