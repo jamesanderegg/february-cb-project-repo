@@ -45,10 +45,28 @@ button{
   width: 260px;
   font-family: Arial, sans-serif;
   position: fixed;
-  top: 10px;
+  top: 25px;
   right: 20px;
   z-index: 9999;
 }
+.status-dashboard {
+  background-color: #2d3748; /* Already fully opaque */
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* This shadow has some transparency, which is fine */
+  width: 200px;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.4;
+  position: fixed;
+  top: 25px;
+  right: 550px;
+  z-index: 9999;
+  opacity: 1; /* ✅ Ensures full opacity */
+}
+
+
 
 .dashboard-title {
   font-size: 18px;
