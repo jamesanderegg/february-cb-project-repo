@@ -18,7 +18,8 @@ const V2_MainCanvas = (
         frameResetRef,
         timerRef,
         currentActionRef,
-        controlMode
+        controlMode,
+        setTargetObject
     }
 ) => {
 
@@ -44,6 +45,7 @@ const V2_MainCanvas = (
                     timerRef={timerRef}
                     currentActionRef={currentActionRef}
                     controlMode={controlMode} 
+                    setTargetObject={setTargetObject}
                 />
 
 

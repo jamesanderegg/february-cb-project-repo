@@ -26,6 +26,7 @@ const AgentDashboard = ({
   className = 'agent-dashboard',
   activeTab: forcedTab = null,
   onClose = () => { },
+  targetObject
 }) => {
   const [activeTab, setActiveTab] = useState(forcedTab || 'status');
 
@@ -188,7 +189,7 @@ const AgentDashboard = ({
             <p><strong>In View:</strong> {liveStateRef.current?.objectsInView?.join(', ') || 'None'}</p>
             <p><strong>Time Left:</strong> {liveStateRef.current?.time_left ?? '---'}s</p>
             <p><strong>Mode:</strong> {controlMode}</p>
-            <p><strong>Target:</strong> {liveStateRef.current?.target_object || '---'}</p>
+            <p><strong>Target:</strong> {targetObject || '---'}</p>
             <p><strong>Actions:</strong> {liveStateRef.current?.currentActions?.join(', ') || 'None'}</p>
             <p><strong>Frame:</strong> #{liveStateRef.current?.frame_number ?? '---'}</p>
           </div>

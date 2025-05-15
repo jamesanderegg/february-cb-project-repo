@@ -9,6 +9,7 @@ const ObjectRandomizer = forwardRef(
       setObjectPositions,
       modelPositionsRef,
       replayPositions = null,
+      setTargetObject
     },
     ref
   ) => {
@@ -114,7 +115,6 @@ const ObjectRandomizer = forwardRef(
 
     // Batch update the state only if positions change
     useEffect(() => {
-      // Compare with previous positions
       const prevPositions = prevPositionsRef.current;
       const positionsChanged =
         JSON.stringify(prevPositions) !== JSON.stringify(objectPositions);
@@ -123,13 +123,22 @@ const ObjectRandomizer = forwardRef(
         console.log("📦 Updated object positions:", objectPositions);
         prevPositionsRef.current = objectPositions;
         setObjectPositions(objectPositions);
+
+        // 🎯 Randomly choose a target object ONCE per reset
+        if (objectPositions.length && typeof setTargetObject === 'function') {
+          const randomTarget = objectPositions[Math.floor(Math.random() * objectPositions.length)];
+          console.log("🎯 Target object set:", randomTarget?.name);
+          setTargetObject(randomTarget?.name || 'unknown');
+        }
       }
-    }, [objectPositions, setObjectPositions]);
+    }, [objectPositions, setObjectPositions, setTargetObject]);
+
 
     // Update position tracking for the parent component
     const handlePositionUpdate = (id, position, rotation) => {
       if (modelPositionsRef && modelPositionsRef.current) {
         modelPositionsRef.current[id] = { position, rotation };
+
       }
     };
 

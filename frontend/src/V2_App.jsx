@@ -24,6 +24,8 @@ function V2_App() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
 
+  const [targetObject, setTargetObject] = useState("");
+
   const [controlMode, setControlMode] = useState("manual");
 
   const handleConnect = () => {
@@ -78,10 +80,11 @@ function V2_App() {
         timerRef={timerRef}
         currentActionRef={replayController.currentActionRef}
         controlMode={controlMode}
+        setTargetObject={setTargetObject}
       />
       <HUDView />
       <MiniMapHUD />
-      <RobotStatePanel liveStateRef={liveStateRef} controlMode={controlMode} />
+      <RobotStatePanel liveStateRef={liveStateRef} controlMode={controlMode} targetObject={targetObject} />
 
       <div className="dashboard-buttons">
         <button className="unstyled-button" onClick={() => setShowStatus(prev => !prev)}>
@@ -118,6 +121,7 @@ function V2_App() {
           controlMode={controlMode}
           setControlMode={setControlMode}
           onClose={() => setShowDashboard(false)}
+          targetObject={targetObject}
         />
       )}
 

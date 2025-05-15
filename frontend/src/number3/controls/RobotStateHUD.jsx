@@ -5,7 +5,7 @@ import '../../styles/AgentDashboard.css';
 
 
 
-const RobotStatePanel = ({ liveStateRef, controlMode }) => {
+const RobotStatePanel = ({ liveStateRef, controlMode, targetObject }) => {
      const [, forceUpdate] = useState(0);
       useEffect(() => {
         const interval = setInterval(() => forceUpdate(p => p + 1), 500);
@@ -22,7 +22,7 @@ const RobotStatePanel = ({ liveStateRef, controlMode }) => {
         <p><strong>In View:</strong> {liveStateRef.current?.objectsInView?.join(', ') || 'None'}</p>
         <p><strong>Time Left:</strong> {liveStateRef.current?.time_left ?? '---'}s</p>
         <p><strong>Mode:</strong> {controlMode}</p>
-        <p><strong>Target:</strong> {liveStateRef.current?.target_object || '---'}</p>
+        <p><strong>Target:</strong> {targetObject || '---'}</p>
         <p><strong>Actions:</strong> {liveStateRef.current?.currentActions?.join(', ') || 'None'}</p>
         <p><strong>Frame:</strong> #{liveStateRef.current?.frame_number ?? '---'}</p>
       </div>

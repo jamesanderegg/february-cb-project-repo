@@ -30,7 +30,8 @@ const SceneEnvironment = ({
     currentActionRef,
     controlMode,
     modelPositionsRef,
-    replayPositions
+    replayPositions,
+    setTargetObject
 }) => {
     const buggyRef = useRef(); // 
     const controlModeRef = useRef("manual");
@@ -56,12 +57,12 @@ const SceneEnvironment = ({
 
         // 2. Reset timer
         if (timerRef?.current) {
-            timerRef.current = 350; // or setTimer(350)
+            timerRef.current = 350;
         }
 
         // 3. Reset frame counter
         if (frameResetRef?.current) {
-            frameResetRef.current(); // call resetFrameCount
+            frameResetRef.current();
         }
 
         // 4. Clear recording buffer
@@ -69,8 +70,14 @@ const SceneEnvironment = ({
             recordingBufferRef.current = [];
         }
 
+        // 5. Reset object positions
+        if (randomizerRef.current && randomizerRef.current.resetEnvironment) {
+            randomizerRef.current.resetEnvironment();
+        }
+
         console.log("✅ Scene state fully reset");
     });
+
 
 
 
@@ -113,6 +120,7 @@ const SceneEnvironment = ({
                 setObjectPositions={setObjectPositions}
                 modelPositionsRef={modelPositionsRef}
                 replayPositions={replayPositions}
+                setTargetObject={setTargetObject}
             />
 
         </>
