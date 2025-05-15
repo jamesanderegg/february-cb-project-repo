@@ -1,8 +1,16 @@
 // src/components/RobotStatePanel.jsx (or wherever fits your structure)
 import React from 'react';
+import { useEffect, useState } from 'react';
 import '../../styles/AgentDashboard.css';
 
+
+
 const RobotStatePanel = ({ liveStateRef, controlMode }) => {
+     const [, forceUpdate] = useState(0);
+      useEffect(() => {
+        const interval = setInterval(() => forceUpdate(p => p + 1), 500);
+        return () => clearInterval(interval);
+      }, []);
   return (
     <div className="robot-state-container">
       <div className="robot-state-inline">
