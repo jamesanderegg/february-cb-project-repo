@@ -87,9 +87,9 @@ function V2_App() {
       <RobotStatePanel liveStateRef={liveStateRef} controlMode={controlMode} targetObject={targetObject} />
 
       <div className="dashboard-buttons">
-        <button className="unstyled-button" onClick={() => setShowStatus(prev => !prev)}>
+        {/* <button className="unstyled-button" onClick={() => setShowStatus(prev => !prev)}>
           Status
-        </button>
+        </button> */}
         <button className="unstyled-button" onClick={() => setShowDashboard(prev => !prev)}>
           Agent Dashboard
         </button>

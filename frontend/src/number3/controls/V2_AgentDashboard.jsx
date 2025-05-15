@@ -36,9 +36,10 @@ const AgentDashboard = ({
       onFetchReplays();
     } else if (forcedTab) {
       setActiveTab(forcedTab);
-    } else {
-      setActiveTab('status');
-    }
+    } 
+    // else {
+    //   setActiveTab('status');
+    // }
   }, [isConnected, onFetchReplays, forcedTab]);
 
   const [, forceUpdate] = useState(0);
@@ -106,12 +107,12 @@ const AgentDashboard = ({
           >
             Train
           </div>
-          <div
+          {/* <div
             className={`dashboard-tab ${activeTab === 'status' ? 'active' : ''}`}
             onClick={() => setActiveTab('status')}
           >
             Status
-          </div>
+          </div> */}
         </div>
       )}
 
@@ -179,7 +180,7 @@ const AgentDashboard = ({
           </div>
         )}
 
-        {activeTab === 'status' && (
+        {/* {activeTab === 'status' && (
           <div className="status-tab" style={{ fontSize: '11px', lineHeight: '1.3', fontFamily: 'monospace' }}>
             <h4 style={{ margin: '4px 0', fontSize: '12px' }}>🤖 Robot State</h4>
             <p><strong>Collision:</strong> {liveStateRef.current?.collision ? 'Yes' : 'No'}</p>
@@ -193,7 +194,7 @@ const AgentDashboard = ({
             <p><strong>Actions:</strong> {liveStateRef.current?.currentActions?.join(', ') || 'None'}</p>
             <p><strong>Frame:</strong> #{liveStateRef.current?.frame_number ?? '---'}</p>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

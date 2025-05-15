@@ -57,7 +57,7 @@ canvas {
 .robot-state-container {
   margin: 10px;
   position: fixed;
-  right: 200px;
+  right: 320px;
   width: 335px;
   order: 3; /* Last in flex order */
   z-index: 9999;
@@ -77,6 +77,8 @@ canvas {
 .robot-state-inline h3 {
   margin-top: 0;
   margin-bottom: 10px;
+  font-family: monospace;
+  text-decoration: underline;
 }
 
 .robot-state-inline p {
