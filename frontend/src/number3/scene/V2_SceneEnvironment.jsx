@@ -11,7 +11,7 @@ import { tableConfigs } from './StaticSceneElements/Tables/tableConfig.js';
 import ScaledEnvUniform from "./StaticSceneElements/ScaledEnvironment/ScaledEnv.jsx";
 
 import Buggy from "./V2_Buggy.jsx";
-
+import RobotCamera from "../camera/V2_RobotCamera.jsx";
 import ObjectRandomizer from "./ModelFunctions/ObjectRandomizer.jsx";
 import { useSceneReset } from '../hooks/useSceneReset';
 import useManualKeyboardControls from "../hooks/useManualKeyboardControls.jsx";
@@ -33,46 +33,41 @@ const SceneEnvironment = ({
     replayPositions,
     setTargetObject,
     replayStepTriggerRef,
-    
+    objectsInViewRef,
+    onCaptureImage,
 }) => {
-    const buggyRef = useRef(); // 
+    const buggyRef = useRef();
+    const cameraRef = useRef();
+    const objectPositionsRef = useRef([]);
     const controlModeRef = useRef("manual");
-
-    const setObjectPositions = () => { }; // placeholder for now
-    // Add a ref for the ObjectRandomizer
     const randomizerRef = useRef(null);
 
-    // keep it synced with prop
+    const setObjectPositions = (positions) => {
+        objectPositionsRef.current = positions;
+    };
+
     useEffect(() => {
         controlModeRef.current = controlMode;
     }, [controlMode]);
+
     useManualKeyboardControls(keysPressed, controlModeRef);
     useCountdownTimer(timerRef);
 
     useSceneReset(() => {
         console.log("🔄 Scene Reset Triggered");
 
-        // 1. Reset the robot
         if (buggyRef.current && buggyRef.current.resetBuggy) {
             buggyRef.current.resetBuggy();
         }
-
-        // 2. Reset timer
         if (timerRef?.current) {
             timerRef.current = 350;
         }
-
-        // 3. Reset frame counter
         if (frameResetRef?.current) {
             frameResetRef.current();
         }
-
-        // 4. Clear recording buffer
         if (recordingBufferRef?.current) {
             recordingBufferRef.current = [];
         }
-
-        // 5. Reset object positions
         if (randomizerRef.current && randomizerRef.current.resetEnvironment) {
             randomizerRef.current.resetEnvironment();
         }
@@ -80,22 +75,15 @@ const SceneEnvironment = ({
         console.log("✅ Scene state fully reset");
     });
 
-
-
-
-
     return (
         <>
             <OrbitControls />
             <AmbientLight intensity={0.5} color="white" />
-            <SpotLights
-                lights={[
-                    { position: [5, 5, 5], color: "red", intensity: 1 },
-                    { position: [-5, -5, -5], color: "blue", intensity: 1 },
-                ]}
-            />
+            <SpotLights lights={[
+                { position: [5, 5, 5], color: "red", intensity: 1 },
+                { position: [-5, -5, -5], color: "blue", intensity: 1 },
+            ]} />
             <DreiEnvironment preset="city" background={false} />
-
             <Plane />
             <Tables tableConfigs={tableConfigs} />
             <ScaledEnvUniform scale={2} />
@@ -127,6 +115,14 @@ const SceneEnvironment = ({
                 setTargetObject={setTargetObject}
             />
 
+            <RobotCamera
+                ref={cameraRef}
+                robotRef={buggyRef}
+                objectPositions={objectPositionsRef.current}
+                modelPositionsRef={modelPositionsRef}
+                objectsInViewRef={objectsInViewRef}
+                onCaptureImage={onCaptureImage}
+            />
         </>
     );
 };

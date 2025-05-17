@@ -135,21 +135,23 @@ const Buggy = forwardRef(({
 
 
   useImperativeHandle(ref, () => ({
-    resetBuggy: () => {
-      if (buggyRef.current) {
-        const body = buggyRef.current;
-        body.setTranslation({ x: 7, y: 0.1, z: 15 }, true);
-        const resetQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);
-        body.setRotation(resetQuaternion, true);
-        body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-        body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+  resetBuggy: () => {
+    if (buggyRef.current) {
+      const body = buggyRef.current;
+      body.setTranslation({ x: 7, y: 0.1, z: 15 }, true);
+      const resetQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);
+      body.setRotation(resetQuaternion, true);
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      body.setAngvel({ x: 0, y: 0, z: 0 }, true);
 
-        if (collisionIndicator) {
-          collisionIndicator.current = false;
-        }
+      if (collisionIndicator) {
+        collisionIndicator.current = false;
       }
     }
-  }));
+  },
+  getBody: () => buggyRef.current // 👈 expose the physics body
+}));
+
 
   return (
     <RigidBody

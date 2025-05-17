@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import V2_MainCanvas from './number3/V2_MainCanvas';
 import HUDView from "./number3/camera/V2_HUDView.jsx";
 import MiniMapHUD from "./number3/camera/V2_MiniMapHUD.jsx";
@@ -14,21 +14,38 @@ function V2_App() {
   const liveStateRef = useRef({});
   const [controlMode, setControlMode] = useState("manual");
   const replayStepTriggerRef = useRef(false);
-  
+
   const robotPositionRef = useRef([0, 0, 0]);
   const robotRotationRef = useRef([0, 0, 0, 1]);
   const keysPressed = useRef({});
   const collisionIndicator = useRef(false);
   const frameResetRef = useRef(null);
   const timerRef = useRef(350);
-  
+
+  const modelPositionsRef = useRef({});
+  const objectsInViewRef = useRef([]);
+
   const replayController = useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef, robotRotationRef);
-  
+
   const [showDashboard, setShowDashboard] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
-  
+
+  const [hudImage, setHudImage] = useState(null);
   const [targetObject, setTargetObject] = useState("");
-  
+
+const handleCaptureImage = useCallback((imageBlob) => {
+  if (!imageBlob) return;
+
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const base64 = reader.result;
+    if (typeof base64 === 'string') {
+      setHudImage(base64);
+    }
+  };
+  reader.readAsDataURL(imageBlob);
+}, []);
+
 
   const handleConnect = () => {
     if (!socket.connected) {
@@ -57,16 +74,16 @@ function V2_App() {
     };
   }, []);
 
- useEffect(() => {
-  if (controlMode !== "manual") return;
+  useEffect(() => {
+    if (controlMode !== "manual") return;
 
-  const interval = setInterval(() => {
-    const manualKeys = Object.keys(keysPressed.current).filter(k => keysPressed.current[k]);
-    replayController.currentActionRef.current = manualKeys;
-  }, 50);
+    const interval = setInterval(() => {
+      const manualKeys = Object.keys(keysPressed.current).filter(k => keysPressed.current[k]);
+      replayController.currentActionRef.current = manualKeys;
+    }, 50);
 
-  return () => clearInterval(interval);
-}, [controlMode]);
+    return () => clearInterval(interval);
+  }, [controlMode]);
 
 
   return (
@@ -85,8 +102,12 @@ function V2_App() {
         controlMode={controlMode}
         setTargetObject={setTargetObject}
         replayStepTriggerRef={replayStepTriggerRef}
+        modelPositionsRef={modelPositionsRef}
+        objectsInViewRef={objectsInViewRef}
+        onCaptureImage={handleCaptureImage}
       />
-      <HUDView />
+      <HUDView hudImage={hudImage} />
+
       <MiniMapHUD />
       <RobotStatePanel liveStateRef={liveStateRef} controlMode={controlMode} targetObject={targetObject} />
 

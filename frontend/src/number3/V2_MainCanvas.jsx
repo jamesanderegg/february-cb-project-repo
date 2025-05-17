@@ -20,7 +20,10 @@ const V2_MainCanvas = (
         currentActionRef,
         controlMode,
         setTargetObject,
-        replayStepTriggerRef
+        replayStepTriggerRef,
+        modelPositionsRef,
+        objectsInViewRef,
+        onCaptureImage,
     }
 ) => {
 
@@ -45,9 +48,12 @@ const V2_MainCanvas = (
                     frameResetRef={frameResetRef}
                     timerRef={timerRef}
                     currentActionRef={currentActionRef}
-                    controlMode={controlMode} 
+                    controlMode={controlMode}
                     setTargetObject={setTargetObject}
                     replayStepTriggerRef={replayStepTriggerRef}
+                    modelPositionsRef={modelPositionsRef}
+                    objectsInViewRef={objectsInViewRef}
+                    onCaptureImage={onCaptureImage}
                 />
 
 

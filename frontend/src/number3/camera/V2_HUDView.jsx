@@ -1,26 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 
-const HUDView = ({ getHudImage }) => {
-  const imgRef = useRef(null);
-
-  useEffect(() => {
-    let animationFrameId;
-
-    const updateHud = () => {
-      if (imgRef.current && getHudImage) {
-        const newSrc = getHudImage();
-        if (imgRef.current.src !== newSrc) {
-          imgRef.current.src = newSrc;
-        }
-      }
-      animationFrameId = requestAnimationFrame(updateHud);
-    };
-
-    updateHud(); // start loop
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [getHudImage]);
-
+const HUDView = ({ hudImage }) => {
   return (
     <div style={{
       position: "absolute",
@@ -35,7 +15,14 @@ const HUDView = ({ getHudImage }) => {
       justifyContent: "center",
       zIndex: 9999
     }}>
-      <img ref={imgRef} alt="HUD View" style={{ width: "100%", height: "100%" }} />
+      <img
+        src={hudImage || ""}
+        alt="HUD View"
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        onError={(e) => { e.target.src = ""; }}
+      />
+      {!hudImage && <span style={{ color: "white", fontSize: "12px" }}>No image</span>}
+
     </div>
   );
 };
