@@ -2,88 +2,146 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { socket } from '../controls/socket.js';
 
 const COLAB_API_URL = 'http://localhost:5001';
-
 const isLoading = { current: false };
 
-export function useReplayController() {
-  // Replay state
+export function useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef,
+  robotRotationRef) {
   const [replays, setReplays] = useState([]);
   const [selectedReplay, setSelectedReplay] = useState('');
   const [isReplayPlaying, setIsReplayPlaying] = useState(false);
   const [replayFilename, setReplayFilename] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  
-  // Recording state
+
   const recordingBufferRef = useRef([]);
   const isRecordingActiveRef = useRef(false);
   const currentActionRef = useRef([]);
-  
-  // Handle starting recording
-  const handleStartRecording = () => {
-    console.log("🔁 Resetting scene before recording...");
-    window.dispatchEvent(new CustomEvent('sceneReset'));
 
-    // Delay actual recording start to let the reset finish (~200ms)
+  const replayFrameQueue = useRef([]);
+  const replayFrameIndex = useRef(0);
+  const replayTimeoutRef = useRef(null);
+  const accumulatedTimeRef = useRef(0);
+  const lastTimestampRef = useRef(null);
+
+  const controlModeRef = useRef("manual");
+  useEffect(() => {
+    controlModeRef.current = controlMode;
+  }, [controlMode]);
+
+  const handleStartRecording = () => {
+    console.log('🔁 Resetting scene before recording...');
+    window.dispatchEvent(new CustomEvent('sceneReset'));
     setTimeout(() => {
-      console.log("🔴 Start Recording clicked");
+      console.log('🔴 Start Recording clicked');
       isRecordingActiveRef.current = true;
       recordingBufferRef.current = [];
-      setSuccessMessage("Recording started.");
+      setSuccessMessage('Recording started.');
     }, 250);
   };
 
-  // Handle stopping recording
   const handleStopRecording = () => {
-    console.log("⏹ Stop Recording clicked");
+    console.log('⏹ Stop Recording clicked');
     isRecordingActiveRef.current = false;
     const framesRecorded = recordingBufferRef.current.length;
     console.log(`🛑 Recording stopped. Frames recorded: ${framesRecorded}`);
     setSuccessMessage(`Recording stopped. ${framesRecorded} frames recorded.`);
   };
 
-  // Handle starting replay
   const handleStartReplay = () => {
     if (selectedReplay) {
-      console.log(`▶️ Starting replay: ${selectedReplay}`);
-      setIsReplayPlaying(true);
-      socket.emit("start_replay", { filename: selectedReplay });
+      console.log(`▶️ Requesting replay: ${selectedReplay}`);
+      socket.emit('start_replay', { filename: selectedReplay });
     }
   };
 
-  // Handle stopping replay
+  const stepReplay = (timestamp) => {
+    if (lastTimestampRef.current === null) {
+      lastTimestampRef.current = timestamp;
+      replayTimeoutRef.current = requestAnimationFrame(stepReplay);
+      return;
+    }
+
+    const delta = timestamp - lastTimestampRef.current;
+    accumulatedTimeRef.current += delta;
+    lastTimestampRef.current = timestamp;
+
+    while (true) {
+      const frame = replayFrameQueue.current[replayFrameIndex.current];
+      if (!frame) {
+        stopReplayPlayback();
+        return;
+      }
+
+      const frameDuration = (frame.frameTime || 0.05) * 1000;
+
+      if (accumulatedTimeRef.current < frameDuration) break;
+
+      if (controlModeRef.current === "replay") {
+        Object.assign(liveStateRef.current, frame);
+        currentActionRef.current = frame.currentActions || [];
+
+        // ✅ Inject position/rotation for Buggy
+        if (frame.robot_pos && frame.robot_rot) {
+          robotPositionRef.current = [...frame.robot_pos];
+          robotRotationRef.current = [...frame.robot_rot];
+        }
+
+        replayStepTriggerRef.current = true;
+      }
+
+
+      accumulatedTimeRef.current -= frameDuration;
+      replayFrameIndex.current++;
+    }
+
+    replayTimeoutRef.current = requestAnimationFrame(stepReplay);
+  };
+
+  const startReplayPlayback = () => {
+    if (!replayFrameQueue.current.length) return;
+    replayFrameIndex.current = 0;
+    accumulatedTimeRef.current = 0;
+    lastTimestampRef.current = null;
+    setIsReplayPlaying(true);
+    replayTimeoutRef.current = requestAnimationFrame(stepReplay);
+  };
+
+  const stopReplayPlayback = () => {
+    cancelAnimationFrame(replayTimeoutRef.current);
+    replayTimeoutRef.current = null;
+    accumulatedTimeRef.current = 0;
+    lastTimestampRef.current = null;
+    replayFrameIndex.current = 0;
+    replayFrameQueue.current = [];
+    setIsReplayPlaying(false);
+    currentActionRef.current = [];
+  };
+
   const handleStopReplay = () => {
-    if (selectedReplay) {
-      console.log(`⏹ Stopping replay: ${selectedReplay}`);
-      setIsReplayPlaying(false);
-      socket.emit("stop_replay");
-    }
+    console.log('⏹ Stopping replay playback');
+    stopReplayPlayback();
   };
 
-  // Fetch replays from backend
   const handleFetchReplays = useCallback(() => {
-    // Add this check to prevent multiple simultaneous API calls
     if (isLoading.current) return;
-    
     isLoading.current = true;
-    
+
     fetch(`${COLAB_API_URL}/list_replays`)
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         setReplays(data.replays || []);
         isLoading.current = false;
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error fetching replays:', error);
         setErrorMessage('Failed to fetch replays');
         isLoading.current = false;
       });
-  }, [COLAB_API_URL]);
+  }, []);
 
-  // Save replay to backend
   const handleSaveReplay = () => {
     if (!replayFilename) {
-      setErrorMessage("Please enter a filename before saving.");
+      setErrorMessage('Please enter a filename before saving.');
       return;
     }
 
@@ -93,41 +151,37 @@ export function useReplayController() {
     fetch(`${COLAB_API_URL}/save_replay`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename, data: replayData }),
+      body: JSON.stringify({ filename, data: replayData })
     })
-      .then(res => res.json())
-      .then(data => {
-        console.log("✅ Replay saved:", data);
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('✅ Replay saved:', data);
         setSuccessMessage(`Replay saved: ${filename}`);
         setReplayFilename('');
-        handleFetchReplays(); // refresh list
+        handleFetchReplays();
       })
-      .catch(err => {
-        console.error("❌ Failed to save replay", err);
-        setErrorMessage("Failed to save replay");
+      .catch((err) => {
+        console.error('❌ Failed to save replay', err);
+        setErrorMessage('Failed to save replay');
       });
   };
 
-  // Clear messages
   const handleClearMessages = () => {
     setErrorMessage('');
     setSuccessMessage('');
   };
 
-  // Listen for replay frames
   useEffect(() => {
-    const onReplayFrame = (frame) => {
-      if (frame?.currentActions) {
-        currentActionRef.current = frame.currentActions;
-      }
-    };
+    socket.on('replay_data', ({ frames }) => {
+      console.log(`📥 Received ${frames.length} replay frames`);
+      replayFrameQueue.current = frames;
+      startReplayPlayback();
+    });
 
-    socket.on('replay_frame', onReplayFrame);
-    return () => socket.off('replay_frame', onReplayFrame);
+    return () => socket.off('replay_data');
   }, []);
 
   return {
-    // State
     replays,
     selectedReplay,
     setSelectedReplay,
@@ -139,8 +193,6 @@ export function useReplayController() {
     recordingBufferRef,
     isRecordingActiveRef,
     currentActionRef,
-    
-    // Actions
     handleStartRecording,
     handleStopRecording,
     handleStartReplay,
@@ -148,8 +200,6 @@ export function useReplayController() {
     handleFetchReplays,
     handleSaveReplay,
     handleClearMessages,
-    
-    // Constants
     COLAB_API_URL
   };
 }

@@ -31,7 +31,9 @@ const SceneEnvironment = ({
     controlMode,
     modelPositionsRef,
     replayPositions,
-    setTargetObject
+    setTargetObject,
+    replayStepTriggerRef,
+    
 }) => {
     const buggyRef = useRef(); // 
     const controlModeRef = useRef("manual");
@@ -112,6 +114,8 @@ const SceneEnvironment = ({
                 frameResetRef={frameResetRef}
                 timerRef={timerRef}
                 currentActionRef={currentActionRef}
+                replayStepTriggerRef={replayStepTriggerRef}
+                controlMode={controlMode}
             />
 
             <ObjectRandomizer

@@ -19,7 +19,8 @@ const V2_MainCanvas = (
         timerRef,
         currentActionRef,
         controlMode,
-        setTargetObject
+        setTargetObject,
+        replayStepTriggerRef
     }
 ) => {
 
@@ -46,6 +47,7 @@ const V2_MainCanvas = (
                     currentActionRef={currentActionRef}
                     controlMode={controlMode} 
                     setTargetObject={setTargetObject}
+                    replayStepTriggerRef={replayStepTriggerRef}
                 />
 
 

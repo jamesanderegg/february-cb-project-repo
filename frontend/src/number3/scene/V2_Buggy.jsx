@@ -21,7 +21,9 @@ const Buggy = forwardRef(({
   isRecordingActiveRef,
   frameResetRef,
   timerRef,
-  currentActionRef
+  currentActionRef,
+  replayStepTriggerRef,
+  controlMode,
 }, ref) => {
   const buggyRef = useRef();
   const moveSpeed = 40;
@@ -79,36 +81,58 @@ const Buggy = forwardRef(({
     if (!buggyRef.current) return;
 
     const body = buggyRef.current;
-    const activeKeys = currentActionRef?.current || [];
+    const isManual = controlMode === "manual";
+    const isReplay = controlMode === "replay" && replayStepTriggerRef?.current === true;
 
-    let moveDirection = 0;
-    let turnDirection = 0;
+    // ✅ REPLAY MODE — force exact position and rotation to prevent drift
+    if (isReplay) {
+      const [x, y, z] = robotPositionRef.current;
+      const [qx, qy, qz, qw] = robotRotationRef.current;
 
-    if (activeKeys.includes("w")) moveDirection = moveSpeed;
-    if (activeKeys.includes("s")) moveDirection = -moveSpeed;
-    if (activeKeys.includes("a")) turnDirection = rotationSpeed;
-    if (activeKeys.includes("d")) turnDirection = -rotationSpeed;
+      body.setTranslation({ x, y, z }, true);
+      body.setRotation({ x: qx, y: qy, z: qz, w: qw }, true);
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      body.setAngvel({ x: 0, y: 0, z: 0 }, true);
 
-
-    // Rotation
-    const currentRotation = new Quaternion().copy(body.rotation());
-    if (turnDirection !== 0) {
-      const turnQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), turnDirection * 0.05);
-      currentRotation.multiply(turnQuaternion);
-      body.setRotation(currentRotation, true);
+      // Reset step trigger
+      replayStepTriggerRef.current = false;
     }
 
-    // Movement
-    let forward = new Vector3(0, 0, -moveDirection);
-    forward.applyQuaternion(currentRotation);
-    body.setLinvel({ x: forward.x, y: body.linvel().y, z: forward.z }, true);
+    // ✅ MANUAL MODE — simulate physics-based movement
+    if (isManual) {
+      const activeKeys = currentActionRef?.current || [];
 
-    // Update refs
+      let moveDirection = 0;
+      let turnDirection = 0;
+
+      if (activeKeys.includes("w")) moveDirection = moveSpeed;
+      if (activeKeys.includes("s")) moveDirection = -moveSpeed;
+      if (activeKeys.includes("a")) turnDirection = rotationSpeed;
+      if (activeKeys.includes("d")) turnDirection = -rotationSpeed;
+
+      // Rotation
+      const currentRotation = new Quaternion().copy(body.rotation());
+      if (turnDirection !== 0) {
+        const turnQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), turnDirection * 0.05);
+        currentRotation.multiply(turnQuaternion);
+        body.setRotation(currentRotation, true);
+      }
+
+      // Movement
+      let forward = new Vector3(0, 0, -moveDirection);
+      forward.applyQuaternion(currentRotation);
+      body.setLinvel({ x: forward.x, y: body.linvel().y, z: forward.z }, true);
+    }
+
+    // 🧠 Always update refs
     const { x, y, z } = body.translation();
     const rotationQuat = body.rotation();
     robotPositionRef.current = [x, y, z];
     robotRotationRef.current = [rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w];
   });
+
+
+
 
   useImperativeHandle(ref, () => ({
     resetBuggy: () => {

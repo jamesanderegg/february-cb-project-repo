@@ -50,6 +50,7 @@ const useStateCollector = ({
       target_object: "cup",
       frame_number: frameNumberRef.current,
       time_left: timerRef?.current ?? null,
+      frameTime: delta,
     };
 
     // ✅ Mutate the same object (required for Dashboard updates)

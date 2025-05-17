@@ -126,28 +126,20 @@ def stop_replay_thread():
 # ✅ Socket handler for starting a replay
 @socketio.on('start_replay')
 def handle_start_replay(data):
-    global current_replay, replay_thread
-    
-    # Stop any running replay first
-    stop_replay_thread()
-    
     filename = data.get('filename')
     if not filename:
         emit('replay_status', {'status': 'error', 'message': 'No filename provided'})
         return
-    
+
     filepath = os.path.join(REPLAYS_DIR, filename)
     if not os.path.exists(filepath):
-        emit('replay_status', {'status': 'error', 'message': f'Replay file not found: {filename}'})
+        emit('replay_status', {'status': 'error', 'message': 'File not found'})
         return
-    
-    current_replay = filename
-    replay_thread = threading.Thread(target=run_replay, args=(filename,))
-    replay_thread.daemon = True
-    replay_thread.start()
-    
-    print(f"Started replay thread for {filename}")
-    emit('replay_status', {'status': 'starting', 'filename': filename})
+
+    with open(filepath, 'r') as f:
+        replay_data = json.load(f)
+        emit('replay_data', {'frames': replay_data})
+
 
 # ✅ Socket handler for stopping a replay
 @socketio.on('stop_replay')

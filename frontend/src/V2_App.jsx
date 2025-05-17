@@ -11,22 +11,24 @@ import './styles/App.css';
 
 function V2_App() {
   const [isConnected, setIsConnected] = useState(false);
-  const replayController = useReplayController();
-
+  const liveStateRef = useRef({});
+  const [controlMode, setControlMode] = useState("manual");
+  const replayStepTriggerRef = useRef(false);
+  
   const robotPositionRef = useRef([0, 0, 0]);
   const robotRotationRef = useRef([0, 0, 0, 1]);
   const keysPressed = useRef({});
   const collisionIndicator = useRef(false);
   const frameResetRef = useRef(null);
   const timerRef = useRef(350);
-  const liveStateRef = useRef({});
-
+  
+  const replayController = useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef, robotRotationRef);
+  
   const [showDashboard, setShowDashboard] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
-
+  
   const [targetObject, setTargetObject] = useState("");
-
-  const [controlMode, setControlMode] = useState("manual");
+  
 
   const handleConnect = () => {
     if (!socket.connected) {
@@ -55,16 +57,17 @@ function V2_App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (controlMode !== "manual") return;
+ useEffect(() => {
+  if (controlMode !== "manual") return;
 
-    const interval = setInterval(() => {
-      const manualKeys = Object.keys(keysPressed.current).filter(k => keysPressed.current[k]);
-      replayController.currentActionRef.current = manualKeys;
-    }, 50);
+  const interval = setInterval(() => {
+    const manualKeys = Object.keys(keysPressed.current).filter(k => keysPressed.current[k]);
+    replayController.currentActionRef.current = manualKeys;
+  }, 50);
 
-    return () => clearInterval(interval);
-  }, [controlMode]);
+  return () => clearInterval(interval);
+}, [controlMode]);
+
 
   return (
     <div className="app-container">
@@ -81,6 +84,7 @@ function V2_App() {
         currentActionRef={replayController.currentActionRef}
         controlMode={controlMode}
         setTargetObject={setTargetObject}
+        replayStepTriggerRef={replayStepTriggerRef}
       />
       <HUDView />
       <MiniMapHUD />
