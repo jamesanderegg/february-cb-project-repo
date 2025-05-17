@@ -24,6 +24,7 @@ const V2_MainCanvas = (
         modelPositionsRef,
         objectsInViewRef,
         onCaptureImage,
+        topDownCameraRef
     }
 ) => {
 
@@ -54,6 +55,7 @@ const V2_MainCanvas = (
                     modelPositionsRef={modelPositionsRef}
                     objectsInViewRef={objectsInViewRef}
                     onCaptureImage={onCaptureImage}
+                    topDownCameraRef={topDownCameraRef}
                 />
 
 

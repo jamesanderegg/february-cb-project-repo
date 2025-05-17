@@ -8,7 +8,8 @@ const RobotCamera = forwardRef((
     objectPositions,
     objectsInViewRef,
     modelPositionsRef,
-    onCaptureImage
+    onCaptureImage,
+    showFOV = true,
   },
   ref
 ) => {
@@ -135,6 +136,7 @@ const RobotCamera = forwardRef((
 
       // Full frustum wireframe
       if (fovHelperRef.current) {
+        fovHelperRef.current.visible = showFOV;
         const cam = cameraRef.current;
         const near = cam.near;
         const far = cam.far;

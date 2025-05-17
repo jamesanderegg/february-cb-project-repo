@@ -26,6 +26,7 @@ function V2_App() {
   const objectsInViewRef = useRef([]);
 
   const replayController = useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef, robotRotationRef);
+const topDownCameraRef = useRef();
 
   const [showDashboard, setShowDashboard] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
@@ -105,10 +106,12 @@ const handleCaptureImage = useCallback((imageBlob) => {
         modelPositionsRef={modelPositionsRef}
         objectsInViewRef={objectsInViewRef}
         onCaptureImage={handleCaptureImage}
+        topDownCameraRef={topDownCameraRef}
       />
       <HUDView hudImage={hudImage} />
 
-      <MiniMapHUD />
+      <MiniMapHUD getMiniMapImage={() => topDownCameraRef.current?.getHudImage?.()} />
+
       <RobotStatePanel liveStateRef={liveStateRef} controlMode={controlMode} targetObject={targetObject} />
 
       <div className="dashboard-buttons">

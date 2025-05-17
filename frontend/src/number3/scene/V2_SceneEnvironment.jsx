@@ -12,10 +12,12 @@ import ScaledEnvUniform from "./StaticSceneElements/ScaledEnvironment/ScaledEnv.
 
 import Buggy from "./V2_Buggy.jsx";
 import RobotCamera from "../camera/V2_RobotCamera.jsx";
+import TopDownCamera from "../camera/V2_TopDownCamera.jsx";
 import ObjectRandomizer from "./ModelFunctions/ObjectRandomizer.jsx";
 import { useSceneReset } from '../hooks/useSceneReset';
 import useManualKeyboardControls from "../hooks/useManualKeyboardControls.jsx";
 import { useCountdownTimer } from '../hooks/useCountdownTimer';
+
 
 const SceneEnvironment = ({
     robotPositionRef,
@@ -35,13 +37,14 @@ const SceneEnvironment = ({
     replayStepTriggerRef,
     objectsInViewRef,
     onCaptureImage,
+    topDownCameraRef
 }) => {
     const buggyRef = useRef();
     const cameraRef = useRef();
     const objectPositionsRef = useRef([]);
     const controlModeRef = useRef("manual");
     const randomizerRef = useRef(null);
-
+    
     const setObjectPositions = (positions) => {
         objectPositionsRef.current = positions;
     };
@@ -87,7 +90,11 @@ const SceneEnvironment = ({
             <Plane />
             <Tables tableConfigs={tableConfigs} />
             <ScaledEnvUniform scale={2} />
-
+            <TopDownCamera
+                ref={topDownCameraRef}
+                robotPositionRef={robotPositionRef}
+                cameraHeight={60}
+            />
             <Buggy
                 ref={buggyRef}
                 scale={0.02}
