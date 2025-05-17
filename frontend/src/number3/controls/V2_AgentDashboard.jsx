@@ -40,7 +40,7 @@ const AgentDashboard = ({
     // else {
     //   setActiveTab('status');
     // }
-  }, [isConnected, onFetchReplays, forcedTab]);
+  }, [isConnected, onFetchReplays]);
 
   const [, forceUpdate] = useState(0);
   useEffect(() => {

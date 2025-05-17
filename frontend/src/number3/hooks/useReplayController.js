@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { socket } from '../controls/socket.js';
 
 const COLAB_API_URL = 'http://localhost:5001';
+
+const isLoading = { current: false };
 
 export function useReplayController() {
   // Replay state
@@ -59,12 +61,24 @@ export function useReplayController() {
   };
 
   // Fetch replays from backend
-  const handleFetchReplays = () => {
+  const handleFetchReplays = useCallback(() => {
+    // Add this check to prevent multiple simultaneous API calls
+    if (isLoading.current) return;
+    
+    isLoading.current = true;
+    
     fetch(`${COLAB_API_URL}/list_replays`)
-      .then(res => res.json())
-      .then(data => setReplays(data.replays || []))
-      .catch(() => setErrorMessage('Failed to fetch replays'));
-  };
+      .then(response => response.json())
+      .then(data => {
+        setReplays(data.replays || []);
+        isLoading.current = false;
+      })
+      .catch(error => {
+        console.error('Error fetching replays:', error);
+        setErrorMessage('Failed to fetch replays');
+        isLoading.current = false;
+      });
+  }, [COLAB_API_URL]);
 
   // Save replay to backend
   const handleSaveReplay = () => {
