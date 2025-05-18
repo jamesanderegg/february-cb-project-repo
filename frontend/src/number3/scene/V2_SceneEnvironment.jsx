@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-// import { Environment as DreiEnvironment } from "@react-three/drei";
+import { Environment } from "@react-three/drei";
 
 import OrbitControls from "../controls/OrbitControls.jsx";
 import AmbientLight from "../lights/AmbientLight.jsx";
@@ -87,18 +87,12 @@ const SceneEnvironment = ({
                 { position: [5, 5, 5], color: "red", intensity: 1 },
                 { position: [-5, -5, -5], color: "blue", intensity: 1 },
             ]} />
-            <directionalLight
-                intensity={2}
-                position={[10, 15, 10]}
-                castShadow
-                shadow-mapSize-width={1024}
-                shadow-mapSize-height={1024}
-                shadow-camera-far={50}
-                shadow-camera-left={-10}
-                shadow-camera-right={10}
-                shadow-camera-top={10}
-                shadow-camera-bottom={-10}
-            />
+           
+<Environment
+  files="/textures/potsdamer_platz_1k.hdr"
+  background={false}
+/>
+
 
             {/* <DreiEnvironment preset="city" background={false} /> */}
             <Plane />
