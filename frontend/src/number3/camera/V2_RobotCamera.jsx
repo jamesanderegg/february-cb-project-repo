@@ -50,7 +50,9 @@ const RobotCamera = forwardRef((
 
   useImperativeHandle(ref, () => ({
     getHudImage: () => offscreenCanvasRef.current.toDataURL("image/png"),
+    getCanvas: () => offscreenCanvasRef.current, 
   }));
+
 
   useFrame(() => {
     if (robotRef.current?.getBody && cameraRef.current && modelPositionsRef.current) {

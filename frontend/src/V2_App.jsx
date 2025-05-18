@@ -7,6 +7,8 @@ import { socket } from './number3/controls/socket.js';
 import useReplayController from './number3/hooks/useReplayController.js';
 import RobotStatePanel from './number3/controls/RobotStateHUD.jsx';
 
+import useYoloDetection from './number3/hooks/useYoloDetection.js';
+
 import './styles/App.css';
 
 function V2_App() {
@@ -26,7 +28,8 @@ function V2_App() {
   const objectsInViewRef = useRef([]);
 
   const replayController = useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef, robotRotationRef);
-const topDownCameraRef = useRef();
+  const topDownCameraRef = useRef();
+  const robotCameraRef = useRef();
 
   const [showDashboard, setShowDashboard] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
@@ -34,18 +37,27 @@ const topDownCameraRef = useRef();
   const [hudImage, setHudImage] = useState(null);
   const [targetObject, setTargetObject] = useState("");
 
-const handleCaptureImage = useCallback((imageBlob) => {
-  if (!imageBlob) return;
+  useYoloDetection({
+    liveStateRef,
+    recordingBufferRef: replayController.recordingBufferRef,
+    isRecordingActiveRef: replayController.isRecordingActiveRef,
+    getCameraCanvas: () => robotCameraRef.current?.getCanvas?.(),  // ✅ real canvas
+  });
 
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    const base64 = reader.result;
-    if (typeof base64 === 'string') {
-      setHudImage(base64);
-    }
-  };
-  reader.readAsDataURL(imageBlob);
-}, []);
+
+
+  const handleCaptureImage = useCallback((imageBlob) => {
+    if (!imageBlob) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result;
+      if (typeof base64 === 'string') {
+        setHudImage(base64);
+      }
+    };
+    reader.readAsDataURL(imageBlob);
+  }, []);
 
 
   const handleConnect = () => {
@@ -107,6 +119,7 @@ const handleCaptureImage = useCallback((imageBlob) => {
         objectsInViewRef={objectsInViewRef}
         onCaptureImage={handleCaptureImage}
         topDownCameraRef={topDownCameraRef}
+        robotCameraRef={robotCameraRef}
       />
       <HUDView hudImage={hudImage} />
 

@@ -7,6 +7,11 @@ import json
 import time
 import threading
 
+import io
+from PIL import Image
+from ultralytics import YOLO  # or your specific detection method
+
+
 # Load environment variables
 load_dotenv()
 
@@ -15,6 +20,8 @@ app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "defaultsecret")
 CORS(app)
 
 socketio = SocketIO(app, cors_allowed_origins="*")
+# Load your YOLO model once
+YOLO_MODEL = YOLO("YOLO/best.pt") 
 
 # Directory for saving replays
 REPLAYS_DIR = "replays"
@@ -152,6 +159,42 @@ def handle_stop_replay():
     
     emit('replay_status', {'status': 'stopped', 'filename': replay_name})
     print(f"Stopped replay: {replay_name}")
+
+@app.route('/yolo_predict', methods=['POST'])
+def yolo_predict():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image provided'}), 400
+
+    file = request.files['image']
+    image_bytes = file.read()
+
+    try:
+        print("📥 YOLO image received")
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+        results = YOLO_MODEL(image)
+
+        detected_labels = []
+        for result in results:
+            names = result.names
+            boxes = getattr(result, 'boxes', None)
+
+            if boxes:
+                for box in boxes:
+                    try:
+                        class_id = int(box.cls[0].item()) if hasattr(box.cls[0], 'item') else int(box.cls[0])
+                        label = names.get(class_id, f"class_{class_id}")
+                        detected_labels.append(label)
+                    except Exception as e:
+                        print("⚠️ Box parse error:", e)
+
+        print("✅ Detected:", detected_labels)
+        return jsonify({'detectedObjects': detected_labels})
+
+    except Exception as e:
+        print("❌ YOLO processing failed:", str(e))
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))

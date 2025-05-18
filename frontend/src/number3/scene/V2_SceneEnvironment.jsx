@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { Environment as DreiEnvironment } from "@react-three/drei";
+// import { Environment as DreiEnvironment } from "@react-three/drei";
 
 import OrbitControls from "../controls/OrbitControls.jsx";
 import AmbientLight from "../lights/AmbientLight.jsx";
@@ -37,14 +37,15 @@ const SceneEnvironment = ({
     replayStepTriggerRef,
     objectsInViewRef,
     onCaptureImage,
-    topDownCameraRef
+    topDownCameraRef,
+    robotCameraRef
 }) => {
     const buggyRef = useRef();
     const cameraRef = useRef();
     const objectPositionsRef = useRef([]);
     const controlModeRef = useRef("manual");
     const randomizerRef = useRef(null);
-    
+
     const setObjectPositions = (positions) => {
         objectPositionsRef.current = positions;
     };
@@ -86,7 +87,20 @@ const SceneEnvironment = ({
                 { position: [5, 5, 5], color: "red", intensity: 1 },
                 { position: [-5, -5, -5], color: "blue", intensity: 1 },
             ]} />
-            <DreiEnvironment preset="city" background={false} />
+            <directionalLight
+                intensity={2}
+                position={[10, 15, 10]}
+                castShadow
+                shadow-mapSize-width={1024}
+                shadow-mapSize-height={1024}
+                shadow-camera-far={50}
+                shadow-camera-left={-10}
+                shadow-camera-right={10}
+                shadow-camera-top={10}
+                shadow-camera-bottom={-10}
+            />
+
+            {/* <DreiEnvironment preset="city" background={false} /> */}
             <Plane />
             <Tables tableConfigs={tableConfigs} />
             <ScaledEnvUniform scale={2} />
@@ -123,12 +137,13 @@ const SceneEnvironment = ({
             />
 
             <RobotCamera
-                ref={cameraRef}
+                ref={robotCameraRef}
                 robotRef={buggyRef}
                 objectPositions={objectPositionsRef.current}
                 modelPositionsRef={modelPositionsRef}
                 objectsInViewRef={objectsInViewRef}
                 onCaptureImage={onCaptureImage}
+
             />
         </>
     );
