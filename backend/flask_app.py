@@ -69,7 +69,10 @@ def save_replay():
 @app.route('/list_replays', methods=['GET'])
 def list_replays():
     try:
-        files = [f for f in os.listdir(REPLAYS_DIR) if f.endswith('.json')]
+        files = [
+            f for f in os.listdir(REPLAYS_DIR)
+            if f.endswith('.json') and not f.endswith('.obj.json')
+        ]
         return jsonify({"replays": files})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
