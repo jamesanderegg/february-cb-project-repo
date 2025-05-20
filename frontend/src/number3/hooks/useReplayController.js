@@ -145,7 +145,7 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
       return;
     }
 
-    const filename = `${replayFilename}_${Date.now()}.json`;
+    const filename = `${replayFilename}.json`;
     const replayData = recordingBufferRef.current;
 
     fetch(`${COLAB_API_URL}/save_replay`, {
