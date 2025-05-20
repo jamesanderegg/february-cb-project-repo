@@ -18,7 +18,7 @@ export const movableModels = [
     collider: 'cuboid'
   },
   {
-    name: 'bannana',
+    name: 'banana',
     filePath: '/models/bananna.glb',
     scale: .1,
     rotation: [0, 0, 0],

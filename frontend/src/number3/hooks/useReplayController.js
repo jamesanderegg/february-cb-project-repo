@@ -5,7 +5,7 @@ const COLAB_API_URL = 'http://localhost:5001';
 const isLoading = { current: false };
 
 export function useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef,
-  robotRotationRef, setControlMode) {
+  robotRotationRef, setControlMode, modelPositionsRef, targetObject) {
   const [replays, setReplays] = useState([]);
   const [selectedReplay, setSelectedReplay] = useState('');
   const [isReplayPlaying, setIsReplayPlaying] = useState(false);
@@ -143,28 +143,59 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
 
   const handleSaveReplay = () => {
     if (!replayFilename) {
-      setErrorMessage('Please enter a filename before saving.');
+      setErrorMessage("Please enter a filename before saving.");
       return;
     }
 
     const filename = `${replayFilename}.json`;
+    const objFilename = `${replayFilename}.obj.json`;
+
     const replayData = recordingBufferRef.current;
 
+    const rawObjects = modelPositionsRef.current;
+
+    const enrichedObjects = Object.entries(rawObjects).reduce(
+      (acc, [id, data]) => {
+        acc[id] = {
+          ...data,
+          isTarget: id === targetObject,
+        };
+        return acc;
+      },
+      {}
+    );
+
+    const objectMetadata = {
+      target: targetObject,
+      objects: enrichedObjects,
+    };
+
     fetch(`${COLAB_API_URL}/save_replay`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename, data: replayData })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename, data: replayData }),
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log('✅ Replay saved:', data);
+        console.log("✅ Replay saved:", data);
         setSuccessMessage(`Replay saved: ${filename}`);
-        setReplayFilename('');
+        setReplayFilename("");
         handleFetchReplays();
+
+        // Save the .obj.json file
+        return fetch(`${COLAB_API_URL}/save_replay`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: objFilename, data: objectMetadata }),
+        });
+      })
+      .then((res) => res.json())
+      .then((objData) => {
+        console.log("🗂️ Object metadata saved:", objData);
       })
       .catch((err) => {
-        console.error('❌ Failed to save replay', err);
-        setErrorMessage('Failed to save replay');
+        console.error("❌ Failed to save replay", err);
+        setErrorMessage("Failed to save replay");
       });
   };
 

@@ -27,7 +27,6 @@ function V2_App() {
   const modelPositionsRef = useRef({});
   const objectsInViewRef = useRef([]);
 
-  const replayController = useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef, robotRotationRef, setControlMode);
   const topDownCameraRef = useRef();
   const robotCameraRef = useRef();
 
@@ -36,6 +35,17 @@ function V2_App() {
 
   const [hudImage, setHudImage] = useState(null);
   const [targetObject, setTargetObject] = useState("");
+
+  const replayController = useReplayController(
+    liveStateRef,
+    replayStepTriggerRef,
+    controlMode,
+    robotPositionRef,
+    robotRotationRef,
+    setControlMode,
+    modelPositionsRef,
+    targetObject
+  );
 
   useYoloDetection({
     liveStateRef,

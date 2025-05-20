@@ -5,7 +5,6 @@ import { Physics } from "@react-three/rapier";
 import SceneEnvironment from "./scene/V2_SceneEnvironment";
 
 
-
 const V2_MainCanvas = (
     {
         robotPositionRef,
@@ -59,7 +58,6 @@ const V2_MainCanvas = (
                     topDownCameraRef={topDownCameraRef}
                     robotCameraRef={robotCameraRef}
                 />
-
 
             </Physics>
         </Canvas>
