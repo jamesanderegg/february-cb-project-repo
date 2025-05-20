@@ -105,6 +105,7 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
     lastTimestampRef.current = null;
     setIsReplayPlaying(true);
     replayTimeoutRef.current = requestAnimationFrame(stepReplay);
+    setControlMode('replay');
   };
 
   const stopReplayPlayback = () => {
