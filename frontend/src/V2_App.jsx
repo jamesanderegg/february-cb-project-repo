@@ -27,7 +27,7 @@ function V2_App() {
   const modelPositionsRef = useRef({});
   const objectsInViewRef = useRef([]);
 
-  const replayController = useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef, robotRotationRef);
+  const replayController = useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef, robotRotationRef, setControlMode);
   const topDownCameraRef = useRef();
   const robotCameraRef = useRef();
 

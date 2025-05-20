@@ -143,7 +143,7 @@ const AgentDashboard = ({
               className="replay-dropdown"
               value={selectedReplay}
               onChange={(e) => {
-                setControlMode("replay");
+                setControlMode('replay');
                 setSelectedReplay(e.target.value);
               }}
             >

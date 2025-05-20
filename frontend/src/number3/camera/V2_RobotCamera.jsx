@@ -53,7 +53,6 @@ const RobotCamera = forwardRef((
     getCanvas: () => offscreenCanvasRef.current, 
   }));
 
-
   useFrame(() => {
     if (robotRef.current?.getBody && cameraRef.current && modelPositionsRef.current) {
       const body = robotRef.current.getBody();

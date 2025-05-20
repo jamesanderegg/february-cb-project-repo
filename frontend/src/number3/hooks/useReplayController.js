@@ -5,7 +5,7 @@ const COLAB_API_URL = 'http://localhost:5001';
 const isLoading = { current: false };
 
 export function useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef,
-  robotRotationRef) {
+  robotRotationRef, setControlMode) {
   const [replays, setReplays] = useState([]);
   const [selectedReplay, setSelectedReplay] = useState('');
   const [isReplayPlaying, setIsReplayPlaying] = useState(false);
@@ -23,7 +23,8 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
   const accumulatedTimeRef = useRef(0);
   const lastTimestampRef = useRef(null);
 
-  const controlModeRef = useRef("manual");
+  const controlModeRef = useRef('manual');
+  
   useEffect(() => {
     controlModeRef.current = controlMode;
   }, [controlMode]);
@@ -68,7 +69,7 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
     while (true) {
       const frame = replayFrameQueue.current[replayFrameIndex.current];
       if (!frame) {
-        stopReplayPlayback();
+        handleStopReplay();
         return;
       }
 
@@ -120,6 +121,7 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
   const handleStopReplay = () => {
     console.log('⏹ Stopping replay playback');
     stopReplayPlayback();
+    setControlMode('manual');
   };
 
   const handleFetchReplays = useCallback(() => {
