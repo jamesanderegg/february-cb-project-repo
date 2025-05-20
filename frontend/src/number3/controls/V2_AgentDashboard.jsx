@@ -53,29 +53,32 @@ const AgentDashboard = ({
       {/* Status Indicator */}
       <div className="dashboard-section status-row">
         <div className="status-indicator">
-          <span className={`status-dot ${isConnected ? 'connected' : 'disconnected'}`} />
-          {isConnected ? 'Connected' : 'Disconnected'}
+          <span
+            className={`status-dot ${
+              isConnected ? "connected" : "disconnected"
+            }`}
+          />
+          {isConnected ? "Connected" : "Disconnected"}
         </div>
 
         {!forcedTab && (
           <>
             <button
-              className={`connect-button ${isConnected ? 'connected' : ''}`}
+              className={`connect-button ${isConnected ? "connected" : ""}`}
               onClick={onConnect}
               disabled={isConnected}
             >
-              {isConnected ? 'Connected' : 'Connect'}
+              {isConnected ? "Connected" : "Connect"}
             </button>
             <button className="reset-button" onClick={resetScene}>
               Reset Scene
             </button>
           </>
         )}
-
       </div>
 
       {/* Control Mode Selector */}
-      {isConnected && activeTab !== 'status' && (
+      {isConnected && activeTab !== "status" && (
         <div className="control-mode-selector">
           <label>Control Mode:</label>
           <select
@@ -94,16 +97,20 @@ const AgentDashboard = ({
       {!forcedTab && (
         <div className="dashboard-tabs">
           <div
-            className={`dashboard-tab ${activeTab === 'replay' ? 'active' : ''} ${!isConnected ? 'disabled' : ''}`}
-            onClick={() => isConnected && setActiveTab('replay')}
-            title={!isConnected ? 'Connect to unlock' : ''}
+            className={`dashboard-tab ${
+              activeTab === "replay" ? "active" : ""
+            } ${!isConnected ? "disabled" : ""}`}
+            onClick={() => isConnected && setActiveTab("replay")}
+            title={!isConnected ? "Connect to unlock" : ""}
           >
             Replay
           </div>
           <div
-            className={`dashboard-tab ${activeTab === 'train' ? 'active' : ''} ${!isConnected ? 'disabled' : ''}`}
-            onClick={() => isConnected && setActiveTab('train')}
-            title={!isConnected ? 'Connect to unlock' : ''}
+            className={`dashboard-tab ${
+              activeTab === "train" ? "active" : ""
+            } ${!isConnected ? "disabled" : ""}`}
+            onClick={() => isConnected && setActiveTab("train")}
+            title={!isConnected ? "Connect to unlock" : ""}
           >
             Train
           </div>
@@ -118,10 +125,14 @@ const AgentDashboard = ({
 
       {/* Tab Content */}
       <div className="tab-content">
-        {activeTab === 'replay' && (
+        {activeTab === "replay" && (
           <div className="replay-tab">
             {(errorMessage || successMessage) && (
-              <div className={`dashboard-message ${errorMessage ? 'error' : 'success'}`}>
+              <div
+                className={`dashboard-message ${
+                  errorMessage ? "error" : "success"
+                }`}
+              >
                 {errorMessage || successMessage}
               </div>
             )}
@@ -131,15 +142,29 @@ const AgentDashboard = ({
               id="replaySelect"
               className="replay-dropdown"
               value={selectedReplay}
-              onChange={(e) => setSelectedReplay(e.target.value)}
+              onChange={(e) => {
+                setControlMode("replay");
+                setSelectedReplay(e.target.value);
+              }}
             >
-              <option value="" disabled>Select a replay</option>
+              <option value="" disabled>
+                Select Replay
+              </option>
               {replays.map((name, idx) => (
-                <option key={idx} value={name}>{name}</option>
+                <option key={idx} value={name}>
+                  {name}
+                </option>
               ))}
             </select>
 
-            <div style={{ marginTop: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div
+              style={{
+                marginTop: "8px",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "8px",
+              }}
+            >
               <button
                 className="record-button"
                 onClick={onStartReplay}
@@ -156,25 +181,31 @@ const AgentDashboard = ({
               </button>
             </div>
 
-            <div style={{ marginTop: '8px' }}>
-              <button className="record-button" onClick={onStartRecording}>Start Recording</button>
-              <button className="record-button" onClick={onStopRecording}>Stop Recording</button>
+            <div style={{ marginTop: "8px" }}>
+              <button className="record-button" onClick={onStartRecording}>
+                Start Recording
+              </button>
+              <button className="record-button" onClick={onStopRecording}>
+                Stop Recording
+              </button>
             </div>
 
-            <div style={{ marginTop: '12px' }}>
+            <div style={{ marginTop: "12px" }}>
               <input
                 type="text"
                 placeholder="Replay name"
                 value={replayFilename}
                 onChange={(e) => setReplayFilename(e.target.value)}
-                style={{ width: '70%', marginRight: '5px' }}
+                style={{ width: "70%", marginRight: "5px" }}
               />
-              <button className="record-button" onClick={onSaveReplay}>Save Replay</button>
+              <button className="record-button" onClick={onSaveReplay}>
+                Save Replay
+              </button>
             </div>
           </div>
         )}
 
-        {activeTab === 'train' && (
+        {activeTab === "train" && (
           <div className="train-tab">
             <p>Training controls go here.</p>
           </div>
