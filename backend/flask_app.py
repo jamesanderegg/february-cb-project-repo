@@ -77,51 +77,6 @@ def list_replays():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# Function to run a replay in a separate thread
-def run_replay(filename):
-    global replay_running
-    replay_running = True
-    
-    filepath = os.path.join(REPLAYS_DIR, filename)
-    try:
-        with open(filepath, 'r') as f:
-            replay_data = json.load(f)
-        
-        print(f"Starting replay: {filename} with {len(replay_data)} frames")
-        socketio.emit('replay_status', {'status': 'started', 'filename': filename})
-        
-        # Iterate through each frame in the replay data
-        for frame_index, frame in enumerate(replay_data):
-            if not replay_running:
-                break
-                
-            # Emit the current frame data to the client
-            socketio.emit('replay_frame', frame)
-            
-            # Use the timer value from the frame or default to a small delay
-            frame_delay = frame.get('frameTime', 0.05)  # 50ms default
-            time.sleep(frame_delay)
-            
-            # Optional: emit progress information
-            if frame_index % 10 == 0:  # Every 10 frames
-                socketio.emit('replay_progress', {
-                    'frame': frame_index,
-                    'total': len(replay_data),
-                    'percentage': (frame_index / len(replay_data)) * 100
-                })
-                
-        # Emit completion message when replay finishes naturally
-        if replay_running:
-            socketio.emit('replay_status', {'status': 'completed', 'filename': filename})
-            
-    except Exception as e:
-        error_msg = f"Error during replay: {str(e)}"
-        print(error_msg)
-        socketio.emit('replay_status', {'status': 'error', 'message': error_msg})
-    
-    finally:
-        replay_running = False
-
 # Stop any running replay thread
 def stop_replay_thread():
     global replay_running, replay_thread
@@ -135,20 +90,36 @@ def stop_replay_thread():
 
 # ✅ Socket handler for starting a replay
 @socketio.on('start_replay')
-def handle_start_replay(data):
+def load_replay():
+    global replay_memory, training_status
+    print("Route Load Replay!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    data = request.json
     filename = data.get('filename')
-    if not filename:
-        emit('replay_status', {'status': 'error', 'message': 'No filename provided'})
-        return
-
-    filepath = os.path.join(REPLAYS_DIR, filename)
-    if not os.path.exists(filepath):
-        emit('replay_status', {'status': 'error', 'message': 'File not found'})
-        return
-
-    with open(filepath, 'r') as f:
-        replay_data = json.load(f)
-        emit('replay_data', {'frames': replay_data})
+    
+    # Load the main replay
+    result = replay_memory.load_replay(filename)
+    
+    # Attempt to load the matching .obj.json file
+    base_name = os.path.splitext(filename)[0]
+    object_file = os.path.join(replay_memory.save_dir, f"{base_name}.obj.json")
+    object_data = None
+    
+    try:
+        with open(object_file, 'r') as f:
+            object_data = json.load(f)
+            print(f"📦 Loaded object positions from {object_file}")
+    except FileNotFoundError:
+        print(f"⚠️ No object file found for {filename}")
+    except Exception as e:
+        print(f"❌ Error reading object file: {str(e)}")
+    
+    # Emit to the requesting client (not broadcast)
+    socketio.emit('replay_data', {
+        'frames': result.get('frames', []),
+        'object_data': object_data
+    }, room=request.sid)  # Add this to target specific client
+    
+    return jsonify({'status': 'success', 'message': 'Replay loaded'})
 
 
 # ✅ Socket handler for stopping a replay
