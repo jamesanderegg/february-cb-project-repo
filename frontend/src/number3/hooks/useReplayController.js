@@ -48,10 +48,21 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
     setSuccessMessage(`Recording stopped. ${framesRecorded} frames recorded.`);
   };
 
-  const handleStartReplay = () => {
+  const handleStartReplay = async () => {
     if (selectedReplay) {
       console.log(`▶️ Requesting replay: ${selectedReplay}`);
-      socket.emit('start_replay', { filename: selectedReplay });
+      try {
+        const response = await fetch(`${COLAB_API_URL}/load_replay`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: selectedReplay })
+        });
+        const result = await response.json();
+        console.log('✅ Replay request sent:', result);
+      } catch (error) {
+        console.error('❌ Error starting replay:', error);
+        setErrorMessage('Failed to start replay');
+      }
     }
   };
 
