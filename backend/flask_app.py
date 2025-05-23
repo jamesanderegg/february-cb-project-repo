@@ -90,36 +90,46 @@ def stop_replay_thread():
 
 # ✅ Socket handler for starting a replay
 @socketio.on('start_replay')
-def load_replay():
-    global replay_memory, training_status
-    print("Route Load Replay!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    data = request.json
-    filename = data.get('filename')
+def handle_start_replay(data):  # Changed function name and added data parameter
+    print("Socket start_replay received!")
+    filename = data.get('filename')  # Changed from request.json to data
     
-    # Load the main replay
-    result = replay_memory.load_replay(filename)
-    
-    # Attempt to load the matching .obj.json file
-    base_name = os.path.splitext(filename)[0]
-    object_file = os.path.join(replay_memory.save_dir, f"{base_name}.obj.json")
-    object_data = None
-    
+    if not filename:
+        emit('replay_status', {'status': 'error', 'message': 'No filename provided'})
+        return
+
+    # Load the main replay file
+    filepath = os.path.join(REPLAYS_DIR, filename)  # Use REPLAYS_DIR instead of replay_memory.save_dir
+    if not os.path.exists(filepath):
+        emit('replay_status', {'status': 'error', 'message': 'File not found'})
+        return
+
     try:
-        with open(object_file, 'r') as f:
-            object_data = json.load(f)
-            print(f"📦 Loaded object positions from {object_file}")
-    except FileNotFoundError:
-        print(f"⚠️ No object file found for {filename}")
+        with open(filepath, 'r') as f:
+            replay_data = json.load(f)
+
+        # Load the matching .obj.json file
+        base_name = os.path.splitext(filename)[0]
+        object_file = os.path.join(REPLAYS_DIR, f"{base_name}.obj.json")
+        object_data = None
+
+        try:
+            with open(object_file, 'r') as f:
+                object_data = json.load(f)
+                print(f"📦 Loaded object positions from {object_file}")
+        except FileNotFoundError:
+            print(f"⚠️ No object file found for {filename}")
+        except Exception as e:
+            print(f"❌ Error reading object file: {str(e)}")
+
+        # Emit replay data with object positions
+        emit('replay_data', {
+            'frames': replay_data,
+            'object_data': object_data
+        })
+
     except Exception as e:
-        print(f"❌ Error reading object file: {str(e)}")
-    
-    # Emit to the requesting client (not broadcast)
-    socketio.emit('replay_data', {
-        'frames': result.get('frames', []),
-        'object_data': object_data
-    }, room=request.sid)  # Add this to target specific client
-    
-    return jsonify({'status': 'success', 'message': 'Replay loaded'})
+        emit('replay_status', {'status': 'error', 'message': str(e)})
 
 
 # ✅ Socket handler for stopping a replay
