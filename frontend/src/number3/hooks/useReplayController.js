@@ -48,21 +48,28 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
     setSuccessMessage(`Recording stopped. ${framesRecorded} frames recorded.`);
   };
 
-  const handleStartReplay = async () => {
+  // const handleStartReplay = async () => {
+  //   if (selectedReplay) {
+  //     console.log(`▶️ Requesting replay: ${selectedReplay}`);
+  //     try {
+  //       const response = await fetch(`${COLAB_API_URL}/load_replay`, {
+  //         method: 'POST',
+  //         headers: { 'Content-Type': 'application/json' },
+  //         body: JSON.stringify({ filename: selectedReplay })
+  //       });
+  //       const result = await response.json();
+  //       console.log('✅ Replay request sent:', result);
+  //     } catch (error) {
+  //       console.error('❌ Error starting replay:', error);
+  //       setErrorMessage('Failed to start replay');
+  //     }
+  //   }
+  // };
+
+  const handleStartReplay = () => {
     if (selectedReplay) {
       console.log(`▶️ Requesting replay: ${selectedReplay}`);
-      try {
-        const response = await fetch(`${COLAB_API_URL}/load_replay`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: selectedReplay })
-        });
-        const result = await response.json();
-        console.log('✅ Replay request sent:', result);
-      } catch (error) {
-        console.error('❌ Error starting replay:', error);
-        setErrorMessage('Failed to start replay');
-      }
+      socket.emit('start_replay', { filename: selectedReplay });
     }
   };
 
@@ -221,6 +228,39 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
       console.log(`📥 Received ${frames.length} replay frames`);
       replayFrameQueue.current = frames;
       startReplayPlayback();
+    });
+
+    return () => socket.off('replay_data');
+  }, []);
+
+  useEffect(() => {
+    socket.on('replay_data', ({ frames, object_data }) => {
+      console.log(`📥 Received ${frames.length} replay frames`);
+      replayFrameQueue.current = frames;
+      
+      if (object_data && object_data.objects) {
+        console.log('🗂️ Repositioning objects for replay:', object_data);
+        
+        // Dispatch repositioning event
+        window.dispatchEvent(new CustomEvent('repositionObjects', {
+          detail: {
+            objects: object_data.objects,
+            target: object_data.target
+          }
+        }));
+        
+        // Listen for settlement notification (fired by ObjectRandomizer)
+        const handleSettlement = () => {
+          console.log('✅ Objects settled, starting replay...');
+          startReplayPlayback();
+          window.removeEventListener('objectsSettled', handleSettlement);
+        };
+        
+        window.addEventListener('objectsSettled', handleSettlement);
+        
+      } else {
+        startReplayPlayback();
+      }
     });
 
     return () => socket.off('replay_data');
