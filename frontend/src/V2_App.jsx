@@ -38,6 +38,8 @@ function V2_App() {
 
   const [replayPositions, setReplayPositions] = useState(null);
 
+  const [showRobotState, setShowRobotState] = useState(true);
+
 
   const replayController = useReplayController(
     liveStateRef,
@@ -141,16 +143,24 @@ function V2_App() {
 
       <MiniMapHUD getMiniMapImage={() => topDownCameraRef.current?.getHudImage?.()} />
 
-      <RobotStatePanel liveStateRef={liveStateRef} controlMode={controlMode} targetObject={targetObject} />
 
       <div className="dashboard-buttons">
-        {/* <button className="unstyled-button" onClick={() => setShowStatus(prev => !prev)}>
-          Status
-        </button> */}
+        <button className="unstyled-button" onClick={() => setShowRobotState(prev => !prev)}>
+          Robot State
+        </button>
         <button className="unstyled-button" onClick={() => setShowDashboard(prev => !prev)}>
           Agent Dashboard
         </button>
       </div>
+
+      {showRobotState && (
+        <RobotStatePanel
+          liveStateRef={liveStateRef}
+          controlMode={controlMode}
+          targetObject={targetObject}
+          objectsInViewRef={objectsInViewRef}
+        />
+      )}
 
       {showDashboard && (
         <AgentDashboard
@@ -179,7 +189,7 @@ function V2_App() {
           setControlMode={setControlMode}
           onClose={() => setShowDashboard(false)}
           targetObject={targetObject}
-     
+
         />
       )}
 

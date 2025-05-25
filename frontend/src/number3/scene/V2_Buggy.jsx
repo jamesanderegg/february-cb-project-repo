@@ -24,6 +24,7 @@ const Buggy = forwardRef(({
   currentActionRef,
   replayStepTriggerRef,
   controlMode,
+  objectsInViewRef
 }, ref) => {
   const buggyRef = useRef();
   const moveSpeed = 40;
@@ -74,7 +75,8 @@ const Buggy = forwardRef(({
     recordingBufferRef,
     isRecordingActiveRef,
     frameResetRef,
-    timerRef
+    timerRef,
+    objectsInViewRef
   });
 
   useFrame(() => {

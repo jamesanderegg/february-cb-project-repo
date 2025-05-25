@@ -32,7 +32,7 @@ const ObjectRandomizer = forwardRef(
     const objectPositions = useMemo(() => {
       if (!tableConfigs.length) return [];
 
-      console.log(`🔄 Generating new positions | Reset Count: ${resetCounter}`);
+      // console.log(`🔄 Generating new positions | Reset Count: ${resetCounter}`);
 
       // if (replayPositions && replayPositions.length > 0) {
       //   console.log("📥 Injected replay object positions used.");
@@ -45,11 +45,11 @@ const ObjectRandomizer = forwardRef(
         Array.isArray(replayPositions) &&
         replayPositions.length > 0
       ) {
-        console.log(
-          "📥 Using replay object positions:",
-          replayPositions.length,
-          "objects"
-        );
+        // console.log(
+        //   "📥 Using replay object positions:",
+        //   replayPositions.length,
+        //   "objects"
+        // );
         return replayPositions;
       }
 
@@ -122,14 +122,14 @@ const ObjectRandomizer = forwardRef(
         JSON.stringify(prevPositions) !== JSON.stringify(objectPositions);
 
       if (positionsChanged) {
-        console.log("📦 Updated object positions:", objectPositions);
+        // console.log("📦 Updated object positions:", objectPositions);
         prevPositionsRef.current = objectPositions;
         setObjectPositions(objectPositions);
 
         // 🎯 Randomly choose a target object ONCE per reset
         if (objectPositions.length && typeof setTargetObject === 'function') {
           const randomTarget = objectPositions[Math.floor(Math.random() * objectPositions.length)];
-          console.log("🎯 Target object set:", randomTarget?.name);
+          // console.log("🎯 Target object set:", randomTarget?.name);
           setTargetObject(randomTarget?.name || 'unknown');
         }
       }

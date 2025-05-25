@@ -11,6 +11,7 @@ const useStateCollector = ({
   isRecordingActiveRef = { current: false },
   frameResetRef = null,
   timerRef,
+  objectsInViewRef
 }) => {
   const frameNumberRef = useRef(0);
   const keyDurationsRef = useRef({});
@@ -44,10 +45,14 @@ const useStateCollector = ({
       robot_rot: robotRotationRef.current,
       currentActions,
       key_durations: { ...keyDurationsRef.current },
-      detectedObjects: [],
-      objectsInView: [],
+      detectedObjects: Array.isArray(liveStateRef.current.detectedObjects)
+  ? [...liveStateRef.current.detectedObjects]
+  : [],
+      objectsInView: Array.isArray(objectsInViewRef?.current) && objectsInViewRef.current.length > 0
+  ? [objectsInViewRef.current[0]]
+  : [],
       collision: collisionIndicator.current,
-      target_object: "cup",
+      target_object: liveStateRef.current?.target_object || "",
       frame_number: frameNumberRef.current,
       time_left: timerRef?.current ?? null,
       frameTime: delta,

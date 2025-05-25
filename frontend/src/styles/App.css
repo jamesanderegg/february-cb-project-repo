@@ -57,9 +57,9 @@ canvas {
 .robot-state-container {
   margin: 10px;
   position: fixed;
-  right: 320px;
-  width: 335px;
-  order: 3; /* Last in flex order */
+  left: 10px;
+  top: 250px;
+  width: 280px;
   z-index: 9999;
   
 }

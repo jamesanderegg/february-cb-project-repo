@@ -26,7 +26,12 @@ const RobotStatePanel = ({ liveStateRef, controlMode, targetObject }) => {
         <p><strong>Pos:</strong> {liveStateRef.current?.robot_pos?.map(n => n.toFixed(2)).join(', ') || '---'}</p>
         <p><strong>Rot:</strong> {liveStateRef.current?.robot_rot?.map(n => n.toFixed(2)).join(', ') || '---'}</p>
         <p><strong>Last Detected:</strong> {lastDetected || 'None'}</p>
-        <p><strong>In View:</strong> {liveStateRef.current?.objectsInView?.join(', ') || 'None'}</p>
+        <p><strong>In View:</strong> {
+          Array.isArray(liveStateRef.current?.objectsInView)
+            ? liveStateRef.current.objectsInView.map(obj => obj.id || "unknown").join(', ')
+            : 'None'
+        }</p>
+
         <p><strong>Time Left:</strong> {liveStateRef.current?.time_left ?? '---'}s</p>
         <p><strong>Mode:</strong> {controlMode}</p>
         <p><strong>Target:</strong> {targetObject || '---'}</p>

@@ -88,10 +88,13 @@ const SceneEnvironment = ({
           { position: [-5, -5, -5], color: "blue", intensity: 1 },
         ]}
       />
+  <ambientLight intensity={1} />
 
       <Environment
         files="/textures/potsdamer_platz_1k.hdr"
         background={false}
+        preset="apartment"
+        intensity={0.5}
       />
       {/* <DreiEnvironment preset="city" background={false} /> */}
       <Plane />
@@ -100,7 +103,7 @@ const SceneEnvironment = ({
       <TopDownCamera
         ref={topDownCameraRef}
         robotPositionRef={robotPositionRef}
-        cameraHeight={60}
+        cameraHeight={10}
       />
       <Buggy
         ref={buggyRef}
@@ -118,6 +121,7 @@ const SceneEnvironment = ({
         currentActionRef={currentActionRef}
         replayStepTriggerRef={replayStepTriggerRef}
         controlMode={controlMode}
+        objectsInViewRef={objectsInViewRef}
       />
 
       <ObjectRandomizer

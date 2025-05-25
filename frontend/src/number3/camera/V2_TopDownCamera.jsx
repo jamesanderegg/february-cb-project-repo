@@ -2,14 +2,16 @@ import React, { useRef, useEffect, useImperativeHandle, forwardRef } from "react
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-const TopDownCamera = forwardRef(({ robotPositionRef, cameraHeight = 50 }, ref) => {
+const TopDownCamera = forwardRef(({ robotPositionRef, cameraHeight }, ref) => {
   const cameraRef = useRef();
   const { scene, gl } = useThree();
-  const renderTarget = useRef(new THREE.WebGLRenderTarget(256, 256)); 
+  const renderTarget = useRef(new THREE.WebGLRenderTarget(256, 256));
   const hudImageData = useRef(null);
 
   useEffect(() => {
-    const camera = new THREE.OrthographicCamera(-40, 40, 40, -40, 1, 600);
+    const zoomLevel = 12; // Smaller = more zoomed in
+    const camera = new THREE.OrthographicCamera(-zoomLevel, zoomLevel, zoomLevel, -zoomLevel, 1, 600);
+
     cameraRef.current = camera;
     scene.add(camera);
 
