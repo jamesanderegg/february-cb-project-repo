@@ -25,6 +25,8 @@ const V2_MainCanvas = (
         onCaptureImage,
         topDownCameraRef,
         robotCameraRef,
+        replayPositions,
+       
     }
 ) => {
 
@@ -57,6 +59,8 @@ const V2_MainCanvas = (
                     onCaptureImage={onCaptureImage}
                     topDownCameraRef={topDownCameraRef}
                     robotCameraRef={robotCameraRef}
+                    replayPositions={replayPositions}
+                    
                 />
 
             </Physics>

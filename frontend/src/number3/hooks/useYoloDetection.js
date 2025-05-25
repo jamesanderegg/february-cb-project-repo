@@ -33,7 +33,7 @@ export default function useYoloDetection({
                     formData.append("image", blob, `frame_${frame_number}.png`);
 
                     try {
-                        console.log("📤 Sending image to YOLO backend...");
+                        // console.log("📤 Sending image to YOLO backend...");
 
                         const res = await fetch("http://localhost:5001/yolo_predict", {
                             method: "POST",
@@ -41,7 +41,7 @@ export default function useYoloDetection({
                         });
 
                         const result = await res.json(); // expects { detectedObjects: [...] }
-                        console.log("✅ YOLO response:", result);
+                        // console.log("✅ YOLO response:", result);
                         if (frame_number != null && result?.detectedObjects) {
                             // Update live state
                             liveStateRef.current.detectedObjects = result.detectedObjects;

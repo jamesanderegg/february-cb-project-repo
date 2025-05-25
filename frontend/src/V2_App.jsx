@@ -36,6 +36,9 @@ function V2_App() {
   const [hudImage, setHudImage] = useState(null);
   const [targetObject, setTargetObject] = useState("");
 
+  const [replayPositions, setReplayPositions] = useState(null);
+
+
   const replayController = useReplayController(
     liveStateRef,
     replayStepTriggerRef,
@@ -44,7 +47,8 @@ function V2_App() {
     robotRotationRef,
     setControlMode,
     modelPositionsRef,
-    targetObject
+    targetObject,
+    setReplayPositions
   );
 
   useYoloDetection({
@@ -78,6 +82,7 @@ function V2_App() {
 
   const handleResetScene = () => {
     window.dispatchEvent(new CustomEvent('sceneReset'));
+    setReplayPositions(null);
   };
 
   const handleSetReplayPositions = (positions) => {
@@ -130,6 +135,7 @@ function V2_App() {
         onCaptureImage={handleCaptureImage}
         topDownCameraRef={topDownCameraRef}
         robotCameraRef={robotCameraRef}
+        replayPositions={replayPositions}
       />
       <HUDView hudImage={hudImage} />
 
@@ -173,6 +179,7 @@ function V2_App() {
           setControlMode={setControlMode}
           onClose={() => setShowDashboard(false)}
           targetObject={targetObject}
+     
         />
       )}
 

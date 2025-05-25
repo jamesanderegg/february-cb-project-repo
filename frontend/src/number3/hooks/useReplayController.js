@@ -1,11 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { socket } from '../controls/socket.js';
+import { movableModels } from "../scene/ModelFunctions/ImportModels.js";
 
 const COLAB_API_URL = 'http://localhost:5001';
 const isLoading = { current: false };
 
-export function useReplayController(liveStateRef, replayStepTriggerRef, controlMode, robotPositionRef,
-  robotRotationRef, setControlMode, modelPositionsRef, targetObject) {
+export function useReplayController(liveStateRef,
+  replayStepTriggerRef,
+  controlMode,
+  robotPositionRef,
+  robotRotationRef,
+  setControlMode,
+  modelPositionsRef, targetObject, setReplayPositions) {
   const [replays, setReplays] = useState([]);
   const [selectedReplay, setSelectedReplay] = useState('');
   const [isReplayPlaying, setIsReplayPlaying] = useState(false);
@@ -24,7 +30,7 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
   const lastTimestampRef = useRef(null);
 
   const controlModeRef = useRef('manual');
-  
+
   useEffect(() => {
     controlModeRef.current = controlMode;
   }, [controlMode]);
@@ -52,8 +58,36 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
     if (selectedReplay) {
       console.log(`▶️ Requesting replay: ${selectedReplay}`);
       socket.emit('start_replay', { filename: selectedReplay });
+
+      // ✅ Load .obj.json file
+      const objFilename = selectedReplay.replace(/\.json$/, '.obj.json');
+      fetch(`${COLAB_API_URL}/replays/${objFilename}`)
+        .then(res => res.json())
+        .then(data => {
+          console.log("🎯 Target from metadata:", data.target);
+          const objects = data.objects || {};
+          const formatted = Object.entries(objects).map(([name, { position, rotation, isTarget }]) => ({
+            ...movableModels.find(m => m.name === name),
+            id: name,
+            position,
+            rotation,
+            physicsProps: {
+              mass: 1,
+              type: 'dynamic',
+              linearDamping: 0.5,
+              angularDamping: 0.5,
+              friction: 0.7,
+              restitution: 0,
+            },
+            isTarget
+          }));
+          console.log("📦 Loaded replay object positions:", formatted);
+          setReplayPositions(formatted);
+        })
+        .catch(err => console.error("❌ Failed to load .obj.json", err));
     }
   };
+
 
   const stepReplay = (timestamp) => {
     if (lastTimestampRef.current === null) {
@@ -123,7 +157,11 @@ export function useReplayController(liveStateRef, replayStepTriggerRef, controlM
     console.log('⏹ Stopping replay playback');
     stopReplayPlayback();
     setControlMode('manual');
+    // if (typeof setReplayPositions === 'function') {
+    //   setReplayPositions(null);  // ✅ clear it
+    // }
   };
+
 
   const handleFetchReplays = useCallback(() => {
     if (isLoading.current) return;

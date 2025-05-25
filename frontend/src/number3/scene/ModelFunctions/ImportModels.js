@@ -19,7 +19,7 @@ export const movableModels = [
   },
   {
     name: 'banana',
-    filePath: '/models/bananna.glb',
+    filePath: '/models/banana.glb',
     scale: .1,
     rotation: [0, 0, 0],
     height: 0.5,

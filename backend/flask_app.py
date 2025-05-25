@@ -150,6 +150,22 @@ def handle_start_replay(data):
         replay_data = json.load(f)
         emit('replay_data', {'frames': replay_data})
 
+@app.route('/replays/<filename>', methods=['GET'])
+def get_object_metadata(filename):
+    if not filename.endswith('.obj.json'):
+        return jsonify({"status": "error", "message": "Invalid object metadata file requested"}), 400
+
+    filepath = os.path.join(REPLAYS_DIR, filename)
+    if not os.path.exists(filepath):
+        return jsonify({"status": "error", "message": "Object metadata file not found"}), 404
+
+    try:
+        with open(filepath, "r") as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 # ✅ Socket handler for stopping a replay
 @socketio.on('stop_replay')
