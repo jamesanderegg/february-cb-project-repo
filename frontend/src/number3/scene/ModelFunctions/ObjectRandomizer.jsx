@@ -16,6 +16,8 @@ const ObjectRandomizer = forwardRef(
     const [resetCounter, setResetCounter] = useState(0);
     const objectRefs = useRef(new Map()); // Store refs for object persistence
     const prevPositionsRef = useRef([]); // Store previous positions for comparison
+    const [isMonitoringSettlement, setIsMonitoringSettlement] = useState(false);
+    const settlementDataRef = useRef({ velocities: {}, stableFrames: 0 });
 
     // Expose reset function for parent components
     useImperativeHandle(ref, () => ({
@@ -137,10 +139,56 @@ const ObjectRandomizer = forwardRef(
     // Update position tracking for the parent component
     const handlePositionUpdate = (id, position, rotation) => {
       if (modelPositionsRef && modelPositionsRef.current) {
+        const prevData = modelPositionsRef.current[id];
         modelPositionsRef.current[id] = { position, rotation };
-
+        
+        // If we're monitoring settlement, track velocity
+        if (isMonitoringSettlement && prevData) {
+          const [x1, y1, z1] = position;
+          const [x2, y2, z2] = prevData.position;
+          const velocity = Math.sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2);
+          
+          settlementDataRef.current.velocities[id] = velocity;
+          checkSettlement();
+        }
       }
     };
+
+
+    const checkSettlement = () => {
+      const velocities = settlementDataRef.current.velocities;
+      const objectIds = Object.keys(modelPositionsRef.current || {});
+      
+      // Check if all objects have low velocity
+      const allObjectsStable = objectIds.every(id => {
+        const velocity = velocities[id] || Infinity;
+        return velocity < 0.01; // Threshold for "not moving"
+      });
+      
+      if (allObjectsStable && objectIds.length > 0) {
+        settlementDataRef.current.stableFrames++;
+        
+        // Require multiple stable frames to avoid false positives
+        if (settlementDataRef.current.stableFrames > 20) {
+          console.log('🏁 Objects have settled!');
+          setIsMonitoringSettlement(false);
+          window.dispatchEvent(new CustomEvent('objectsSettled'));
+        }
+      } else {
+        settlementDataRef.current.stableFrames = 0;
+      }
+    };
+
+    useEffect(() => {
+      const handleRepositioning = () => {
+        console.log('👂 ObjectRandomizer detected repositioning, starting settlement monitoring...');
+        setIsMonitoringSettlement(true);
+        settlementDataRef.current = { velocities: {}, stableFrames: 0 };
+      };
+      
+      window.addEventListener('repositionObjects', handleRepositioning);
+      return () => window.removeEventListener('repositionObjects', handleRepositioning);
+    }, []);
 
     return (
       <>
