@@ -22,7 +22,7 @@ const RobotStatePanel = ({ liveStateRef, controlMode, targetObject }) => {
     <div className="robot-state-container">
       <div className="robot-state-inline">
         <h3 style={{ margin: '4px 0' }}>Robot State</h3>
-        <p><strong>Collision:</strong> {liveStateRef.current?.collision ? 'Yes' : 'No'}</p>
+        {/* <p><strong>Collision:</strong> {liveStateRef.current?.collision ? 'Yes' : 'No'}</p> */}
         <p><strong>Pos:</strong> {liveStateRef.current?.robot_pos?.map(n => n.toFixed(2)).join(', ') || '---'}</p>
         <p><strong>Rot:</strong> {liveStateRef.current?.robot_rot?.map(n => n.toFixed(2)).join(', ') || '---'}</p>
         <p><strong>Last Detected:</strong> {lastDetected || 'None'}</p>
