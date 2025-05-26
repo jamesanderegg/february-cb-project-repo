@@ -35,6 +35,7 @@ const RobotStatePanel = ({ liveStateRef, controlMode, targetObject }) => {
         <p><strong>Time Left:</strong> {liveStateRef.current?.time_left ?? '---'}s</p>
         <p><strong>Mode:</strong> {controlMode}</p>
         <p><strong>Target:</strong> {targetObject || '---'}</p>
+        <p><strong>Replay Target Object:</strong> {liveStateRef.current.targetObject || 'None'}</p>
         <p><strong>Actions:</strong> {liveStateRef.current?.currentActions?.join(', ') || 'None'}</p>
         <p><strong>Frame:</strong> #{liveStateRef.current?.frame_number ?? '---'}</p>
       </div>

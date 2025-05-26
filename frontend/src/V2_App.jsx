@@ -37,6 +37,7 @@ function V2_App() {
   const [targetObject, setTargetObject] = useState("");
 
   const [replayPositions, setReplayPositions] = useState(null);
+  const [currentReplayTarget, setCurrentReplayTarget] = useState(null);
 
   const [showRobotState, setShowRobotState] = useState(true);
 
@@ -50,7 +51,8 @@ function V2_App() {
     setControlMode,
     modelPositionsRef,
     targetObject,
-    setReplayPositions
+    setReplayPositions,
+    setCurrentReplayTarget
   );
 
   useYoloDetection({
@@ -157,7 +159,7 @@ function V2_App() {
         <RobotStatePanel
           liveStateRef={liveStateRef}
           controlMode={controlMode}
-          targetObject={targetObject}
+          targetObject={currentReplayTarget}
           objectsInViewRef={objectsInViewRef}
         />
       )}

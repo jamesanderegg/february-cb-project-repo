@@ -278,6 +278,10 @@ export function useReplayController(liveStateRef,
       
       if (object_data && object_data.objects) {
         console.log('🗂️ Repositioning objects for replay:', object_data);
+
+        // Inject into live state for RobotStatePanel or any UI depending on it
+        liveStateRef.current.targetObject = object_data.target;
+        console.log('🎯 Target object for replay:', object_data.target);
         
         // Dispatch repositioning event
         window.dispatchEvent(new CustomEvent('repositionObjects', {
