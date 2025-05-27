@@ -52,7 +52,8 @@ function V2_App() {
     modelPositionsRef,
     targetObject,
     setReplayPositions,
-    setCurrentReplayTarget
+    setCurrentReplayTarget,
+    collisionIndicator
   );
 
   useYoloDetection({

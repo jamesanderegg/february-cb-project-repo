@@ -5,13 +5,19 @@ import { movableModels } from "../scene/ModelFunctions/ImportModels.js";
 const COLAB_API_URL = 'http://localhost:5001';
 const isLoading = { current: false };
 
-export function useReplayController(liveStateRef,
+export function useReplayController(
+  liveStateRef,
   replayStepTriggerRef,
   controlMode,
   robotPositionRef,
   robotRotationRef,
   setControlMode,
-  modelPositionsRef, targetObject, setReplayPositions) {
+  modelPositionsRef, 
+  targetObject, 
+  setReplayPositions,
+  setCurrentReplayTarget, 
+  collisionIndicatorRef
+) {
   const [replays, setReplays] = useState([]);
   const [selectedReplay, setSelectedReplay] = useState('');
   const [isReplayPlaying, setIsReplayPlaying] = useState(false);
@@ -306,6 +312,21 @@ export function useReplayController(liveStateRef,
     });
 
     return () => socket.off('replay_data');
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+       console.log("👀 Monitoring:", {
+      recording: isRecordingActiveRef.current,
+      collision: collisionIndicatorRef?.current
+    });
+      if (isRecordingActiveRef.current && collisionIndicatorRef?.current === true) {
+        console.log("💥 Collision during recording — stopping...");
+        handleStopRecording();
+      }
+    }, 100); // checks every 100ms
+
+    return () => clearInterval(interval);
   }, []);
 
   return {

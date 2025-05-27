@@ -46,6 +46,11 @@ const Buggy = forwardRef(({
 
     collisionIndicator.current = true;
     console.log("🚨 Collision detected with:", collidedObject.name);
+
+    setTimeout(() => {
+  collisionIndicator.current = false;
+  console.log("🔁 Collision indicator reset");
+}, 300); // Adjust delay as needed (>=100ms ensures it's caught by the polling interval)
     setObjectPositions([]);
 
     // Dispatch a global scene reset event
