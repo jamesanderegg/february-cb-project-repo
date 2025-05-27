@@ -26,6 +26,7 @@ const AgentDashboard = ({
   className = 'agent-dashboard',
   activeTab: forcedTab = null,
   onClose = () => { },
+  isRecordingActiveRef = { current: false },
   targetObject
 }) => {
   const [activeTab, setActiveTab] = useState(forcedTab || 'status');
@@ -36,7 +37,7 @@ const AgentDashboard = ({
       onFetchReplays();
     } else if (forcedTab) {
       setActiveTab(forcedTab);
-    } 
+    }
     // else {
     //   setActiveTab('status');
     // }
@@ -54,9 +55,8 @@ const AgentDashboard = ({
       <div className="dashboard-section status-row">
         <div className="status-indicator">
           <span
-            className={`status-dot ${
-              isConnected ? "connected" : "disconnected"
-            }`}
+            className={`status-dot ${isConnected ? "connected" : "disconnected"
+              }`}
           />
           {isConnected ? "Connected" : "Disconnected"}
         </div>
@@ -97,18 +97,16 @@ const AgentDashboard = ({
       {!forcedTab && (
         <div className="dashboard-tabs">
           <div
-            className={`dashboard-tab ${
-              activeTab === "replay" ? "active" : ""
-            } ${!isConnected ? "disabled" : ""}`}
+            className={`dashboard-tab ${activeTab === "replay" ? "active" : ""
+              } ${!isConnected ? "disabled" : ""}`}
             onClick={() => isConnected && setActiveTab("replay")}
             title={!isConnected ? "Connect to unlock" : ""}
           >
             Replay
           </div>
           <div
-            className={`dashboard-tab ${
-              activeTab === "train" ? "active" : ""
-            } ${!isConnected ? "disabled" : ""}`}
+            className={`dashboard-tab ${activeTab === "train" ? "active" : ""
+              } ${!isConnected ? "disabled" : ""}`}
             onClick={() => isConnected && setActiveTab("train")}
             title={!isConnected ? "Connect to unlock" : ""}
           >
@@ -129,9 +127,8 @@ const AgentDashboard = ({
           <div className="replay-tab">
             {(errorMessage || successMessage) && (
               <div
-                className={`dashboard-message ${
-                  errorMessage ? "error" : "success"
-                }`}
+                className={`dashboard-message ${errorMessage ? "error" : "success"
+                  }`}
               >
                 {errorMessage || successMessage}
               </div>
@@ -182,10 +179,24 @@ const AgentDashboard = ({
             </div>
 
             <div style={{ marginTop: "8px" }}>
-              <button className="record-button" onClick={onStartRecording}>
+              {isRecordingActiveRef.current && (
+  <div style={{ color: 'white', fontSize: 'small', marginBottom: '4px' }}>
+    🔴 Recording
+  </div>
+)}
+
+              <button
+                className="record-button"
+                onClick={onStartRecording}
+                disabled={isRecordingActiveRef.current}
+              >
                 Start Recording
               </button>
-              <button className="record-button" onClick={onStopRecording}>
+              <button
+                className="record-button"
+                onClick={onStopRecording}
+                disabled={!isRecordingActiveRef.current}
+              >
                 Stop Recording
               </button>
             </div>
