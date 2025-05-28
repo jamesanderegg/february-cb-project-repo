@@ -41,7 +41,7 @@ export default function useYoloDetection({
                         });
 
                         const result = await res.json(); // expects { detectedObjects: [...] }
-                        console.log("✅ YOLO response:", result);
+                        // console.log("✅ YOLO response:", result);
                         if (frame_number != null && result?.detectedObjects) {
                             // Update live state
                             liveStateRef.current.detectedObjects = result.detectedObjects;

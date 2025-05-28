@@ -169,7 +169,7 @@ def yolo_predict():
     image_bytes = file.read()
 
     try:
-        print("📥 YOLO image received")
+        # print("📥 YOLO image received")
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
         results = YOLO_MODEL(image)
@@ -188,7 +188,7 @@ def yolo_predict():
                     except Exception as e:
                         print("⚠️ Box parse error:", e)
 
-        print("✅ Detected:", detected_labels)
+        # print("✅ Detected:", detected_labels)
         return jsonify({'detectedObjects': detected_labels})
 
     except Exception as e:

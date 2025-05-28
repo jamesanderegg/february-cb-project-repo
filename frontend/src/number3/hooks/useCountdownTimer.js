@@ -1,16 +1,21 @@
-// hooks/useCountdownTimer.js
 import { useEffect } from 'react';
 
-export function useCountdownTimer(timerRef, isRunningRef = { current: true }, intervalMs = 1000) {
+export function useCountdownTimer(timerRef, isRunningRef = { current: true }, intervalMs = 1000, defaultTime = 350) {
   useEffect(() => {
     const interval = setInterval(() => {
-      if (isRunningRef.current && timerRef.current > 0) {
+      if (!isRunningRef.current) return;
+
+      if (timerRef.current > 0) {
         timerRef.current -= 1;
-        // Optional: log to verify it's ticking
-        // console.log("⏱ Timer:", timerRef.current);
+      }
+
+      if (timerRef.current === 0) {
+        console.log("⏰ Timer expired — resetting scene and restarting timer");
+        window.dispatchEvent(new CustomEvent("sceneReset"));
+        timerRef.current = defaultTime; // 🔁 Restart timer
       }
     }, intervalMs);
 
     return () => clearInterval(interval);
-  }, []); // ✅ Empty dependency array to avoid restarting the interval
+  }, []);
 }

@@ -99,7 +99,8 @@ const RobotCamera = forwardRef((
           };
         })
         .filter(Boolean)
-        .sort((a, b) => a.ndcDistanceFromCenter - b.ndcDistanceFromCenter);
+        .sort((a, b) => a.distance - b.distance);
+
 
       objectsInViewRef.current = visibleObjects;
 

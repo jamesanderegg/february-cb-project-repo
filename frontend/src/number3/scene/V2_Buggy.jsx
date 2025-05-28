@@ -36,14 +36,14 @@ const Buggy = forwardRef(({
 
 
   const handleCollisionEnter = (event) => {
-    const collidedObject = event.other.colliderObject;
-    if (!collidedObject) return;
-    if (["RoomFloor", "HallFloor", "Plane"].includes(collidedObject.name)) return;
+  const collidedObject = event.other.colliderObject;
+  if (!collidedObject || ["RoomFloor", "HallFloor", "Plane"].includes(collidedObject.name)) return;
 
-    const now = Date.now();
-    if (now - lastResetTimeRef.current < 1500) return; // throttle to 1.5 seconds
-    lastResetTimeRef.current = now;
+  const now = Date.now();
+  if (now - lastResetTimeRef.current < 1500) return;
+  lastResetTimeRef.current = now;
 
+<<<<<<< HEAD
     collisionIndicator.current = true;
     console.log("🚨 Collision detected with:", collidedObject.name);
 
@@ -52,10 +52,14 @@ const Buggy = forwardRef(({
   console.log("🔁 Collision indicator reset");
 }, 300); // Adjust delay as needed (>=100ms ensures it's caught by the polling interval)
     setObjectPositions([]);
+=======
+  // Instead of setting the ref here
+  window.dispatchEvent(new CustomEvent("robotCollision", {
+    detail: { collidedWith: collidedObject.name }
+  }));
+};
+>>>>>>> refs/remotes/origin/main
 
-    // Dispatch a global scene reset event
-    window.dispatchEvent(new CustomEvent('sceneReset'));
-  };
 
 
   useEffect(() => {

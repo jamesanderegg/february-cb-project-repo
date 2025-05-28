@@ -118,6 +118,33 @@ function V2_App() {
     return () => clearInterval(interval);
   }, [controlMode]);
 
+  useEffect(() => {
+  const handleRobotCollision = (e) => {
+    console.log("🚨 Collision Event Triggered:", e.detail.collidedWith);
+
+    // ⛔ Prevent further manual input from lingering
+    keysPressed.current = {};
+    replayController.currentActionRef.current = [];
+
+    if (replayController.isRecordingActiveRef.current) {
+      const lastFrame = { ...liveStateRef.current, collision: true };
+      const buffer = replayController.recordingBufferRef.current;
+
+      if (!buffer.length || !buffer[buffer.length - 1].collision) {
+        buffer.push(lastFrame);
+      }
+
+      replayController.handleStopRecording();
+      alert(`🚨 Collision at frame ${lastFrame.frame_number}. Recording stopped.`);
+    }
+
+    window.dispatchEvent(new CustomEvent('sceneReset'));
+  };
+
+  window.addEventListener("robotCollision", handleRobotCollision);
+  return () => window.removeEventListener("robotCollision", handleRobotCollision);
+}, []);
+
 
   return (
     <div className="app-container">
@@ -192,7 +219,7 @@ function V2_App() {
           setControlMode={setControlMode}
           onClose={() => setShowDashboard(false)}
           targetObject={targetObject}
-
+          isRecordingActiveRef={replayController.isRecordingActiveRef}
         />
       )}
 
