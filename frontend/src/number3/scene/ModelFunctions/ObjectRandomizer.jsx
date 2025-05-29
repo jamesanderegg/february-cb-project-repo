@@ -19,13 +19,36 @@ const ObjectRandomizer = forwardRef(
     const [isMonitoringSettlement, setIsMonitoringSettlement] = useState(false);
     const settlementDataRef = useRef({ velocities: {}, stableFrames: 0 });
 
+    const resetEnvironment = () => {
+      console.log("🔄 ObjectRandomizer: Resetting object positions...");
+      console.log("ReplayPositions:", replayPositions);
+      setResetCounter((prev) => prev + 1);
+    };
+
+    useEffect(() => {
+      const handleObjectsReset = (event) => {
+        console.log("📨 ObjectRandomizer: Received objectsReset event", event.detail);
+        resetEnvironment();
+      };
+
+      window.addEventListener('objectsReset', handleObjectsReset);
+      
+      return () => {
+        window.removeEventListener('objectsReset', handleObjectsReset);
+      };
+    }, []);
+
     // Expose reset function for parent components
+    // useImperativeHandle(ref, () => ({
+    //   resetEnvironment: () => {
+    //     console.log("🔄 Resetting object positions...");
+    //     console.log("ReplayPositions:", replayPositions);
+    //     setResetCounter((prev) => prev + 1);
+    //   },
+    // }));
+
     useImperativeHandle(ref, () => ({
-      resetEnvironment: () => {
-        console.log("🔄 Resetting object positions...");
-        console.log("ReplayPositions:", replayPositions);
-        setResetCounter((prev) => prev + 1);
-      },
+      resetEnvironment,
     }));
 
     // Memo-ize object positions to minimize recalculations
@@ -45,13 +68,16 @@ const ObjectRandomizer = forwardRef(
         Array.isArray(replayPositions) &&
         replayPositions.length > 0
       ) {
-        // console.log(
-        //   "📥 Using replay object positions:",
-        //   replayPositions.length,
-        //   "objects"
-        // );
+        console.log(
+          "📥 ObjectRandomizer: Using replay object positions:",
+          replayPositions.length,
+          "objects"
+        );
         return replayPositions;
       }
+
+            console.log(`🎲 ObjectRandomizer: Generating new random positions (reset #${resetCounter})`);
+
 
       let availableTables = [...tableConfigs];
       let availableModels = [...movableModels];

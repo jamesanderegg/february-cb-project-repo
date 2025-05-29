@@ -34,20 +34,49 @@ const Buggy = forwardRef(({
   const texture = texturePath ? useTexture(texturePath) : null;
   const lastResetTimeRef = useRef(0);
 
-
   const handleCollisionEnter = (event) => {
-  const collidedObject = event.other.colliderObject;
-  if (!collidedObject || ["RoomFloor", "HallFloor", "Plane"].includes(collidedObject.name)) return;
+    const collidedObject = event.other.colliderObject;
+    if (!collidedObject || ["RoomFloor", "HallFloor", "Plane"].includes(collidedObject.name)) return;
 
-  const now = Date.now();
-  if (now - lastResetTimeRef.current < 1500) return;
-  lastResetTimeRef.current = now;
+    const now = Date.now();
+    if (now - lastResetTimeRef.current < 1500) return;
+    lastResetTimeRef.current = now;
 
-  // Instead of setting the ref here
-  window.dispatchEvent(new CustomEvent("robotCollision", {
-    detail: { collidedWith: collidedObject.name }
-  }));
-};
+    // Instead of setting the ref here
+    window.dispatchEvent(new CustomEvent("robotCollision", {
+      detail: { collidedWith: collidedObject.name }
+    }));
+  };
+
+  const resetBuggy = () => {
+    if (buggyRef.current) {
+      const body = buggyRef.current;
+      body.setTranslation({ x: 7, y: 0.1, z: 15 }, true);
+      const resetQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);
+      body.setRotation(resetQuaternion, true);
+      body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+
+      if (collisionIndicator) {
+        collisionIndicator.current = false;
+      }
+      
+      console.log("🤖 Buggy: Reset to spawn position");
+    }
+  };
+
+  useEffect(() => {
+    const handleBuggyReset = (event) => {
+      console.log("📨 Buggy: Received buggyReset event", event.detail);
+      resetBuggy();
+    };
+
+    window.addEventListener('buggyReset', handleBuggyReset);
+    
+    return () => {
+      window.removeEventListener('buggyReset', handleBuggyReset);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loadedScene) return;
@@ -129,27 +158,28 @@ const Buggy = forwardRef(({
     robotRotationRef.current = [rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w];
   });
 
+//   useImperativeHandle(ref, () => ({
+//   resetBuggy: () => {
+//     if (buggyRef.current) {
+//       const body = buggyRef.current;
+//       body.setTranslation({ x: 7, y: 0.1, z: 15 }, true);
+//       const resetQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);
+//       body.setRotation(resetQuaternion, true);
+//       body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+//       body.setAngvel({ x: 0, y: 0, z: 0 }, true);
 
-
+//       if (collisionIndicator) {
+//         collisionIndicator.current = false;
+//       }
+//     }
+//   },
+//   getBody: () => buggyRef.current // 👈 expose the physics body
+// }));
 
   useImperativeHandle(ref, () => ({
-  resetBuggy: () => {
-    if (buggyRef.current) {
-      const body = buggyRef.current;
-      body.setTranslation({ x: 7, y: 0.1, z: 15 }, true);
-      const resetQuaternion = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2);
-      body.setRotation(resetQuaternion, true);
-      body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-
-      if (collisionIndicator) {
-        collisionIndicator.current = false;
-      }
-    }
-  },
-  getBody: () => buggyRef.current // 👈 expose the physics body
-}));
-
+    resetBuggy,
+    getBody: () => buggyRef.current
+  }));
 
   return (
     <RigidBody

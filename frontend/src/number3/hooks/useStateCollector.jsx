@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 
 const useStateCollector = ({
@@ -16,12 +16,29 @@ const useStateCollector = ({
   const frameNumberRef = useRef(0);
   const keyDurationsRef = useRef({});
 
-  // ✅ Expose a reset method
-  if (frameResetRef) {
-    frameResetRef.current = () => {
-      frameNumberRef.current = 0;
-      keyDurationsRef.current = {}; // Also reset key durations
+  const resetState = () => {
+    console.log("🔄 StateCollector: Resetting frame tracking");
+    frameNumberRef.current = 0;
+    keyDurationsRef.current = {};
+  };
+
+  // SOLUTION 4: Listen for stateReset event
+  useEffect(() => {
+    const handleStateReset = (event) => {
+      console.log("📨 StateCollector: Received stateReset event", event.detail);
+      resetState();
     };
+
+    window.addEventListener('stateReset', handleStateReset);
+    
+    return () => {
+      window.removeEventListener('stateReset', handleStateReset);
+    };
+  }, []);
+
+  // ✅ Expose a reset method for backward compatibility
+  if (frameResetRef) {
+    frameResetRef.current = resetState;
   }
 
   useFrame((_, delta) => {
@@ -46,11 +63,11 @@ const useStateCollector = ({
       currentActions,
       key_durations: { ...keyDurationsRef.current },
       detectedObjects: Array.isArray(liveStateRef.current.detectedObjects)
-  ? [...liveStateRef.current.detectedObjects]
-  : [],
+        ? [...liveStateRef.current.detectedObjects]
+        : [],
       objectsInView: Array.isArray(objectsInViewRef?.current) && objectsInViewRef.current.length > 0
-  ? [objectsInViewRef.current[0]]
-  : [],
+        ? [objectsInViewRef.current[0]]
+        : [],
       collision: collisionIndicator.current,
       target_object: liveStateRef.current?.target_object || "",
       frame_number: frameNumberRef.current,

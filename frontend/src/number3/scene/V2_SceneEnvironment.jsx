@@ -43,7 +43,8 @@ const SceneEnvironment = ({
   const cameraRef = useRef();
   const objectPositionsRef = useRef([]);
   const controlModeRef = useRef("manual");
-  const randomizerRef = useRef(null);
+  // const randomizerRef = useRef(null);
+  const randomizerRef = useRef();
 
   const setObjectPositions = (positions) => {
     objectPositionsRef.current = positions;
@@ -56,31 +57,49 @@ const SceneEnvironment = ({
   useManualKeyboardControls(keysPressed, controlModeRef);
   useCountdownTimer(timerRef);
 
-  useSceneReset(() => {
-  console.log("🔄 Scene Reset Triggered");
+//   useSceneReset(() => {
+//   console.log("🔄 Scene Reset Triggered");
 
 
-  keysPressed.current = {};            
-  currentActionRef.current = [];           
-  if (buggyRef.current?.resetBuggy) {
-    buggyRef.current.resetBuggy();
-  }
-  if (timerRef?.current) {
-    timerRef.current = 350;
-  }
-  if (frameResetRef?.current) {
-    frameResetRef.current();
-  }
-  if (recordingBufferRef?.current) {
-    recordingBufferRef.current = [];
-  }
-  if (randomizerRef.current?.resetEnvironment) {
-    randomizerRef.current.resetEnvironment();
-  }
+//   keysPressed.current = {};            
+//   currentActionRef.current = [];           
+//   if (buggyRef.current?.resetBuggy) {
+//     buggyRef.current.resetBuggy();
+//   }
+//   if (timerRef?.current) {
+//     timerRef.current = 350;
+//   }
+//   if (frameResetRef?.current) {
+//     frameResetRef.current();
+//   }
+//   if (recordingBufferRef?.current) {
+//     recordingBufferRef.current = [];
+//   }
+//   if (randomizerRef.current?.resetEnvironment) {
+//     randomizerRef.current.resetEnvironment();
+//   }
 
-  console.log("✅ Scene state fully reset");
-});
+//   console.log("✅ Scene state fully reset");
+// });
 
+  useSceneReset({
+    buggyRef,
+    randomizerRef,
+    timerRef,
+    frameResetRef,
+    recordingBufferRef,
+    keysPressed,
+    currentActionRef,
+    collisionIndicator,
+    isRecordingActiveRef,
+    liveStateRef,
+    onResetStart: () => {
+      console.log("🎬 SceneEnvironment: Reset sequence starting...");
+    },
+    onResetComplete: () => {
+      console.log("🏁 SceneEnvironment: Reset sequence complete");
+    }
+  });
 
   return (
     <>
@@ -92,7 +111,7 @@ const SceneEnvironment = ({
           { position: [-5, -5, -5], color: "blue", intensity: 1 },
         ]}
       />
-  <ambientLight intensity={1} />
+      <ambientLight intensity={1} />
 
       <Environment
         files="/textures/potsdamer_platz_1k.hdr"

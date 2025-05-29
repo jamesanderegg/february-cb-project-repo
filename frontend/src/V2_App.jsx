@@ -86,6 +86,7 @@ function V2_App() {
   };
 
   const handleResetScene = () => {
+    console.log("🎯 App: Triggering scene reset...");
     window.dispatchEvent(new CustomEvent('sceneReset'));
     setReplayPositions(null);
   };
@@ -118,33 +119,53 @@ function V2_App() {
     return () => clearInterval(interval);
   }, [controlMode]);
 
+//   useEffect(() => {
+//   const handleRobotCollision = (e) => {
+//     console.log("🚨 Collision Event Triggered:", e.detail.collidedWith);
+
+//     // ⛔ Prevent further manual input from lingering
+//     keysPressed.current = {};
+//     replayController.currentActionRef.current = [];
+
+//     if (replayController.isRecordingActiveRef.current) {
+//       const lastFrame = { ...liveStateRef.current, collision: true };
+//       const buffer = replayController.recordingBufferRef.current;
+
+//       if (!buffer.length || !buffer[buffer.length - 1].collision) {
+//         buffer.push(lastFrame);
+//       }
+
+//       replayController.handleStopRecording();
+//       alert(`🚨 Collision at frame ${lastFrame.frame_number}. Recording stopped.`);
+//     }
+
+//     window.dispatchEvent(new CustomEvent('sceneReset'));
+//   };
+
+//   window.addEventListener("robotCollision", handleRobotCollision);
+//   return () => window.removeEventListener("robotCollision", handleRobotCollision);
+// }, []);
   useEffect(() => {
-  const handleRobotCollision = (e) => {
-    console.log("🚨 Collision Event Triggered:", e.detail.collidedWith);
+    if (controlMode !== "manual") return;
 
-    // ⛔ Prevent further manual input from lingering
-    keysPressed.current = {};
-    replayController.currentActionRef.current = [];
+    const interval = setInterval(() => {
+      const manualKeys = Object.keys(keysPressed.current).filter(k => keysPressed.current[k]);
+      replayController.currentActionRef.current = manualKeys;
+    }, 50);
 
-    if (replayController.isRecordingActiveRef.current) {
-      const lastFrame = { ...liveStateRef.current, collision: true };
-      const buffer = replayController.recordingBufferRef.current;
+    return () => clearInterval(interval);
+  }, [controlMode]);
 
-      if (!buffer.length || !buffer[buffer.length - 1].collision) {
-        buffer.push(lastFrame);
-      }
+  // Listen for scene reset completion (optional - for UI feedback)
+  useEffect(() => {
+    const handleResetComplete = () => {
+      console.log("✅ App: Scene reset completed");
+      // Could show success message, update UI state, etc.
+    };
 
-      replayController.handleStopRecording();
-      alert(`🚨 Collision at frame ${lastFrame.frame_number}. Recording stopped.`);
-    }
-
-    window.dispatchEvent(new CustomEvent('sceneReset'));
-  };
-
-  window.addEventListener("robotCollision", handleRobotCollision);
-  return () => window.removeEventListener("robotCollision", handleRobotCollision);
-}, []);
-
+    window.addEventListener('sceneResetComplete', handleResetComplete);
+    return () => window.removeEventListener('sceneResetComplete', handleResetComplete);
+  }, []);
 
   return (
     <div className="app-container">
