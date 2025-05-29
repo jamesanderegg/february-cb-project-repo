@@ -43,24 +43,11 @@ const Buggy = forwardRef(({
   if (now - lastResetTimeRef.current < 1500) return;
   lastResetTimeRef.current = now;
 
-<<<<<<< HEAD
-    collisionIndicator.current = true;
-    console.log("🚨 Collision detected with:", collidedObject.name);
-
-    setTimeout(() => {
-  collisionIndicator.current = false;
-  console.log("🔁 Collision indicator reset");
-}, 300); // Adjust delay as needed (>=100ms ensures it's caught by the polling interval)
-    setObjectPositions([]);
-=======
   // Instead of setting the ref here
   window.dispatchEvent(new CustomEvent("robotCollision", {
     detail: { collidedWith: collidedObject.name }
   }));
 };
->>>>>>> refs/remotes/origin/main
-
-
 
   useEffect(() => {
     if (!loadedScene) return;
