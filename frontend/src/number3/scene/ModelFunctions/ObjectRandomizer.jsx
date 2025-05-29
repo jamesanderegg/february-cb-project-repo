@@ -38,15 +38,6 @@ const ObjectRandomizer = forwardRef(
       };
     }, []);
 
-    // Expose reset function for parent components
-    // useImperativeHandle(ref, () => ({
-    //   resetEnvironment: () => {
-    //     console.log("🔄 Resetting object positions...");
-    //     console.log("ReplayPositions:", replayPositions);
-    //     setResetCounter((prev) => prev + 1);
-    //   },
-    // }));
-
     useImperativeHandle(ref, () => ({
       resetEnvironment,
     }));
@@ -54,13 +45,6 @@ const ObjectRandomizer = forwardRef(
     // Memo-ize object positions to minimize recalculations
     const objectPositions = useMemo(() => {
       if (!tableConfigs.length) return [];
-
-      // console.log(`🔄 Generating new positions | Reset Count: ${resetCounter}`);
-
-      // if (replayPositions && replayPositions.length > 0) {
-      //   console.log("📥 Injected replay object positions used.");
-      //   return replayPositions;
-      // }
 
       // Check if we have valid replay positions
       if (
@@ -75,9 +59,7 @@ const ObjectRandomizer = forwardRef(
         );
         return replayPositions;
       }
-
             console.log(`🎲 ObjectRandomizer: Generating new random positions (reset #${resetCounter})`);
-
 
       let availableTables = [...tableConfigs];
       let availableModels = [...movableModels];

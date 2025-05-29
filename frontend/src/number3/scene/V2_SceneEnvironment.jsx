@@ -57,31 +57,6 @@ const SceneEnvironment = ({
   useManualKeyboardControls(keysPressed, controlModeRef);
   useCountdownTimer(timerRef);
 
-//   useSceneReset(() => {
-//   console.log("🔄 Scene Reset Triggered");
-
-
-//   keysPressed.current = {};            
-//   currentActionRef.current = [];           
-//   if (buggyRef.current?.resetBuggy) {
-//     buggyRef.current.resetBuggy();
-//   }
-//   if (timerRef?.current) {
-//     timerRef.current = 350;
-//   }
-//   if (frameResetRef?.current) {
-//     frameResetRef.current();
-//   }
-//   if (recordingBufferRef?.current) {
-//     recordingBufferRef.current = [];
-//   }
-//   if (randomizerRef.current?.resetEnvironment) {
-//     randomizerRef.current.resetEnvironment();
-//   }
-
-//   console.log("✅ Scene state fully reset");
-// });
-
   useSceneReset({
     buggyRef,
     randomizerRef,
