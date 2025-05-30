@@ -208,7 +208,8 @@ function V2_App() {
         <RobotStatePanel
           liveStateRef={liveStateRef}
           controlMode={controlMode}
-          targetObject={currentReplayTarget}
+          targetObject={targetObject}
+          currentReplayTarget={currentReplayTarget}
           objectsInViewRef={objectsInViewRef}
         />
       )}

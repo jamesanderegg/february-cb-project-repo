@@ -106,6 +106,8 @@ export function useReplayController(
             isTarget
           }));
           console.log("📦 Loaded replay object positions:", formatted);
+          console.log("🎯 Setting target object for replay:", data.target);
+          setCurrentReplayTarget(data.target);
           setReplayPositions(formatted);
         })
         .catch(err => console.error("❌ Failed to load .obj.json", err));
@@ -316,10 +318,10 @@ export function useReplayController(
 
   useEffect(() => {
     const interval = setInterval(() => {
-       console.log("👀 Monitoring:", {
-      recording: isRecordingActiveRef.current,
-      collision: collisionIndicatorRef?.current
-    });
+    //    console.log("👀 Monitoring:", {
+    //   recording: isRecordingActiveRef.current,
+    //   collision: collisionIndicatorRef?.current
+    // });
       if (isRecordingActiveRef.current && collisionIndicatorRef?.current === true) {
         console.log("💥 Collision during recording — stopping...");
         handleStopRecording();

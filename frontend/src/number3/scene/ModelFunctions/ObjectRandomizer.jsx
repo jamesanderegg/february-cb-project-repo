@@ -136,8 +136,9 @@ const ObjectRandomizer = forwardRef(
 
         // 🎯 Randomly choose a target object ONCE per reset
         if (objectPositions.length && typeof setTargetObject === 'function') {
+          console.log("hello world")
           const randomTarget = objectPositions[Math.floor(Math.random() * objectPositions.length)];
-          // console.log("🎯 Target object set:", randomTarget?.name);
+          console.log("🎯 Target object set:", randomTarget?.name);
           setTargetObject(randomTarget?.name || 'unknown');
         }
       }

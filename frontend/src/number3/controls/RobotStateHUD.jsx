@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../../styles/AgentDashboard.css';
 
-const RobotStatePanel = ({ liveStateRef, controlMode, targetObject }) => {
+const RobotStatePanel = ({ liveStateRef, controlMode, targetObject, currentReplayTarget }) => {
   const [, forceUpdate] = useState(0);
   const [lastDetected, setLastDetected] = useState(null);
 
@@ -18,6 +18,7 @@ const RobotStatePanel = ({ liveStateRef, controlMode, targetObject }) => {
     return () => clearInterval(interval);
   }, []);
 
+  
   return (
     <div className="robot-state-container">
       <div className="robot-state-inline">
@@ -35,7 +36,7 @@ const RobotStatePanel = ({ liveStateRef, controlMode, targetObject }) => {
         <p><strong>Time Left:</strong> {liveStateRef.current?.time_left ?? '---'}s</p>
         <p><strong>Mode:</strong> {controlMode}</p>
         <p><strong>Target:</strong> {targetObject || '---'}</p>
-        <p><strong>Replay Target Object:</strong> {liveStateRef.current.targetObject || 'None'}</p>
+        <p><strong>Replay Target Object:</strong> {currentReplayTarget || 'None'}</p>
         <p><strong>Actions:</strong> {liveStateRef.current?.currentActions?.join(', ') || 'None'}</p>
         <p><strong>Frame:</strong> #{liveStateRef.current?.frame_number ?? '---'}</p>
       </div>
