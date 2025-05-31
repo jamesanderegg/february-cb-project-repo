@@ -52,12 +52,46 @@ export function useReplayController(
     }, 250);
   };
 
-  const handleStopRecording = () => {
+  // const handleStopRecording = () => {
+  //   console.log('⏹ Stop Recording clicked');
+  //   isRecordingActiveRef.current = false;
+  //   const framesRecorded = recordingBufferRef.current.length;
+  //   console.log(`🛑 Recording stopped. Frames recorded: ${framesRecorded}`);
+  //   setSuccessMessage(`Recording stopped. ${framesRecorded} frames recorded.`);
+  // };
+
+  // const handleStopRecording = (clearBuffer = false) => {
+  //   console.log('⏹ Stop Recording clicked');
+  //   isRecordingActiveRef.current = false;
+    
+  //   if (clearBuffer) {
+  //     recordingBufferRef.current = []; // ✅ Clear buffer
+  //     setSuccessMessage('Recording stopped due to collision. Data discarded.');
+  //   } else {
+  //     const framesRecorded = recordingBufferRef.current.length;
+  //     console.log(`🛑 Recording stopped. Frames recorded: ${framesRecorded}`);
+  //     setSuccessMessage(`Recording stopped. ${framesRecorded} frames recorded.`);
+  //   }
+  // };
+
+  const handleStopRecording = (isCollisionStop = false) => {
     console.log('⏹ Stop Recording clicked');
     isRecordingActiveRef.current = false;
     const framesRecorded = recordingBufferRef.current.length;
-    console.log(`🛑 Recording stopped. Frames recorded: ${framesRecorded}`);
-    setSuccessMessage(`Recording stopped. ${framesRecorded} frames recorded.`);
+    
+    if (isCollisionStop) {
+      // ✅ Don't clear buffer - just add collision metadata
+      recordingBufferRef.current.push({
+        type: 'collision_termination',
+        reason: 'Recording terminated due to collision',
+        timestamp: Date.now(),
+        total_frames: framesRecorded
+      });
+      setSuccessMessage(`Recording stopped due to collision. ${framesRecorded} frames recorded.`);
+    } else {
+      console.log(`🛑 Recording stopped. Frames recorded: ${framesRecorded}`);
+      setSuccessMessage(`Recording stopped. ${framesRecorded} frames recorded.`);
+    }
   };
 
   // const handleStartReplay = async () => {
@@ -324,7 +358,7 @@ export function useReplayController(
     // });
       if (isRecordingActiveRef.current && collisionIndicatorRef?.current === true) {
         console.log("💥 Collision during recording — stopping...");
-        handleStopRecording();
+        handleStopRecording(true);
       }
     }, 100); // checks every 100ms
 

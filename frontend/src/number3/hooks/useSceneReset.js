@@ -41,10 +41,10 @@ export function useSceneReset({
       currentActionRef.current = [];
     }
 
-    // Clear recording buffer
-    if (recordingBufferRef?.current) {
-      recordingBufferRef.current = [];
-    }
+    // // Clear recording buffer
+    // if (recordingBufferRef?.current) {
+    //   recordingBufferRef.current = [];
+    // }
 
     // Clear collision state
     if (collisionIndicator?.current !== undefined) {
