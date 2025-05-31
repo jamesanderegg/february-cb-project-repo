@@ -217,11 +217,11 @@ export function useReplayController(
     console.log('⏹ Stopping replay playback');
     stopReplayPlayback();
     setControlMode('manual');
+    setSelectedReplay('');
     // if (typeof setReplayPositions === 'function') {
     //   setReplayPositions(null);  // ✅ clear it
     // }
   };
-
 
   const handleFetchReplays = useCallback(() => {
     if (isLoading.current) return;
