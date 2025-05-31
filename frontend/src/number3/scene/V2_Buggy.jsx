@@ -24,7 +24,9 @@ const Buggy = forwardRef(({
   currentActionRef,
   replayStepTriggerRef,
   controlMode,
-  objectsInViewRef
+  objectsInViewRef,
+  collisionState,
+  onCollision
 }, ref) => {
   const buggyRef = useRef();
   const moveSpeed = 40;
@@ -35,6 +37,17 @@ const Buggy = forwardRef(({
   const lastResetTimeRef = useRef(0);
 
   const handleCollisionEnter = (event) => {
+    // const collidedObject = event.other.colliderObject;
+    // if (!collidedObject || ["RoomFloor", "HallFloor", "Plane"].includes(collidedObject.name)) return;
+
+    // const now = Date.now();
+    // if (now - lastResetTimeRef.current < 1500) return;
+    // lastResetTimeRef.current = now;
+
+    // // Instead of setting the ref here
+    // window.dispatchEvent(new CustomEvent("robotCollision", {
+    //   detail: { collidedWith: collidedObject.name }
+    // }));
     const collidedObject = event.other.colliderObject;
     if (!collidedObject || ["RoomFloor", "HallFloor", "Plane"].includes(collidedObject.name)) return;
 
@@ -42,10 +55,7 @@ const Buggy = forwardRef(({
     if (now - lastResetTimeRef.current < 1500) return;
     lastResetTimeRef.current = now;
 
-    // Instead of setting the ref here
-    window.dispatchEvent(new CustomEvent("robotCollision", {
-      detail: { collidedWith: collidedObject.name }
-    }));
+    onCollision?.(collidedObject.name);
   };
 
   const resetBuggy = () => {
@@ -101,7 +111,8 @@ const Buggy = forwardRef(({
     isRecordingActiveRef,
     frameResetRef,
     timerRef,
-    objectsInViewRef
+    objectsInViewRef,
+    collisionState
   });
 
   useFrame(() => {

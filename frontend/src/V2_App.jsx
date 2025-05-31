@@ -6,6 +6,7 @@ import AgentDashboard from "./number3/controls/V2_AgentDashboard.jsx";
 import { socket } from './number3/controls/socket.js';
 import useReplayController from './number3/hooks/useReplayController.js';
 import RobotStatePanel from './number3/controls/RobotStateHUD.jsx';
+import { useCollisionSystem } from './number3/hooks/useCollisionSystem.js'; 
 
 import useYoloDetection from './number3/hooks/useYoloDetection.js';
 
@@ -29,6 +30,8 @@ function V2_App() {
 
   const topDownCameraRef = useRef();
   const robotCameraRef = useRef();
+  const buggyRef = useRef();
+  const randomizerRef = useRef();
 
   const [showDashboard, setShowDashboard] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
@@ -60,12 +63,22 @@ function V2_App() {
     liveStateRef,
     recordingBufferRef: replayController.recordingBufferRef,
     isRecordingActiveRef: replayController.isRecordingActiveRef,
-    getCameraCanvas: () => robotCameraRef.current?.getCanvas?.(),  // ✅ real canvas
+    getCameraCanvas: () => robotCameraRef.current?.getCanvas?.(),
   });
 
 
 
   const handleCaptureImage = useCallback((imageBlob) => {
+    // if (!imageBlob) return;
+
+    // const reader = new FileReader();
+    // reader.onloadend = () => {
+    //   const base64 = reader.result;
+    //   if (typeof base64 === 'string') {
+    //     setHudImage(base64);
+    //   }
+    // };
+    // reader.readAsDataURL(imageBlob);
     if (!imageBlob) return;
 
     const reader = new FileReader();
@@ -87,9 +100,69 @@ function V2_App() {
 
   const handleResetScene = () => {
     console.log("🎯 App: Triggering scene reset...");
-    window.dispatchEvent(new CustomEvent('sceneReset'));
-    setReplayPositions(null);
+    handleSceneReset();
   };
+
+  const handleSceneReset = useCallback(() => {
+    console.log("🔄 App: Scene Reset Starting coordination...");
+    
+    // Stop any active recording
+    if (replayController.isRecordingActiveRef?.current) {
+      replayController.isRecordingActiveRef.current = false;
+    }
+
+    // Clear input state
+    if (keysPressed?.current) {
+      keysPressed.current = {};
+    }
+    if (replayController.currentActionRef?.current) {
+      replayController.currentActionRef.current = [];
+    }
+
+    // Clear recording buffer  
+    if (replayController.recordingBufferRef?.current) {
+      replayController.recordingBufferRef.current = [];
+    }
+
+    // Reset timer
+    if (timerRef?.current) {
+      timerRef.current = 350;
+    }
+
+    // Reset buggy (direct call)
+    buggyRef.current?.resetBuggy();
+    
+    // Reset objects (direct call)
+    randomizerRef.current?.resetObjects();
+    
+    // Reset state collector
+    frameResetRef.current?.();
+    
+    // Clear replay positions
+    setReplayPositions(null);
+    
+    console.log("✅ App: Scene Reset Complete");
+  }, [replayController]);
+
+  const { collisionState, handleCollision, resetCollisionState } = useCollisionSystem({
+    isRecordingActiveRef: replayController.isRecordingActiveRef,
+    recordingBufferRef: replayController.recordingBufferRef,
+    liveStateRef,
+    setSuccessMessage: replayController.setSuccessMessage,
+    setErrorMessage: replayController.setErrorMessage,
+    onSceneReset: handleSceneReset
+  });
+
+  useEffect(() => {
+    collisionIndicator.current = collisionState;
+  }, [collisionState]);
+
+  useYoloDetection({
+    liveStateRef,
+    recordingBufferRef: replayController.recordingBufferRef,
+    isRecordingActiveRef: replayController.isRecordingActiveRef,
+    getCameraCanvas: () => robotCameraRef.current?.getCanvas?.(),
+  });
 
   const handleSetReplayPositions = (positions) => {
     window.dispatchEvent(new CustomEvent('injectObjectPositions', { detail: positions }));
@@ -189,6 +262,11 @@ function V2_App() {
         topDownCameraRef={topDownCameraRef}
         robotCameraRef={robotCameraRef}
         replayPositions={replayPositions}
+        collisionState={collisionState}
+        onCollision={handleCollision}
+        onResetCollision={resetCollisionState}
+        buggyRef={buggyRef}
+        randomizerRef={randomizerRef}
       />
       <HUDView hudImage={hudImage} />
 

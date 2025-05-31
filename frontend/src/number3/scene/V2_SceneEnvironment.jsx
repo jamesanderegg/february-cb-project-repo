@@ -38,6 +38,11 @@ const SceneEnvironment = ({
   onCaptureImage,
   topDownCameraRef,
   robotCameraRef,
+  collisionState,
+  onCollision,
+  onResetCollision,
+  // buggyRef,
+  // randomizerRef
 }) => {
   const buggyRef = useRef();
   const cameraRef = useRef();
@@ -120,6 +125,8 @@ const SceneEnvironment = ({
         replayStepTriggerRef={replayStepTriggerRef}
         controlMode={controlMode}
         objectsInViewRef={objectsInViewRef}
+        collisionState={collisionState}
+        onCollision={onCollision}
       />
 
       <ObjectRandomizer

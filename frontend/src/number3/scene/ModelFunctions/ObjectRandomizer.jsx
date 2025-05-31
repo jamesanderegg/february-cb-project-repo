@@ -19,6 +19,12 @@ const ObjectRandomizer = forwardRef(
     const [isMonitoringSettlement, setIsMonitoringSettlement] = useState(false);
     const settlementDataRef = useRef({ velocities: {}, stableFrames: 0 });
 
+    ////
+    const resetObjects = () => {
+      console.log("🎲 ObjectRandomizer: Resetting objects");
+    };
+
+
     const resetEnvironment = () => {
       console.log("🔄 ObjectRandomizer: Resetting object positions...");
       console.log("ReplayPositions:", replayPositions);
@@ -40,6 +46,7 @@ const ObjectRandomizer = forwardRef(
 
     useImperativeHandle(ref, () => ({
       resetEnvironment,
+      resetObjects
     }));
 
     // Memo-ize object positions to minimize recalculations

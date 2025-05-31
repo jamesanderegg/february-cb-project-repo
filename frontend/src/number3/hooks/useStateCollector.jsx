@@ -11,7 +11,8 @@ const useStateCollector = ({
   isRecordingActiveRef = { current: false },
   frameResetRef = null,
   timerRef,
-  objectsInViewRef
+  objectsInViewRef,
+  collisionState
 }) => {
   const frameNumberRef = useRef(0);
   const keyDurationsRef = useRef({});
@@ -68,7 +69,9 @@ const useStateCollector = ({
       objectsInView: Array.isArray(objectsInViewRef?.current) && objectsInViewRef.current.length > 0
         ? [objectsInViewRef.current[0]]
         : [],
-      collision: collisionIndicator.current,
+      // collision: collisionIndicator.current,
+      collision: collisionState, // ✅ Use collision state from collision system
+      collisionJustOccurred: collisionState && !liveStateRef.current?.collision,
       target_object: liveStateRef.current?.target_object || "",
       frame_number: frameNumberRef.current,
       time_left: timerRef?.current ?? null,

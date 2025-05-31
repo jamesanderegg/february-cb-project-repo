@@ -26,7 +26,11 @@ const V2_MainCanvas = (
         topDownCameraRef,
         robotCameraRef,
         replayPositions,
-       
+        collisionState,
+        onCollision,
+        onResetCollision,
+        buggyRef,
+        randomizerRef
     }
 ) => {
 
@@ -60,7 +64,11 @@ const V2_MainCanvas = (
                     topDownCameraRef={topDownCameraRef}
                     robotCameraRef={robotCameraRef}
                     replayPositions={replayPositions}
-                    
+                    collisionState={collisionState}
+                    onCollision={onCollision}
+                    onResetCollision={onResetCollision}
+                    buggyRef={buggyRef}
+                    randomizerRef={randomizerRef}
                 />
 
             </Physics>
