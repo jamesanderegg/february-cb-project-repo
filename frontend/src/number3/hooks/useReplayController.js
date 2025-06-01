@@ -12,10 +12,10 @@ export function useReplayController(
   robotPositionRef,
   robotRotationRef,
   setControlMode,
-  modelPositionsRef, 
-  targetObject, 
+  modelPositionsRef,
+  targetObject,
   setReplayPositions,
-  setCurrentReplayTarget, 
+  setCurrentReplayTarget,
   collisionIndicatorRef
 ) {
   const [replays, setReplays] = useState([]);
@@ -63,7 +63,7 @@ export function useReplayController(
   // const handleStopRecording = (clearBuffer = false) => {
   //   console.log('⏹ Stop Recording clicked');
   //   isRecordingActiveRef.current = false;
-    
+
   //   if (clearBuffer) {
   //     recordingBufferRef.current = []; // ✅ Clear buffer
   //     setSuccessMessage('Recording stopped due to collision. Data discarded.');
@@ -78,7 +78,7 @@ export function useReplayController(
     console.log('⏹ Stop Recording clicked');
     isRecordingActiveRef.current = false;
     const framesRecorded = recordingBufferRef.current.length;
-    
+
     if (isCollisionStop) {
       // ✅ Don't clear buffer - just add collision metadata
       recordingBufferRef.current.push({
@@ -317,14 +317,14 @@ export function useReplayController(
     socket.on('replay_data', ({ frames, object_data }) => {
       console.log(`📥 Received ${frames.length} replay frames`);
       replayFrameQueue.current = frames;
-      
+
       if (object_data && object_data.objects) {
         console.log('🗂️ Repositioning objects for replay:', object_data);
 
         // Inject into live state for RobotStatePanel or any UI depending on it
-        liveStateRef.current.targetObject = object_data.target;
-        console.log('🎯 Target object for replay:', object_data.target);
-        
+        // liveStateRef.current.targetObject = object_data.target;
+        // console.log('🎯 Target object for replay:', object_data.target);
+
         // Dispatch repositioning event
         window.dispatchEvent(new CustomEvent('repositionObjects', {
           detail: {
@@ -332,16 +332,16 @@ export function useReplayController(
             target: object_data.target
           }
         }));
-        
+
         // Listen for settlement notification (fired by ObjectRandomizer)
         const handleSettlement = () => {
           console.log('✅ Objects settled, starting replay...');
           startReplayPlayback();
           window.removeEventListener('objectsSettled', handleSettlement);
         };
-        
+
         window.addEventListener('objectsSettled', handleSettlement);
-        
+
       } else {
         startReplayPlayback();
       }
@@ -352,10 +352,10 @@ export function useReplayController(
 
   useEffect(() => {
     const interval = setInterval(() => {
-    //    console.log("👀 Monitoring:", {
-    //   recording: isRecordingActiveRef.current,
-    //   collision: collisionIndicatorRef?.current
-    // });
+      //    console.log("👀 Monitoring:", {
+      //   recording: isRecordingActiveRef.current,
+      //   collision: collisionIndicatorRef?.current
+      // });
       if (isRecordingActiveRef.current && collisionIndicatorRef?.current === true) {
         console.log("💥 Collision during recording — stopping...");
         handleStopRecording(true);
