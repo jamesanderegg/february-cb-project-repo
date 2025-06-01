@@ -43,6 +43,7 @@ export function useReplayController(
 
   const handleStartRecording = () => {
     console.log('🔁 Resetting scene before recording...');
+    
     window.dispatchEvent(new CustomEvent('sceneReset'));
     setTimeout(() => {
       console.log('🔴 Start Recording clicked');
@@ -115,6 +116,13 @@ export function useReplayController(
   const handleStartReplay = () => {
     if (selectedReplay) {
       console.log(`▶️ Requesting replay: ${selectedReplay}`);
+      
+      if (isRecordingActiveRef.current) {
+        console.log('🛑 Stopping active recording to start replay');
+        isRecordingActiveRef.current = false;
+        setSuccessMessage('Recording stopped - starting replay');
+      }
+
       socket.emit('start_replay', { filename: selectedReplay });
 
       // ✅ Load .obj.json file
@@ -322,7 +330,7 @@ export function useReplayController(
         console.log('🗂️ Repositioning objects for replay:', object_data);
 
         // Inject into live state for RobotStatePanel or any UI depending on it
-        // liveStateRef.current.targetObject = object_data.target;
+        liveStateRef.current.targetObject = object_data.target;
         // console.log('🎯 Target object for replay:', object_data.target);
 
         // Dispatch repositioning event
