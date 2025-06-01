@@ -4,7 +4,7 @@ export function useSceneReset({
   // Direct component refs (managed at SceneEnvironment level)
   buggyRef,
   randomizerRef,
-  
+
   // State and tracking refs
   timerRef,
   frameResetRef,
@@ -14,19 +14,19 @@ export function useSceneReset({
   collisionIndicator,
   isRecordingActiveRef,
   liveStateRef,
-  
+
   // Callbacks for external coordination
   onResetStart = () => {},
   onResetComplete = () => {}
 }) {
   const lastResetTimeRef = useRef(0);
 
-  const executeSceneReset = () => {
+  const executeSceneReset = (suppressObjectReset = false) => {
     console.log("🔄 Scene Reset: Starting coordination...");
     onResetStart();
 
     // === IMMEDIATE CLEANUP ===
-    
+
     // Stop any active recording
     if (isRecordingActiveRef?.current) {
       console.log("🛑 Scene Reset: Stopping active recording");
@@ -41,11 +41,6 @@ export function useSceneReset({
       currentActionRef.current = [];
     }
 
-    // // Clear recording buffer
-    // if (recordingBufferRef?.current) {
-    //   recordingBufferRef.current = [];
-    // }
-
     // Clear collision state
     if (collisionIndicator?.current !== undefined) {
       collisionIndicator.current = false;
@@ -53,13 +48,13 @@ export function useSceneReset({
 
     // === DISPATCH COMPONENT-SPECIFIC RESET EVENTS ===
     console.log("📡 Scene Reset: Dispatching component reset events...");
-    
-    // Timer reset event
+
+    // Timer reset
     window.dispatchEvent(new CustomEvent('timerReset', {
       detail: { resetValue: 350 }
     }));
 
-    // Buggy reset event
+    // Buggy reset
     window.dispatchEvent(new CustomEvent('buggyReset', {
       detail: { 
         position: [7, 0.1, 15],
@@ -67,32 +62,33 @@ export function useSceneReset({
       }
     }));
 
-    // Objects reset event
-    window.dispatchEvent(new CustomEvent('objectsReset', {
-      detail: { regenerate: true }
-    }));
+    // ✅ Skip object reset if suppressObjectReset is true
+    if (!suppressObjectReset) {
+      window.dispatchEvent(new CustomEvent('objectsReset', {
+        detail: { regenerate: true }
+      }));
+    }
 
-    // State tracking reset event
+    // State tracking
     window.dispatchEvent(new CustomEvent('stateReset', {
       detail: { frameNumber: 0 }
     }));
 
-    // === COMPLETION ===
+    // Completion
     console.log("✅ Scene Reset: Coordination complete");
-    
-    // Dispatch completion event for external listeners
+
     window.dispatchEvent(new CustomEvent('sceneResetComplete'));
     onResetComplete();
   };
 
   const handleCollisionReset = (event) => {
     const now = Date.now();
-    if (now - lastResetTimeRef.current < 1500) return; // Collision cooldown
+    if (now - lastResetTimeRef.current < 1500) return; // Cooldown
     lastResetTimeRef.current = now;
 
     const collidedWith = event.detail?.collidedWith || 'unknown';
     console.log("🚨 Collision Reset: Triggered by collision with", collidedWith);
-    
+
     // Handle collision-specific recording logic
     if (isRecordingActiveRef?.current && liveStateRef?.current) {
       const lastFrame = { ...liveStateRef.current, collision: true };
@@ -109,17 +105,15 @@ export function useSceneReset({
       detail: { collidedWith, frameNumber: liveStateRef?.current?.frame_number }
     }));
 
-    executeSceneReset();
+    executeSceneReset(true); // ✅ suppressObjectReset = true for collisions
   };
 
   useEffect(() => {
-    // Listen for main scene reset trigger
     const handleSceneReset = () => {
       console.log("📨 Scene Reset: Received sceneReset event");
-      executeSceneReset();
+      executeSceneReset(); // Default full reset
     };
-    
-    // Listen for collision events
+
     const handleCollision = (event) => {
       console.log("📨 Scene Reset: Received robotCollision event");
       handleCollisionReset(event);
@@ -138,10 +132,7 @@ export function useSceneReset({
   }, []);
 
   return {
-    // Expose methods for direct triggering (if needed)
     triggerReset: executeSceneReset,
-    
-    // Expose state for debugging
     lastResetTime: lastResetTimeRef.current,
   };
 }
