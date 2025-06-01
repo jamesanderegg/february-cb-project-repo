@@ -189,6 +189,7 @@ function V2_App() {
         topDownCameraRef={topDownCameraRef}
         robotCameraRef={robotCameraRef}
         replayPositions={replayPositions}
+        handleStopRecording ={replayController.handleStopRecording}
       />
       <HUDView hudImage={hudImage} />
 

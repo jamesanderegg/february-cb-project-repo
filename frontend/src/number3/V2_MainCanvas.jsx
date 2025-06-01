@@ -26,7 +26,7 @@ const V2_MainCanvas = (
         topDownCameraRef,
         robotCameraRef,
         replayPositions,
-       
+       handleStopRecording 
     }
 ) => {
 
@@ -60,7 +60,7 @@ const V2_MainCanvas = (
                     topDownCameraRef={topDownCameraRef}
                     robotCameraRef={robotCameraRef}
                     replayPositions={replayPositions}
-                    
+                    handleStopRecording ={handleStopRecording}
                 />
 
             </Physics>

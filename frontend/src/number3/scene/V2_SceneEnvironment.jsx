@@ -38,6 +38,7 @@ const SceneEnvironment = ({
   onCaptureImage,
   topDownCameraRef,
   robotCameraRef,
+  handleStopRecording 
 }) => {
   const buggyRef = useRef();
   const cameraRef = useRef();
@@ -54,7 +55,12 @@ const SceneEnvironment = ({
     controlModeRef.current = controlMode;
   }, [controlMode]);
 
-  useManualKeyboardControls(keysPressed, controlModeRef);
+  useManualKeyboardControls(keysPressed, controlModeRef, {
+  liveStateRef,
+  recordingBufferRef,
+  handleStopRecording
+});
+
   useCountdownTimer(timerRef);
 
   useSceneReset({
