@@ -40,3 +40,6 @@ __pycache__/
 
 # Ignore dependency directories
 node_modules/
+
+# Ignore google API credentials
+backend/credentials/googleCredentials.json
