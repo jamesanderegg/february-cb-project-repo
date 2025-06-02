@@ -42,4 +42,5 @@ __pycache__/
 node_modules/
 
 # Ignore google API credentials
-backend/credentials/googleCredentials.json
+backend/credentials/*.json
+
