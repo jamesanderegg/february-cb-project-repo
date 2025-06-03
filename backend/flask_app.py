@@ -6,11 +6,14 @@ import os
 import json
 import time
 import threading
-
 import io
-from PIL import Image
-from ultralytics import YOLO  # or your specific detection method
 
+from PIL import Image
+from ultralytics import YOLO
+
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 
 # Load environment variables
 load_dotenv()
@@ -18,16 +21,55 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "defaultsecret")
 CORS(app)
-
 socketio = SocketIO(app, cors_allowed_origins="*")
-# Load your YOLO model once
-YOLO_MODEL = YOLO("YOLO/best.pt") 
 
-# Directory for saving replays
-REPLAYS_DIR = "replays"
-os.makedirs(REPLAYS_DIR, exist_ok=True)
+# YOLO model
+YOLO_MODEL = YOLO("YOLO/best.pt")
 
-# Global variables to manage replay state
+# Google Drive setup
+SERVICE_ACCOUNT_FILE = 'credentials/googleCredentials.json'
+SCOPES = ['https://www.googleapis.com/auth/drive']
+DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID", None)
+
+def get_drive_service():
+    creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    return build('drive', 'v3', credentials=creds)
+
+def upload_to_drive(filename, json_data):
+    drive_service = get_drive_service()
+    file_metadata = {
+        'name': filename,
+        'mimeType': 'application/json'
+    }
+    if DRIVE_FOLDER_ID:
+        file_metadata['parents'] = [DRIVE_FOLDER_ID]
+
+    memfile = io.BytesIO(json.dumps(json_data).encode('utf-8'))
+    media = MediaIoBaseUpload(memfile, mimetype='application/json')
+    uploaded = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    return uploaded
+
+def download_from_drive(filename):
+    drive_service = get_drive_service()
+    results = drive_service.files().list(q=f"name='{filename}'", fields="files(id, name)").execute()
+    files = results.get("files", [])
+
+    if not files:
+        raise FileNotFoundError(f"{filename} not found in Google Drive")
+
+    file_id = files[0]['id']
+    request = drive_service.files().get_media(fileId=file_id)
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+
+    fh.seek(0)
+    return json.load(fh)
+
+# === Replay State ===
 current_replay = None
 replay_thread = None
 replay_running = False
@@ -44,10 +86,16 @@ def on_connect():
 @socketio.on('disconnect')
 def on_disconnect():
     print("Client disconnected")
-    # Make sure to stop any ongoing replay when client disconnects
     stop_replay_thread()
 
-# ✅ Save a replay to disk
+def stop_replay_thread():
+    global replay_running, replay_thread
+    if replay_thread and replay_thread.is_alive():
+        replay_running = False
+        replay_thread.join(timeout=1.0)
+        print("Replay stopped")
+    replay_thread = None
+
 @app.route('/save_replay', methods=['POST'])
 def save_replay():
     content = request.get_json()
@@ -57,72 +105,47 @@ def save_replay():
     if not filename or not data:
         return jsonify({"status": "error", "message": "Missing filename or data"}), 400
 
-    filepath = os.path.join(REPLAYS_DIR, filename)
     try:
-        with open(filepath, "w") as f:
-            json.dump(data, f)
-        return jsonify({"status": "success", "filename": filename})
+        uploaded = upload_to_drive(filename, data)
+        return jsonify({"status": "success", "file_id": uploaded['id']})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# ✅ List all replay filenames
 @app.route('/list_replays', methods=['GET'])
 def list_replays():
     try:
-        files = [
-            f for f in os.listdir(REPLAYS_DIR)
-            if f.endswith('.json') and not f.endswith('.obj.json')
-        ]
+        drive_service = get_drive_service()
+        query = f"'{DRIVE_FOLDER_ID}' in parents" if DRIVE_FOLDER_ID else "mimeType='application/json'"
+        results = drive_service.files().list(q=query, fields="files(name)").execute()
+        files = [f["name"] for f in results.get('files', []) if f["name"].endswith(".json") and not f["name"].endswith(".obj.json")]
         return jsonify({"replays": files})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# Stop any running replay thread
-def stop_replay_thread():
-    global replay_running, replay_thread
-    
-    if replay_thread and replay_thread.is_alive():
-        replay_running = False
-        replay_thread.join(timeout=1.0)
-        print("Replay stopped")
-    
-    replay_thread = None
-
-# ✅ Socket handler for starting a replay
 @socketio.on('start_replay')
-def handle_start_replay(data):  # Changed function name and added data parameter
+def handle_start_replay(data):
     print("Socket start_replay received!")
-    filename = data.get('filename')  # Changed from request.json to data
-    
+    filename = data.get('filename')
+
     if not filename:
         emit('replay_status', {'status': 'error', 'message': 'No filename provided'})
         return
 
-    # Load the main replay file
-    filepath = os.path.join(REPLAYS_DIR, filename)  # Use REPLAYS_DIR instead of replay_memory.save_dir
-    if not os.path.exists(filepath):
-        emit('replay_status', {'status': 'error', 'message': 'File not found'})
-        return
-
     try:
-        with open(filepath, 'r') as f:
-            replay_data = json.load(f)
+        replay_data = download_from_drive(filename)
 
-        # Load the matching .obj.json file
-        base_name = os.path.splitext(filename)[0]
-        object_file = os.path.join(REPLAYS_DIR, f"{base_name}.obj.json")
         object_data = None
+        base_name = os.path.splitext(filename)[0]
+        obj_filename = f"{base_name}.obj.json"
 
         try:
-            with open(object_file, 'r') as f:
-                object_data = json.load(f)
-                print(f"📦 Loaded object positions from {object_file}")
+            object_data = download_from_drive(obj_filename)
+            print(f"📦 Loaded object positions from {obj_filename}")
         except FileNotFoundError:
             print(f"⚠️ No object file found for {filename}")
         except Exception as e:
             print(f"❌ Error reading object file: {str(e)}")
 
-        # Emit replay data with object positions
         emit('replay_data', {
             'frames': replay_data,
             'object_data': object_data
@@ -131,32 +154,12 @@ def handle_start_replay(data):  # Changed function name and added data parameter
     except Exception as e:
         emit('replay_status', {'status': 'error', 'message': str(e)})
 
-@app.route('/replays/<filename>', methods=['GET'])
-def get_object_metadata(filename):
-    if not filename.endswith('.obj.json'):
-        return jsonify({"status": "error", "message": "Invalid object metadata file requested"}), 400
-
-    filepath = os.path.join(REPLAYS_DIR, filename)
-    if not os.path.exists(filepath):
-        return jsonify({"status": "error", "message": "Object metadata file not found"}), 404
-
-    try:
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return jsonify(data)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-# ✅ Socket handler for stopping a replay
 @socketio.on('stop_replay')
 def handle_stop_replay():
     global current_replay
-    
     replay_name = current_replay
     stop_replay_thread()
     current_replay = None
-    
     emit('replay_status', {'status': 'stopped', 'filename': replay_name})
     print(f"Stopped replay: {replay_name}")
 
@@ -169,9 +172,7 @@ def yolo_predict():
     image_bytes = file.read()
 
     try:
-        # print("📥 YOLO image received")
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-
         results = YOLO_MODEL(image)
 
         detected_labels = []
@@ -188,12 +189,24 @@ def yolo_predict():
                     except Exception as e:
                         print("⚠️ Box parse error:", e)
 
-        # print("✅ Detected:", detected_labels)
         return jsonify({'detectedObjects': detected_labels})
 
     except Exception as e:
         print("❌ YOLO processing failed:", str(e))
         return jsonify({'error': str(e)}), 500
+
+@app.route('/replays/<filename>', methods=['GET'])
+def get_object_metadata(filename):
+    if not filename.endswith('.obj.json'):
+        return jsonify({"status": "error", "message": "Invalid object metadata file requested"}), 400
+
+    try:
+        data = download_from_drive(filename)
+        return jsonify(data)
+    except FileNotFoundError:
+        return jsonify({"status": "error", "message": "Object metadata file not found"}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 if __name__ == "__main__":

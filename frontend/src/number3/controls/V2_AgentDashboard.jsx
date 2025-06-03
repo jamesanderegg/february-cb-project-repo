@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/AgentDashboard.css';
+import AgentControlPanel from './V2_AgentControlPanel.jsx';
 
 const AgentDashboard = ({
   isConnected = false,
@@ -38,9 +39,6 @@ const AgentDashboard = ({
     } else if (forcedTab) {
       setActiveTab(forcedTab);
     }
-    // else {
-    //   setActiveTab('status');
-    // }
   }, [isConnected, onFetchReplays]);
 
   const [, forceUpdate] = useState(0);
@@ -55,8 +53,7 @@ const AgentDashboard = ({
       <div className="dashboard-section status-row">
         <div className="status-indicator">
           <span
-            className={`status-dot ${isConnected ? "connected" : "disconnected"
-              }`}
+            className={`status-dot ${isConnected ? "connected" : "disconnected"}`}
           />
           {isConnected ? "Connected" : "Disconnected"}
         </div>
@@ -77,7 +74,6 @@ const AgentDashboard = ({
         )}
       </div>
 
-      {/* Control Mode Selector */}
       {isConnected && activeTab !== "status" && (
         <div className="control-mode-selector">
           <label>Control Mode:</label>
@@ -93,43 +89,30 @@ const AgentDashboard = ({
         </div>
       )}
 
-      {/* Tab Toggle */}
       {!forcedTab && (
         <div className="dashboard-tabs">
           <div
-            className={`dashboard-tab ${activeTab === "replay" ? "active" : ""
-              } ${!isConnected ? "disabled" : ""}`}
+            className={`dashboard-tab ${activeTab === "replay" ? "active" : ""} ${!isConnected ? "disabled" : ""}`}
             onClick={() => isConnected && setActiveTab("replay")}
             title={!isConnected ? "Connect to unlock" : ""}
           >
             Replay
           </div>
           <div
-            className={`dashboard-tab ${activeTab === "train" ? "active" : ""
-              } ${!isConnected ? "disabled" : ""}`}
+            className={`dashboard-tab ${activeTab === "train" ? "active" : ""} ${!isConnected ? "disabled" : ""}`}
             onClick={() => isConnected && setActiveTab("train")}
             title={!isConnected ? "Connect to unlock" : ""}
           >
             Train
           </div>
-          {/* <div
-            className={`dashboard-tab ${activeTab === 'status' ? 'active' : ''}`}
-            onClick={() => setActiveTab('status')}
-          >
-            Status
-          </div> */}
         </div>
       )}
 
-      {/* Tab Content */}
       <div className="tab-content">
         {activeTab === "replay" && (
           <div className="replay-tab">
             {(errorMessage || successMessage) && (
-              <div
-                className={`dashboard-message ${errorMessage ? "error" : "success"
-                  }`}
-              >
+              <div className={`dashboard-message ${errorMessage ? "error" : "success"}`}>
                 {errorMessage || successMessage}
               </div>
             )}
@@ -154,14 +137,7 @@ const AgentDashboard = ({
               ))}
             </select>
 
-            <div
-              style={{
-                marginTop: "8px",
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "8px",
-              }}
-            >
+            <div style={{ marginTop: "8px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
               <button
                 className="record-button"
                 onClick={onStartReplay}
@@ -180,10 +156,10 @@ const AgentDashboard = ({
 
             <div style={{ marginTop: "8px" }}>
               {isRecordingActiveRef.current && (
-  <div style={{ color: 'white', fontSize: 'small', marginBottom: '4px' }}>
-    🔴 Recording
-  </div>
-)}
+                <div style={{ color: 'white', fontSize: 'small', marginBottom: '4px' }}>
+                  🔴 Recording
+                </div>
+              )}
 
               <button
                 className="record-button"
@@ -218,7 +194,7 @@ const AgentDashboard = ({
 
         {activeTab === "train" && (
           <div className="train-tab">
-            <p>Training controls go here.</p>
+            <AgentControlPanel />
           </div>
         )}
       </div>
